@@ -2,7 +2,7 @@
 
 A side-scrolling zombie shooter. You're a regular civilian with a shotgun and the zombies are coming.
 Blast them, grab the coins they drop, find the coins hidden around each map, and buy bigger guns in the shop.
-Ammo never runs out.
+Ammo never runs out. (made by a 9 year old with Claude Code)
 
 ## Play it
 

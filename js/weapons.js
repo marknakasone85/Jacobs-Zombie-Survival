@@ -37,7 +37,7 @@ const WEAPONS = [
   { id: 'laser', name: 'Laser Cannon', price: 1000, desc: 'Zaps a beam through EVERY zombie in a line.',
     cd: 0.32, pellets: 1, spread: 0, speed: 0, dmg: 55, life: 0, range: 950, knock: 120, pierce: 999, kind: 'laser', shake: 3, sfx: 'laser', len: 35, grip: 14, bounds: [-12, 38, -11, 10] },
 ];
-const WMAP = Object.fromEntries(WEAPONS.map(w => [w.id, w]));
+const WMAP = Object.assign(Object.create(null), Object.fromEntries(WEAPONS.map(w => [w.id, w])));   // only real guns: names like "constructor" from a friend's device find nothing
 const wRange = w => (w.kind === 'laser' ? w.range : w.kind === 'melee' ? w.reach : w.speed * w.life);
 
 // Draws a gun pointing right, with the shooting hand at (0, 0).

@@ -6,6 +6,11 @@ Security choices:
   * Only the game itself is served: /index.html, /css/... and /js/...
     Everything else (hidden files, the .git backup history, settings, README,
     scripts) answers "404 Not Found", and folders are never listed.
+    Addresses are decoded once and anything still encoded after that (like
+    %252e%252e, a hidden ".." that a second decoding would reveal) is refused.
+  * Only answers when the browser used an IP address or a home-network name
+    (localhost, *.local, ...), so a website can't reach the game by pointing its
+    own name at this computer ("DNS rebinding").
   * Files are read-only: nothing anyone sends is ever written to disk.
   * Co-op relay (/net/...):
       - only the person sitting at THIS computer can host a game (localhost only)
@@ -23,6 +28,7 @@ Usage:  python3 tools/share_server.py [--port 8010] [--hours 3] [--local]
 import argparse
 import collections
 import http.server
+import ipaddress
 import json
 import os
 import posixpath
@@ -33,8 +39,9 @@ import threading
 import time
 import urllib.parse
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOWED_PREFIXES = ("/css/", "/js/")
+HOME_NAMES = (".localhost", ".local", ".lan", ".home", ".home.arpa")   # names only a home network uses
 MAX_BODY = 256 * 1024       # biggest message accepted (bytes)
 MAX_PLAYERS = 4             # host + 3 guests
 WRONG_CODE_LIMIT = 8        # wrong join codes before a lockout
@@ -55,6 +62,38 @@ def allowed(path):
         return False
     # no hidden files or folders anywhere in the path
     return not any(part.startswith(".") for part in path.split("/") if part)
+
+
+def game_file(raw_path):
+    """The file on disk for a web address, or None if it isn't one of the game's files."""
+    path = posixpath.normpath(urllib.parse.unquote(raw_path))  # collapses any "../"
+    if path in ("/", "."):
+        path = "/index.html"
+    # Decode only once. Anything still encoded is a trick address, like %252e%252e for "..".
+    if any(ch in path for ch in "%\\\0") or not allowed(path):
+        return None, None
+    full = os.path.realpath(os.path.join(ROOT, *[p for p in path.split("/") if p]))
+    if not full.startswith(ROOT + os.sep) or not os.path.isfile(full):
+        return None, None
+    return path, full
+
+
+def host_ok(host):
+    """True if the browser reached us by an IP address or a home-network name."""
+    host = (host or "").strip().lower()
+    if host.startswith("["):                      # IPv6, like [::1]:8010
+        name = host[1:host.find("]")] if "]" in host else ""
+    else:
+        name = host.rsplit(":", 1)[0]
+    if not name:
+        return False
+    if name == "localhost" or name.endswith(HOME_NAMES):
+        return True
+    try:
+        ipaddress.ip_address(name)
+        return True
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------- co-op relay
@@ -146,12 +185,8 @@ class GameOnlyHandler(http.server.SimpleHTTPRequestHandler):
 
     # ---------- static files (whitelisted, read-only) ----------
     def send_head(self):
-        raw = urllib.parse.urlsplit(self.path).path
-        path = posixpath.normpath(urllib.parse.unquote(raw))  # collapses any "../"
-        if path in ("/", "."):
-            path = "/index.html"
-        full = self.translate_path(path)
-        if not allowed(path) or not os.path.isfile(full):
+        path, full = game_file(urllib.parse.urlsplit(self.path).path)
+        if not path or self.translate_path(path) != full:
             self.send_error(404, "Not Found")
             return None
         self.path = path
@@ -186,13 +221,28 @@ class GameOnlyHandler(http.server.SimpleHTTPRequestHandler):
         token = (self.query().get("token") or [""])[0]
         return ROOM.by_token(token) if ROOM else None
 
+    def wrong_address(self):
+        if host_ok(self.headers.get("Host")):
+            return False
+        self.send_error(403, "Open the game with the address shown in the sharing window")
+        return True
+
     # ---------- relay endpoints ----------
     def do_GET(self):
+        if self.wrong_address():
+            return
         if urllib.parse.urlsplit(self.path).path == "/net/events":
             return self.events()
         return super().do_GET()
 
+    def do_HEAD(self):
+        if self.wrong_address():
+            return
+        return super().do_HEAD()
+
     def do_POST(self):
+        if self.wrong_address():
+            return
         path = urllib.parse.urlsplit(self.path).path
         if not path.startswith("/net/"):
             return self.json_reply(405, {"error": "Not allowed"})

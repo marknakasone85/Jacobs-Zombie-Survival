@@ -111,11 +111,11 @@ If one player goes down, they pop back in next to their friend after 6 seconds. 
 
 Everyone plays on their own computer, tablet or phone, on the same home Wi-Fi. Up to 4 players fight the waves and the whole campaign together.
 
-1. **On the host computer** (the one with the game folder): double-click **`share-on-network.command`**. A window opens with an address like `http://<wifi-network-address>:8010`. Keep it open while you play.
+1. **On the host computer** (the one with the game folder): double-click **`share-on-network.command`**. A window opens with this computer's Wi-Fi address, like `http://<wifi-network-address>:8010`. Keep it open while you play.
    - The first time, macOS may ask whether Python can accept incoming network connections. Click **Allow**, or nobody else can connect.
 2. **Host:** open **http://localhost:8010** on that computer, press **WI-FI**, then **HOST A GAME**. A 4-number **join code** appears.
    - Host in **one window only**. If you press HOST A GAME in a second window, the first one stops (it says so), and friends need the new code.
-3. **Everyone else:** open the address from the sharing window (like `http://<wifi-network-address>:8010`) in a web browser, press **WI-FI**, type the code and press **JOIN**. (Other devices only see JOIN: hosting only works on the sharing computer.)
+3. **Everyone else:** open the address from the sharing window (it looks like `http://<wifi-network-address>:8010`) in a web browser, press **WI-FI**, type the code and press **JOIN**. (Other devices only see JOIN: hosting only works on the sharing computer.)
    - **Phones:** use Safari on an iPhone (Chrome on an iPhone has to be allowed "Local Network" in the iPhone's Settings first). Turn the phone sideways.
 4. The host picks a level and everyone plays together on one shared screen. Friends can join in the middle of a level too.
    - More players means more zombies in every wave, so 4 friends still get a real fight.
@@ -129,7 +129,7 @@ Everyone plays on their own computer, tablet or phone, on the same home Wi-Fi. U
 
 How it works: the host's computer runs the real game. The others send their button presses and draw what the host sends back, about 25 updates a second, roughly 1-4 KB each. The host's game keeps running even if its window is hidden or in a background tab.
 
-Security: only the game files are shared, read-only. Only the host's own computer can start a game, joining needs the code, a device that types too many wrong codes is locked out for a minute, and other websites can't talk to the game. It's home-network only and switches itself off after 3 hours. Only use it on your own home Wi-Fi, not public Wi-Fi.
+Security: only the game files are shared, read-only. Only the host's own computer can start a game, joining needs the code, a device that types too many wrong codes is locked out for a minute, other websites can't talk to the game, and trick web addresses can't reach any other file. It's home-network only and switches itself off after 3 hours. Only use it on your own home Wi-Fi, not public Wi-Fi.
 
 ## Adding a level
 

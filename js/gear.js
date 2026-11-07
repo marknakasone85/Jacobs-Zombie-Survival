@@ -13,7 +13,7 @@ const ARMORS = [
   { id: 'military', name: 'Full Military', price: 480, armor: 120, desc: 'Combat helmet, camo and a heavy vest full of pouches. 120 armor every wave.' },
   { id: 'space', name: 'Space Suit', price: 950, armor: 250, desc: 'A crazy shiny space suit with a glass bubble helmet. Zombie teeth bounce right off! 250 armor.' },
 ];
-const ARMOR_MAP = Object.fromEntries(ARMORS.map(a => [a.id, a]));
+const ARMOR_MAP = Object.assign(Object.create(null), Object.fromEntries(ARMORS.map(a => [a.id, a])));   // only real armor sets (see WMAP)
 const ARMOR_IDS = ARMORS.map(a => a.id);
 const HEALTH_BOOSTS = [   // buy them in order
   { price: 500, maxHp: 200, name: 'Double Health' },

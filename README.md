@@ -6,6 +6,8 @@ Ammo never runs out. (made by a 9 year old with Claude Code)
 
 ## Play it
 
+**Play online:** https://marknakasone85.github.io/Jacobs-Zombie-Survival/ (1 or 2 players on one device, on any computer, tablet or phone).
+
 Double-click `index.html`. There's nothing to install. Every picture and sound is made in code.
 
 It's also a Claude Artifact, a web page you can open anywhere:

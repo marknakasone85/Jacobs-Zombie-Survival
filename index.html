@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Zombie Survival</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Creepster&family=Rubik:wght@500;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- Phones held upright: the game needs the phone turned sideways -->
+<div id="rotate"><div><div class="rotphone"></div>Turn your phone sideways to play!</div></div>
+
+<!-- Buttons for tablets (only shown on touch screens) -->
+<div id="touch">
+  <button class="tb t-left" data-k="left">◀</button>
+  <button class="tb t-right" data-k="right">▶</button>
+  <button class="tb t-down" data-k="down">▼</button>
+  <button class="tb t-swap" data-k="swap">⇄</button>
+  <button class="tb t-jump" data-k="jump">JUMP</button>
+  <button class="tb t-fire" data-k="fire">FIRE</button>
+  <button class="tb t-pause" data-k="pause">II</button>
+</div>
+
+<div class="overlay" id="title">
+  <div class="panel">
+    <h1>Zombie Survival</h1>
+    <p class="lead">You're a regular civilian with a shotgun, and the zombies are coming. Blast them, grab their coins, find the coins hidden around the map, and buy bigger guns in the shop. Ammo never runs out!</p>
+    <div class="mode" id="modeRow"><button data-n="1">1 PLAYER</button><button data-n="2">2 PLAYERS</button><button data-n="net">WI-FI</button></div>
+    <div id="localBox">
+      <div class="controls" id="controls"></div>
+      <div class="wallets" id="wallets"></div>
+      <div class="levels" id="levelList"></div>
+      <div class="row"><button class="btn gold" id="tShopBtn">GUN SHOP</button></div>
+      <button class="link" id="resetBtn">Reset progress</button>
+    </div>
+    <div id="netBox" style="display:none">
+      <p class="lead">Play together on different computers or tablets on the same Wi-Fi, up to 4 players. Everyone keeps their own coins and guns, and you shop together between waves.</p>
+      <div class="netcols">
+        <div class="netcol" id="hostCol">
+          <h3>Host a game</h3>
+          <p>On the computer that is sharing the game. You'll get a join code to tell your friends.</p>
+          <button class="btn" id="hostBtn">HOST A GAME</button>
+        </div>
+        <div class="netcol">
+          <h3>Join a game</h3>
+          <p>Type the 4-number code from the host's screen.</p>
+          <p class="hostnote" id="hostNote">Hosting only works on the computer that is sharing the game. On this device you join.</p>
+          <div class="joinrow"><input id="joinCode" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="1234" aria-label="Join code"><button class="btn gold" id="joinBtn">JOIN</button></div>
+        </div>
+      </div>
+      <p class="neterr" id="netErr"></p>
+      <p class="nethelp" id="netHelp">To play on Wi-Fi, double-click <b>share-on-network.command</b> in the game's folder first. Then everyone opens the address it shows (like http://<wifi-network-address>:8010) in their web browser. The host opens <b>http://localhost:8010</b> on the sharing computer.</p>
+      <div class="wallets" id="netWallet"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="lobby">
+  <div class="panel">
+    <h2>Wi-Fi Game</h2>
+    <div id="lobbyHost">
+      <div class="joincode">JOIN CODE <b id="lCode">----</b></div>
+      <p class="lead">Friends: open <b id="lAddr"></b> in your web browser, press <b>WI-FI</b>, then type the code and press <b>JOIN</b>.</p>
+    </div>
+    <div id="lobbyGuest">
+      <p class="lead">You're in! The host picks the level and starts the game. (Code <b id="lGuestCode"></b>)</p>
+    </div>
+    <div class="lplayers" id="lPlayers"></div>
+    <div class="levels" id="lLevels"></div>
+    <div class="row"><button class="btn alt" id="lLeave">LEAVE</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="netmenu">
+  <div class="panel small">
+    <h2>Menu</h2>
+    <p class="lead">The game keeps going for everyone while this is open!</p>
+    <div class="row"><button class="btn" id="nmBack">BACK TO GAME</button><button class="btn alt" id="nmLobby">BACK TO LOBBY</button><button class="btn alt" id="nmEnd">END WI-FI GAME</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="shop">
+  <div class="panel wide">
+    <div class="shophead">
+      <div><h2>Gun Shop</h2><div class="sub" id="shopSub"></div></div>
+      <div class="wallets" id="shopWallets"></div>
+    </div>
+    <div class="grid" id="shopGrid"></div>
+    <div class="row"><button class="btn" id="startBtn">START</button><button class="btn gold" id="readyBtn" style="display:none">I'M READY</button><button class="btn alt" id="shopMenuBtn">MAIN MENU</button></div>
+    <p class="sub" id="shopNote"></p>
+  </div>
+</div>
+
+<div class="overlay" id="pause">
+  <div class="panel small">
+    <h2>Paused</h2>
+    <div class="row"><button class="btn" id="resumeBtn">RESUME</button><button class="btn alt" id="restartBtn">RESTART LEVEL</button><button class="btn alt" id="quitBtn">MAIN MENU</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="over">
+  <div class="panel">
+    <h1 class="red">Game Over</h1>
+    <p class="lead" id="oLevel"></p>
+    <div class="stats3">
+      <div><b id="oWave">1</b><span>Wave reached</span></div>
+      <div><b id="oKills">0</b><span>Zombies defeated</span></div>
+      <div><b id="oCoins">0</b><span>Coins grabbed</span></div>
+    </div>
+    <p class="lead" id="oWait" style="display:none">Waiting for the host to try again...</p>
+    <div class="row"><button class="btn" id="againBtn">TRY AGAIN</button><button class="btn gold" id="oShopBtn">GUN SHOP</button></div>
+    <button class="link" id="oMenuBtn">Main menu</button>
+  </div>
+</div>
+
+<div class="overlay" id="win">
+  <div class="panel">
+    <h1>You Survived!</h1>
+    <p class="lead">You beat all 10 levels and took down every boss, even Big Grizz! More levels are coming soon.</p>
+    <div class="wallets big" id="wCoins"></div>
+    <p class="lead" id="wWait" style="display:none">The host can take everyone back to the lobby to play again.</p>
+    <div class="row"><button class="btn" id="wMenuBtn">MAIN MENU</button></div>
+  </div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/player.js"></script>
+<script src="js/gear.js"></script>
+<script src="js/zombies.js"></script>
+<script src="js/net.js"></script>
+<script src="js/netgame.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

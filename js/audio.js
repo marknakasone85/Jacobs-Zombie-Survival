@@ -9,10 +9,16 @@
 // Sounds come out of the left or right speaker depending on where they happen.
 
 const Sound = (() => {
-  let ac = null, master = null, revIn = null, echoIn = null, meter = null, noiseBuf = null, punch = null, grit = null, warmed = false;
-  const lastPlayed = {}, loops = {};
-  let voices = 0, frame = 0;
-  const VOLUME = 0.6, MAX_VOICES = 5;
+  let ac = null, master = null, comp = null, revIn = null, echoIn = null, meter = null, noiseBuf = null, punch = null, grit = null, warmed = false;
+  const lastPlayed = {}, loops = {}, recent = [];
+  let voices = 0, frame = 0, live = 0;
+  // Phones and tablets have small speakers and slower chips, so they get a lighter mix:
+  // - deep booms are filtered out before the limiter (the speaker can't play them, but the limiter
+  //   still heard them and turned everything down after every shot, so the sound "pulsed")
+  // - a shorter reverb, cheaper distortion, fewer zombie voices and fewer new sounds at once
+  const PHONE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  const VOLUME = PHONE ? 0.7 : 0.6, MAX_VOICES = PHONE ? 3 : 5;
+  const BUDGET = PHONE ? 8 : 16;   // new sounds per quarter second; when it's busy, extra zombie noises are skipped
 
   function curve(k) {
     const n = 2048, c = new Float32Array(n);
@@ -35,13 +41,17 @@ const Sound = (() => {
     }
     try {
       ac = new (window.AudioContext || window.webkitAudioContext)();
-      const comp = ac.createDynamicsCompressor();   // keeps big explosions from crackling
-      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; comp.attack.value = 0.002; comp.release.value = 0.2;
+      comp = ac.createDynamicsCompressor();   // keeps big explosions from crackling
+      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; comp.attack.value = 0.002; comp.release.value = PHONE ? 0.12 : 0.2;
       master = ac.createGain(); master.gain.value = save.muted ? 0 : VOLUME;
       meter = ac.createAnalyser(); meter.fftSize = 1024;
-      master.connect(comp); comp.connect(meter); meter.connect(ac.destination);
-      const rev = ac.createConvolver(); rev.buffer = impulse(2.2, 3);   // a big outdoor space
-      revIn = ac.createGain(); revIn.gain.value = 0.5; revIn.connect(rev); rev.connect(master);
+      if (PHONE) {   // no deep booms on phones (see the note at the top)
+        const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 120; hp.Q.value = 0.7;
+        master.connect(hp); hp.connect(comp);
+      } else master.connect(comp);
+      comp.connect(meter); meter.connect(ac.destination);
+      const rev = ac.createConvolver(); rev.buffer = impulse(PHONE ? 1.1 : 2.2, 3);   // a big outdoor space
+      revIn = ac.createGain(); revIn.gain.value = PHONE ? 0.35 : 0.5; revIn.connect(rev); rev.connect(master);
       echoIn = ac.createGain();                                         // echo off the buildings
       const dl = ac.createDelay(1), fb = ac.createGain(), lp = ac.createBiquadFilter();
       dl.delayTime.value = 0.26; fb.gain.value = 0.32; lp.type = 'lowpass'; lp.frequency.value = 1800;
@@ -57,6 +67,13 @@ const Sound = (() => {
     if (m) for (const k in loops) stopLoop(k);
   }
   const ready = () => ac && !save.muted && ac.state !== 'closed';
+  // Too many sounds starting at once? Important ones (guns, the HUD) always play; extras wait their turn.
+  function busy(important) {
+    const now = performance.now();
+    while (recent.length && now - recent[0] > 250) recent.shift();
+    if (!important && recent.length >= BUDGET) return true;
+    recent.push(now); return false;
+  }
   function limited(name, ms) {
     const now = performance.now();
     if (lastPlayed[name] && now - lastPlayed[name] < ms) return true;
@@ -70,16 +87,22 @@ const Sound = (() => {
     const rel = x - (G.camX + W / 2), off = Math.max(0, Math.abs(rel) - W / 2);
     return { pan: clamp(rel / (W / 2), -1, 1) * 0.8, vol: clamp(1 - off / 700, 0.12, 1) };
   }
-  function bus(x, vol = 1, wet = 0.25, echo = 0) {
+  // Every sound gets its own little mixer. It is unplugged once the sound is over (life seconds, longer than
+  // any sound), or the phone keeps them all and slows down as the fight goes on. Loops unplug it themselves.
+  function bus(x, vol = 1, wet = 0.25, echo = 0, life = 3.5) {
     const w = where(x), g = ac.createGain(); g.gain.value = vol * w.vol;
     let out = g;
-    if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = w.pan; g.connect(p); out = p; }
+    const parts = [g];
+    if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = w.pan; g.connect(p); out = p; parts.push(p); }
     out.connect(master);
-    if (wet) { const s = ac.createGain(); s.gain.value = wet; out.connect(s); s.connect(revIn); }
-    if (echo) { const s = ac.createGain(); s.gain.value = echo; out.connect(s); s.connect(echoIn); }
+    if (wet) { const s = ac.createGain(); s.gain.value = wet; out.connect(s); s.connect(revIn); parts.push(s); }
+    if (echo) { const s = ac.createGain(); s.gain.value = echo; out.connect(s); s.connect(echoIn); parts.push(s); }
+    live++;
+    g.unplug = () => { if (!g.unplugged) { g.unplugged = true; live--; parts.forEach(n => n.disconnect()); } };
+    if (life) setTimeout(g.unplug, life * 1000);
     return g;
   }
-  function shaper(dst, c) { const s = ac.createWaveShaper(); s.curve = c; s.oversample = '2x'; s.connect(dst); return s; }
+  function shaper(dst, c) { const s = ac.createWaveShaper(); s.curve = c; s.oversample = PHONE ? 'none' : '2x'; s.connect(dst); return s; }
   // A burst of filtered static.
   function nz(dst, o) {
     const t = ac.currentTime + (o.at || 0), dur = o.dur;
@@ -208,7 +231,7 @@ const Sound = (() => {
 
   // Sounds that keep going while you hold fire: the flamethrower roar and the minigun motor.
   function startLoop(kind, x) {
-    const b = bus(x, 1, 0.2, 0), t = ac.currentTime, parts = [];
+    const b = bus(x, 1, 0.2, 0, 0), t = ac.currentTime, parts = [];
     const env = ac.createGain(); env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(1, t + 0.08); env.connect(b);
     if (kind === 'flame') {
       const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
@@ -238,7 +261,7 @@ const Sound = (() => {
       o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(env);
       o1.start(); o2.start(); parts.push(o1, o2);
     }
-    return { env, parts, touched: frame };
+    return { env, parts, bus: b, touched: frame };
   }
   function stopLoop(key) {
     const l = loops[key]; if (!l) return;
@@ -247,6 +270,7 @@ const Sound = (() => {
     l.env.gain.cancelScheduledValues(t); l.env.gain.setValueAtTime(Math.max(0.0001, l.env.gain.value), t);
     l.env.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
     for (const s of l.parts) s.stop(t + 0.2);
+    setTimeout(l.bus.unplug, 400);
   }
   function hold(key, kind, on, x) {
     if (!ready()) return;
@@ -365,7 +389,7 @@ const Sound = (() => {
   }
   function zombie(z, kind) {
     if (Rec.on) Rec.push('au', 'z', [z.type, +(z.voice || 1).toFixed(2), Math.round(z.x), kind]);
-    if (!ready()) return;
+    if (!ready() || busy(kind === 'roar')) return;
     const T = ZTYPES[z.type];
     if (T && T.body) { try { animal(z, kind, T.body, !!T.boss); } catch (e) { /* audio hiccup: ignore */ } return; }
     const v = ZV[z.type] || ZV.walker, f = rand(v.f0[0], v.f0[1]) * (z.voice || 1), x = z.x;
@@ -439,12 +463,14 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: 0, smg: 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60 };
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60 };
+  const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);
     if (x === null) x = undefined;
     if (!ready() || !FX[name]) return;
     if (LIMITS[name] && limited(name, LIMITS[name])) return;
+    if (busy(!EXTRAS.has(name))) return;
     try { FX[name](x, extra); } catch (e) { /* audio hiccup: ignore */ }
   }
   // How loud the speakers are right now (0..1). Used for testing.
@@ -454,5 +480,7 @@ const Sound = (() => {
     let peak = 0; for (const v of d) peak = Math.max(peak, Math.abs(v));
     return peak;
   }
-  return { init, play, zombie, hold, endFrame, setMuted, level };
+  // For testing: phone mix?, mixers still plugged in, zombie voices, how much the limiter is turning things down (dB).
+  const stats = () => ({ phone: PHONE, live, voices, squash: comp ? +comp.reduction.toFixed(1) : 0, state: ac ? ac.state : 'none' });
+  return { init, play, zombie, hold, endFrame, setMuted, level, stats };
 })();

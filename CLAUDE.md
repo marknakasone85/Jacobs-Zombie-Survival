@@ -31,6 +31,11 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - Fonts come from `css/fonts` (SIL Open Font License files next to them), not from Google, so the page contacts no other website. Keep it that way: no outside scripts, fonts, trackers or analytics.
 - Everything in the repo can be read on the page too (README, CLAUDE.md, tools), so never put private details in any tracked file.
 
+## Sound on phones
+- Phones and tablets (`(pointer: coarse)`) get a lighter mix in `js/audio.js` (`PHONE`). Deep booms are filtered out before the limiter: the speaker can't play them, but the limiter still ducked everything after each shot, and the owner heard the sound "pulse" on a phone. Phones also get a shorter reverb, no oversampling, 3 zombie voices and a budget of new sounds (`busy()`).
+- Every sound's mixer (`bus()`) is unplugged after `life` seconds (3.5 s, longer than any sound), or phones pile them up and the sound breaks up as a fight goes on. A new sound longer than about 3 s needs a bigger `life`. Loops unplug their own bus.
+- `Sound.stats()` shows the phone mix, the mixers still plugged in, voices and limiter squash (dB) for testing. In the pane, the mobile preset turns on the phone mix (reload after resizing), and a real click is needed before sound starts.
+
 ## Testing
 - The app's browser pane: `.claude/launch.json` has `zombie-survival` (local only, port 8781), `zombie-survival-wifi` (port 8010) and `zombie-artifact-preview` (port 8782).
 - The app may stop a server it started (the Wi-Fi share once stopped mid-session), so check `preview_list` before telling the owner a link still works.

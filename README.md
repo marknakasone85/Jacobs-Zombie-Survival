@@ -13,6 +13,8 @@ https://claude.ai/artifact/TEJW7sM1nCrghUcRUBMBfJ (1 or 2 players on one device,
 The Artifact keeps its own coins and guns, separate from the copy on this computer. It's private
 until you share it from the page's Share menu.
 
+The code is on GitHub: https://github.com/marknakasone85/jacob-zombie-survival
+
 ## How it works
 
 - **Levels and waves:** 10 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones). Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends.

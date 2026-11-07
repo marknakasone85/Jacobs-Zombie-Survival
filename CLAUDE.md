@@ -3,7 +3,9 @@
 A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + JavaScript, **no build step, no dependencies**: every picture and sound is made in code. It runs by double-clicking `index.html`, and on phones/tablets/computers over home Wi-Fi via `share-on-network.command`. The README is the player-facing guide (levels, zombies, weapons, armor, controls, Wi-Fi) and lists what each file does.
 
 ## Rules the owner cares about
-- **Backups:** this folder is a git repo. After each finished feature, offer to "save a backup", and commit only when the owner says yes. End commit messages with the Co-Authored-By line from the system reminder.
+- **Backups:** this folder is a git repo, uploaded to the owner's public GitHub repo https://github.com/marknakasone85/jacob-zombie-survival. After each finished feature, offer to "save a backup". Only when the owner says yes, commit and then `git push`. End commit messages with the Co-Authored-By line from the system reminder.
+  - Commits use GitHub's private noreply address, set in this repo's git config. Never put the owner's Gmail in a commit: the repo is public.
+  - `git push` signs in through the GitHub CLI (`gh`, account marknakasone85), set up in this repo's `.git/config`. If GitHub says it isn't signed in, run `gh auth login --hostname github.com --git-protocol https --web </dev/null` in a Terminal tab. It shows a one-time code for the owner to enter at github.com/login/device within 15 minutes.
 - **Keep it easy to deploy:** no build tools, no npm, no backend beyond `tools/share_server.py`.
 - **Security of the home-network share:** the server only serves `/index.html`, `/css/` and `/js/` (no hidden files like `.git`, no `tools/`, no folder listings), only this computer can host, joining needs the 4-digit code, and it switches off after 3 hours. Keep it that way.
 - The owner adds requirements as they go; new requests usually extend the game rather than replace it. Never remove levels.

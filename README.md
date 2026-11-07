@@ -151,3 +151,10 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop
 - `share-on-network.command`, `tools/share_server.py`: shares the game on your home Wi-Fi
 - `tools/make_artifact.py`: makes `artifact.html`, the page for the Claude Artifact
+- `LICENSE`: the MIT license
+
+## License
+
+MIT (see `LICENSE`). Anyone may use, change and share the game, as long as the license text and copyright notice stay with it. It comes as is, with no warranty.
+
+The fonts (Bungee, Creepster and Rubik) aren't part of this code. They load from Google Fonts and have their own license, the SIL Open Font License.

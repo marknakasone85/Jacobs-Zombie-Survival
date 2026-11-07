@@ -1,4 +1,4 @@
-# Zombie Survival
+# Jacob's Zombie Survival
 
 A side-scrolling zombie shooter. You're a regular civilian with a shotgun and the zombies are coming.
 Blast them, grab the coins they drop, find the coins hidden around each map, and buy bigger guns in the shop.
@@ -13,7 +13,7 @@ https://claude.ai/artifact/TEJW7sM1nCrghUcRUBMBfJ (1 or 2 players on one device,
 The Artifact keeps its own coins and guns, separate from the copy on this computer. It's private
 until you share it from the page's Share menu.
 
-The code is on GitHub: https://github.com/marknakasone85/jacob-zombie-survival
+The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 
 ## How it works
 

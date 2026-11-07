@@ -9,9 +9,11 @@ page, for testing on this computer. Both are made here, so they are not saved in
 What is different in the Artifact:
 - No WI-FI button. An Artifact can't reach the home share server, so it's 1 or 2 players on one device.
 - The page keeps the Artifact's 16px side margins and stays clear of phone notches.
+- css/style.css and its fonts are put inside the page, because an Artifact can't load font files of its own.
 
     python3 tools/make_artifact.py
 """
+import base64
 import json
 import pathlib
 import re
@@ -62,12 +64,24 @@ def main():
     head = re.search(r'<head>(.*?)</head>', page, re.S).group(1)
     body = re.search(r'<body>(.*?)</body>', page, re.S).group(1).strip('\n')
     title = re.search(r'<title>(.*?)</title>', head, re.S).group(1)
-    links = re.findall(r'<link [^>]*>', head)   # fonts and css/style.css, in order
+    links = re.findall(r'<link [^>]*>', head)   # css/style.css (and any others), in order
 
     wifi = '<button data-n="net">WI-FI</button>'
     if body.count(wifi) != 1:
         sys.exit('Could not find the WI-FI button in index.html. Update tools/make_artifact.py to match.')
     body = body.replace(wifi, '')
+
+    # css/style.css goes inside the page, with its fonts as data, because an Artifact can't load font files of its own.
+    style_link = '<link rel="stylesheet" href="css/style.css">'
+    if style_link not in links:
+        sys.exit('Could not find the css/style.css link in index.html. Update tools/make_artifact.py to match.')
+    css = (ROOT / 'css/style.css').read_text(encoding='utf-8')
+    font_url = re.compile(r"url\('fonts/([^']+\.woff2)'\)")
+    css, fonts = font_url.subn(lambda m: 'url(data:font/woff2;base64,'
+                               + base64.b64encode((ROOT / 'css/fonts' / m.group(1)).read_bytes()).decode() + ')', css)
+    if fonts != 3:
+        sys.exit('Expected 3 fonts in css/style.css. Update tools/make_artifact.py to match.')
+    links = [('<style>\n' + css + '</style>') if link == style_link else link for link in links]
 
     top = '\n'.join([
         f'<title>{title}</title>',

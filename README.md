@@ -138,6 +138,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 ## Files
 
 - `index.html`, `css/style.css`: the page, menus and shop
+- `css/fonts/`: the three fonts and their licenses
 - `js/util.js`: shared helpers, controls and save data
 - `js/audio.js`: all the sounds (guns, zombie voices, effects)
 - `js/fx.js`: particles, floating numbers, banners
@@ -153,8 +154,22 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `tools/make_artifact.py`: makes `artifact.html`, the page for the Claude Artifact
 - `LICENSE`: the MIT license
 
+## About
+
+A family project, made for Jacob and his friends. The code was written with Claude, an AI model made by Anthropic.
+
+Content: cartoon fighting against made-up zombies and zombie animals, with cartoon and sci-fi weapons. There's no real-world violence and no real people in it. All characters, places and weapons are made up and drawn in code, and the game isn't connected with any company, game or brand.
+
+## Privacy
+
+The game collects no personal information. It has no accounts, ads, analytics or tracking.
+- Coins, guns and unlocked levels are saved only in your own web browser and never leave your device.
+- The fonts come with the game, so playing never contacts another website.
+- Wi-Fi games stay on your home network. Button presses and game updates go between the players' devices through the host computer and are kept in memory only.
+- The public web page is hosted by GitHub Pages, which keeps the usual web server logs (see GitHub's privacy statement).
+
 ## License
 
 MIT (see `LICENSE`). Anyone may use, change and share the game, as long as the license text and copyright notice stay with it. It comes as is, with no warranty.
 
-The fonts (Bungee, Creepster and Rubik) aren't part of this code. They load from Google Fonts and have their own license, the SIL Open Font License.
+The fonts in `css/fonts` (Bungee, Creepster and Rubik) aren't covered by the MIT license. Each comes with its own license file, the SIL Open Font License.

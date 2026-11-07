@@ -1,3 +1,8 @@
+/* The fonts come with the game (css/fonts, each under the SIL Open Font License), so playing never contacts another website. */
+@font-face { font-family: 'Bungee'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/bungee.woff2') format('woff2'); }
+@font-face { font-family: 'Creepster'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/creepster.woff2') format('woff2'); }
+@font-face { font-family: 'Rubik'; font-style: normal; font-weight: 300 900; font-display: swap; src: url('fonts/rubik.woff2') format('woff2'); }
+
 :root {
   --panel: rgba(20, 13, 38, .95); --line: rgba(255, 255, 255, .12);
   --text: #f4f0ff; --muted: #b3a9d6; --green: #7CFC4A; --gold: #FFD23F; --red: #ff5a5a;

@@ -20,10 +20,16 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 
 ## The Claude Artifact
 - Published at https://claude.ai/artifact/TEJW7sM1nCrghUcRUBMBfJ ("Zombie Survival"), like Matthew-SurviveBob's "Survive Bob". It is private until the owner shares it.
-- It is `artifact.html` plus `css/style.css` and the `js/` files. `artifact.html` is made from `index.html` by `python3 tools/make_artifact.py`, which also prints the `files` list to publish. Both made pages are in `.gitignore`.
+- It is `artifact.html` plus the `js/` files. The page holds `css/style.css` and its fonts itself, because an Artifact can't load font files. `artifact.html` is made from `index.html` by `python3 tools/make_artifact.py`, which also prints the `files` list to publish. Both made pages are in `.gitignore`.
 - To update after a change: run the script, then publish `artifact.html` with that `files` list and `url` set to the link above. Read the artifact first in a new conversation, or the publish is refused.
-- In the Artifact there is no WI-FI button (it can't reach the share server), and `confirm()`/`alert()` don't work, so ask "are you sure?" on the page itself, like the two-press Reset button. Saves are per browser and separate from the home copy.
+- In the Artifact there is no WI-FI button (it can't reach the share server). The last publish removed the old `css/style.css` file with `"css/style.css": null`, and `confirm()`/`alert()` don't work, so ask "are you sure?" on the page itself, like the two-press Reset button. Saves are per browser and separate from the home copy.
 - Test it first with `zombie-artifact-preview` in `.claude/launch.json` (127.0.0.1:8782/artifact-preview.html, which looks like the published page). That server shows the whole folder, so it only listens on this computer; stop it after testing.
+
+## The public web page (GitHub Pages)
+- https://marknakasone85.github.io/Jacobs-Zombie-Survival/ is served by GitHub Pages straight from `main` (the whole repo, with `.nojekyll` so GitHub serves the files as they are). Every `git push` updates it within a minute or two.
+- No WI-FI button there: `Net.onPublicWebsite()` says any name that isn't an IP address or a home name (localhost, *.local ...) is a public website, the same rule as the share server's `host_ok`.
+- Fonts come from `css/fonts` (SIL Open Font License files next to them), not from Google, so the page contacts no other website. Keep it that way: no outside scripts, fonts, trackers or analytics.
+- Everything in the repo can be read on the page too (README, CLAUDE.md, tools), so never put private details in any tracked file.
 
 ## Testing
 - The app's browser pane: `.claude/launch.json` has `zombie-survival` (local only, port 8781), `zombie-survival-wifi` (port 8010) and `zombie-artifact-preview` (port 8782).

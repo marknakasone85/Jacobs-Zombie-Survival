@@ -19,6 +19,8 @@ for (const prof of save.players) {
 }
 save.unlocked = clamp(save.unlocked, 1, LEVELS.length);
 makeIcons(); makeGearIcons();
+// On a public website there is no share server, so the WI-FI button would only fail: take it away.
+if (Net.onPublicWebsite()) document.querySelector('#modeRow [data-n="net"]')?.remove();
 const ownedList = prof => WEAPONS.filter(w => prof.owned.includes(w.id)).map(w => w.id);
 
 const PLAYING = ['playing', 'cleared', 'dying'];

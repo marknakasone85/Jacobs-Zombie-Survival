@@ -13,7 +13,17 @@ const Net = {
   lastHeard: 0, inflight: 0, busy: false, retryT: 0,
   HEADERS: { 'Content-Type': 'application/json', 'X-Zombie': '1' },
 
-  available() { return location.protocol === 'http:' || location.protocol === 'https:'; },
+  available() { return (location.protocol === 'http:' || location.protocol === 'https:') && !this.onPublicWebsite(); },
+  // A public website (GitHub Pages, the Claude Artifact) has no share server, so there are no Wi-Fi games there.
+  // The share server only answers to IP addresses and home-network names (host_ok in tools/share_server.py),
+  // so any other name is a public website.
+  onPublicWebsite() {
+    if (location.protocol === 'file:') return false;   // double-clicked index.html: the WI-FI menu explains how to share
+    const h = location.hostname.toLowerCase();
+    const home = h === 'localhost' || ['.localhost', '.local', '.lan', '.home', '.home.arpa'].some(s => h.endsWith(s))
+      || /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.includes(':');   // IPv4 or IPv6 address
+    return !home;
+  },
   get active() { return !!this.role; },
   get isHost() { return this.role === 'host'; },
   get isGuest() { return this.role === 'guest'; },

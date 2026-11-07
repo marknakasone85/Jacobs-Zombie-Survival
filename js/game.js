@@ -949,7 +949,16 @@ document.querySelectorAll('#modeRow button').forEach(b => b.addEventListener('cl
 }));
 const wire = (id, fn) => $(id).addEventListener('click', () => { blurAll(); Sound.init(); fn(); });
 wire('tShopBtn', () => openShop({ level: save.unlocked - 1, wave: 0 }));
-wire('resetBtn', () => { if (confirm('Start over? This erases all coins, guns and unlocked levels.')) { resetSave(); toTitle(); } });
+// Reset asks "are you sure?" on the page itself (press twice), because pop-up boxes don't work in the Claude Artifact.
+let resetArmedUntil = 0;
+function disarmReset() { resetArmedUntil = 0; $('resetBtn').textContent = 'Reset progress'; $('resetBtn').classList.remove('armed'); }
+wire('resetBtn', () => {
+  if (performance.now() < resetArmedUntil) { disarmReset(); resetSave(); toTitle(); return; }
+  resetArmedUntil = performance.now() + 4000;
+  $('resetBtn').textContent = 'Press again to erase all coins, guns and levels';
+  $('resetBtn').classList.add('armed');
+  setTimeout(() => { if (resetArmedUntil && performance.now() >= resetArmedUntil) disarmReset(); }, 4100);
+});
 wire('hostBtn', hostGame);
 wire('joinBtn', joinGame);
 wire('lLeave', () => leaveWifi());

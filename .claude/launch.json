@@ -4,14 +4,40 @@
     {
       "name": "zombie-survival",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["tools/share_server.py", "--local", "--port", "8781", "--hours", "2"],
+      "runtimeArgs": [
+        "tools/share_server.py",
+        "--local",
+        "--port",
+        "8781",
+        "--hours",
+        "2"
+      ],
       "port": 8781
     },
     {
       "name": "zombie-survival-wifi",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["tools/share_server.py", "--port", "8010", "--hours", "3"],
+      "runtimeArgs": [
+        "tools/share_server.py",
+        "--port",
+        "8010",
+        "--hours",
+        "3"
+      ],
       "port": 8010
+    },
+    {
+      "name": "zombie-artifact-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8782",
+        "--bind",
+        "127.0.0.1"
+      ],
+      "port": 8782,
+      "url": "http://127.0.0.1:8782"
     }
   ]
 }

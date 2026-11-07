@@ -57,6 +57,7 @@ h2 { font-family: 'Bungee', sans-serif; font-weight: 400; margin: 0; font-size: 
 .btn.small.p2:not(:disabled) { outline: 2px solid var(--p2); outline-offset: -2px; }
 .row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
 .link { background: none; border: 0; color: var(--muted); font-size: 13px; text-decoration: underline; cursor: pointer; margin-top: 12px; font-family: inherit; }
+.link.armed { color: var(--red); font-weight: 800; text-decoration: none; }
 
 .coin {
   display: inline-block; width: .95em; height: .95em; border-radius: 50%; vertical-align: -0.12em; margin-right: .3em;

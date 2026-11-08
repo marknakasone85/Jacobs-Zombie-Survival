@@ -18,26 +18,31 @@ const WEAPONS = [
     cd: 0.42, pellets: 1, spread: 0.01, speed: 2200, dmg: 48, life: 0.45, knock: 240, pierce: 2, kind: 'slug', shake: 6, sfx: 'magnum', len: 26, grip: 0, kick: 50, bounds: [-6, 28, -8, 11] },
   { id: 'rifle', name: 'Assault Rifle', price: 120, desc: 'Strong, accurate and fast. A great all-rounder.',
     cd: 0.12, pellets: 1, spread: 0.03, speed: 1450, dmg: 15, life: 0.65, knock: 55, pierce: 1, kind: 'bullet', shake: 2.2, sfx: 'rifle', len: 37, grip: 18, bounds: [-19, 38, -9, 14] },
-  { id: 'sniper', name: 'Sniper', price: 200, desc: 'One giant shot that zips through 5 zombies.',
-    cd: 0.9, pellets: 1, spread: 0, speed: 2600, dmg: 95, life: 0.7, knock: 260, pierce: 5, kind: 'slug', shake: 7, sfx: 'sniper', len: 54, grip: 24, kick: 40, bounds: [-22, 55, -13, 11] },
+  { id: 'sniper', name: 'Sniper', price: 200, desc: 'One MASSIVE shot that zips through 8 zombies. Takes out a brute in one hit.',
+    cd: 0.9, pellets: 1, spread: 0, speed: 3200, dmg: 250, life: 0.7, knock: 360, pierce: 8, kind: 'slug', shake: 7, sfx: 'sniper', len: 54, grip: 24, kick: 40, bounds: [-22, 55, -13, 11] },
   { id: 'hammer', name: 'War Hammer', price: 250, desc: 'Slow but HUGE. Smashes zombies flying and shakes the ground.',
     cd: 0.8, pellets: 1, speed: 0, life: 0, dmg: 90, reach: 86, knock: 520, lift: 320, swing: 0.32, quake: 130, kind: 'melee', shake: 10, sfx: 'hammer', hitSfx: 'thud', len: 44, grip: 12, bounds: [-9, 48, -13, 13] },
   { id: 'flame', name: 'Flamethrower', price: 300, desc: 'Short range fire that burns through whole crowds.',
     cd: 0.03, pellets: 2, spread: 0.2, speed: 540, dmg: 3, life: 0.42, knock: 10, pierce: 99, kind: 'flame', shake: 0.5, sfx: 'flame', len: 34, grip: 16, bounds: [-16, 38, -7, 13] },
   { id: 'crossbow', name: 'Boom Crossbow', price: 350, desc: 'Fires exploding bolts that arc through the air. KABOOM!',
     cd: 0.75, pellets: 1, spread: 0.01, speed: 1050, dmg: 85, life: 1.3, knock: 320, pierce: 1, kind: 'bolt', radius: 95, shake: 3, sfx: 'crossbow', len: 30, grip: 14, bounds: [-15, 36, -16, 16] },
-  { id: 'rocket', name: 'Rocket Launcher', price: 450, desc: 'BOOM! Blows up every zombie nearby.',
-    cd: 1.0, pellets: 1, spread: 0.01, speed: 620, dmg: 120, life: 1.6, knock: 420, pierce: 1, kind: 'rocket', radius: 130, shake: 4, sfx: 'rocket', len: 31, grip: 12, kick: 120, bounds: [-24, 39, -12, 12] },
+  { id: 'rocket', name: 'Rocket Launcher', price: 450, desc: 'KA-BOOM! A huge blast that wrecks every zombie nearby.',
+    cd: 1.0, pellets: 1, spread: 0.01, speed: 620, dmg: 320, life: 1.6, knock: 520, pierce: 1, kind: 'rocket', radius: 160, shake: 4, sfx: 'rocket', len: 31, grip: 12, kick: 120, bounds: [-24, 39, -12, 12] },
   { id: 'saber', name: 'Laser Sword', price: 500, desc: 'A humming blade of pure light. Super fast slashes with long reach.',
     cd: 0.22, pellets: 1, speed: 0, life: 0, dmg: 48, reach: 94, knock: 200, lift: 100, swing: 0.17, kind: 'melee', shake: 2, sfx: 'saber', hitSfx: 'zap', len: 52, grip: 0, bounds: [-5, 53, -6, 6] },
+  { id: 'aa12', name: 'AA-12 Auto Shotgun', price: 550, desc: 'A fully automatic shotgun. Hold fire for a storm of buckshot!',
+    cd: 0.2, pellets: 6, spread: 0.2, speed: 1000, dmg: 8, life: 0.34, knock: 130, pierce: 1, kind: 'pellet', shake: 4, sfx: 'aa12', len: 37, grip: 22, kick: 25, bounds: [-18, 38, -10, 16] },
   { id: 'plasma', name: 'Plasma Rifle', price: 600, desc: 'Shoots glowing plasma balls that burn through 3 zombies.',
     cd: 0.15, pellets: 1, spread: 0.04, speed: 1000, dmg: 24, life: 0.75, knock: 90, pierce: 3, kind: 'plasma', shake: 2, sfx: 'plasma', len: 39, grip: 18, bounds: [-17, 41, -10, 12] },
   { id: 'minigun', name: 'Minigun', price: 700, desc: 'A spinning wall of bullets. Nothing gets close.',
     cd: 0.045, pellets: 1, spread: 0.12, speed: 1350, dmg: 11, life: 0.6, knock: 40, pierce: 1, kind: 'bullet', shake: 1.8, sfx: 'mini', len: 43, grip: 6, bounds: [-10, 44, -13, 15] },
+  { id: 'incin', name: 'Heavy Incinerator', price: 850, desc: 'A monster flamethrower. Twice as far and way hotter. Melts whole hordes!',
+    cd: 0.03, pellets: 3, spread: 0.15, speed: 780, dmg: 4, life: 0.62, knock: 18, pierce: 99, kind: 'inferno', shake: 0.8, sfx: 'flame', len: 47, grip: 18, bounds: [-21, 51, -9, 15] },
   { id: 'laser', name: 'Laser Cannon', price: 1000, desc: 'Zaps a beam through EVERY zombie in a line.',
     cd: 0.32, pellets: 1, spread: 0, speed: 0, dmg: 55, life: 0, range: 950, knock: 120, pierce: 999, kind: 'laser', shake: 3, sfx: 'laser', len: 35, grip: 14, bounds: [-12, 38, -11, 10] },
 ];
 const WMAP = Object.assign(Object.create(null), Object.fromEntries(WEAPONS.map(w => [w.id, w])));   // only real guns: names like "constructor" from a friend's device find nothing
+const isFlame = kind => kind === 'flame' || kind === 'inferno';   // the flamethrower and the Heavy Incinerator
 const wRange = w => (w.kind === 'laser' ? w.range : w.kind === 'melee' ? w.reach : w.speed * w.life);
 
 // Draws a gun pointing right, with the shooting hand at (0, 0).
@@ -105,6 +110,32 @@ function drawGun(c, id, t = 0, loaded = true) {
       c.fillStyle = '#1c1d22'; c.fillRect(-2, 4, 4, 7); c.fillRect(10, 4, 4, 6);
       fillRR(c, 3, -11.5, 8, 5.5, 1.5, '#1c1d22');
       if (loaded) poly(c, [31, -4.5, 39, -0.5, 31, 3.5], '#d6452f');
+      break;
+    }
+    case 'aa12': {   // boxy auto shotgun with a big drum magazine
+      poly(c, [-18, -3, -3, -4, -3, 3, -10, 3, -18, 7], '#1f2026');   // stock
+      fillRR(c, -4, -5.5, 25, 9, 2, '#2b2d34');                          // receiver
+      c.fillStyle = '#3a3d46'; c.fillRect(-2, -7.5, 19, 2);               // top rail
+      c.fillStyle = '#17181d'; c.fillRect(1, -9.5, 4, 2); c.fillRect(13, -9.5, 3, 2);   // sights
+      c.fillStyle = '#d6452f'; c.fillRect(-3, -1.5, 5, 1.4);              // red stripe
+      fillRR(c, 20, -5, 15, 7, 2, '#33363e');                             // barrel shroud
+      c.fillStyle = '#17181d'; for (const x of [22, 26, 30]) c.fillRect(x, -3.5, 2.2, 4);   // vents
+      c.fillStyle = '#4a4d56'; c.fillRect(34, -3.8, 4, 4.6);              // muzzle
+      circle(c, 10, 8.5, 7.5, '#25272d'); circle(c, 10, 8.5, 5.2, '#383b44'); circle(c, 10, 8.5, 1.8, '#17181d');   // drum
+      c.fillStyle = '#17181d'; c.fillRect(-1, 2, 4, 6);                  // grip
+      break;
+    }
+    case 'incin': {   // the Heavy Incinerator: big hazard tank, long finned nozzle, blue-hot pilot light
+      fillRR(c, -21, 1, 23, 13, 6, '#e0a020');                            // fuel tank
+      c.fillStyle = '#2a2a2a'; for (const x of [-16, -10, -4]) poly(c, [x, 1, x + 3, 1, x + 0.5, 14, x - 2.5, 14]);   // hazard stripes
+      c.strokeStyle = '#333'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(1, 8); c.quadraticCurveTo(10, 12, 12, 3); c.stroke();   // hose
+      fillRR(c, -5, -6, 27, 10, 3, '#3d4048');                             // body
+      c.fillStyle = '#6a6e78'; c.fillRect(-3, -8, 21, 2);                  // top rail
+      c.fillStyle = '#8b8f99'; c.fillRect(22, -4.5, 21, 6);                // long nozzle
+      c.fillStyle = '#5a5d66'; for (const x of [25, 29, 33, 37]) c.fillRect(x, -6.5, 1.6, 9);   // heat fins
+      c.fillStyle = '#2e3036'; c.fillRect(42, -6, 5, 9);                   // tip
+      circle(c, 49, -1.5, 2 + Math.sin(t * 40) * 0.6, Math.sin(t * 25) > 0 ? '#9ff0ff' : '#5c8cff');
+      c.fillStyle = '#17181d'; c.fillRect(-1, 3, 4, 6);
       break;
     }
     case 'minigun': {

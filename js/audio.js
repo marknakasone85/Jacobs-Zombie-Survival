@@ -165,6 +165,14 @@ const Sound = (() => {
       click(b, 0.66, 1500, 1.2);                                                         // bolt forward
       tink(b, 0.9, 0.05);
     },
+    aa12(x) {   // a shotgun blast, but no pump: the next shell is in already
+      const b = bus(x, 0.95, 0.3, 0.2), p = shaper(b, punch);
+      nz(p, { dur: 0.01, type: 'highpass', f0: 2600, vol: 1.1 });
+      nz(p, { dur: 0.19, f0: 6000, f1: 360, vol: 1.0 });
+      osc(p, { dur: 0.2, f0: 125, f1: 42, vol: 1.1 });
+      click(b, 0.09, 1900, 0.7);
+      if (Math.random() < 0.4) tink(b, 0.5, 0.035);
+    },
     mini(x) {
       const b = bus(x, 0.6, 0.15, 0.05), p = shaper(b, punch);
       nz(p, { dur: 0.006, type: 'highpass', f0: 3200, vol: 0.8 });
@@ -183,6 +191,14 @@ const Sound = (() => {
       nz(p, { dur: 1.4, f0: 3200, f1: 60, vol: 1.3 });
       osc(b, { dur: 1.0, f0: 75, f1: 20, vol: 1.4 });
       for (let i = 0; i < 9; i++) nz(b, { at: 0.12 + Math.random() * 0.8, dur: 0.02, type: 'bandpass', f0: 2000 + Math.random() * 3500, q: 4, vol: 0.4 }); // debris
+    },
+    bigboom(x) {   // the High Explosive grenade: the biggest boom there is
+      const b = bus(x, 1.35, 0.55, 0.4), p = shaper(b, grit);
+      nz(p, { dur: 0.03, type: 'highpass', f0: 800, vol: 1.3 });
+      nz(p, { dur: 1.7, f0: 2600, f1: 45, vol: 1.4 });
+      osc(b, { dur: 1.4, f0: 60, f1: 18, vol: 1.6 });
+      osc(p, { dur: 0.5, f0: 110, f1: 35, vol: 1.1 });
+      for (let i = 0; i < 12; i++) nz(b, { at: 0.15 + Math.random() * 1.1, dur: 0.025, type: 'bandpass', f0: 1500 + Math.random() * 4000, q: 4, vol: 0.4 });
     },
     laser(x) {
       const b = bus(x, 0.6, 0.35, 0.1);
@@ -218,6 +234,35 @@ const Sound = (() => {
       osc(b, { type: 'sawtooth', dur: 0.22, f0: 97, f1: 155, vol: 0.3, atk: 0.02 });
       nz(b, { dur: 0.2, type: 'bandpass', f0: 700, f1: 1800, q: 3, vol: 0.5 });
     },
+    toss(x) {   // pin out (ping!) and a whoosh
+      const b = bus(x, 0.9, 0.12);
+      click(b, 0, 3400, 1.2, 12); osc(b, { at: 0.01, dur: 0.14, f0: 3900, vol: 0.1 });
+      nz(b, { at: 0.05, dur: 0.22, type: 'bandpass', f0: 600, f1: 1500, q: 1.4, vol: 1, atk: 0.04 });
+    },
+    clink(x) { const b = bus(x, 0.8, 0.15); tink(b, 0, 0.16); nz(b, { dur: 0.04, type: 'bandpass', f0: 1800, q: 3, vol: 0.8 }); },   // a grenade bouncing
+    beep(x) { const b = bus(x, 0.9, 0.1); [0, 0.11, 0.22].forEach(at => osc(b, { type: 'square', at, dur: 0.06, f0: 1760, vol: 0.4 })); },   // stuck on!
+    frag(x) {   // a boom, and metal pieces zinging away
+      GUNS.boom(x);
+      const b = bus(x, 0.55, 0.35);
+      for (let i = 0; i < 6; i++) { const f = 2400 + Math.random() * 2000; osc(b, { type: 'triangle', at: 0.03 + Math.random() * 0.25, dur: 0.13, f0: f, f1: f * 0.45, vol: 0.07 }); }
+    },
+    acid(x) {   // splash and a long hiss
+      const b = bus(x, 0.95, 0.3, 0.1), p = shaper(b, grit);
+      nz(p, { dur: 0.35, f0: 1400, f1: 80, vol: 1.1 }); osc(b, { dur: 0.25, f0: 130, f1: 45, vol: 0.8 });
+      nz(b, { at: 0.1, dur: 1.6, type: 'highpass', f0: 3500, vol: 0.32, atk: 0.15 });
+      for (let i = 0; i < 4; i++) nz(b, { at: 0.2 + Math.random() * 1.0, dur: 0.05, type: 'bandpass', f0: 500 + Math.random() * 700, q: 4, vol: 0.35 });   // bubbles
+    },
+    freeze(x) {   // whoomp, then shimmering frost
+      const b = bus(x, 0.95, 0.5, 0.2);
+      nz(b, { dur: 0.05, type: 'highpass', f0: 2500, vol: 1 }); osc(b, { dur: 0.3, f0: 90, f1: 40, vol: 0.9 });
+      nz(b, { dur: 0.9, type: 'highpass', f0: 6000, f1: 2500, vol: 0.4, atk: 0.02 });
+      [2093, 2637, 3136, 3951].forEach((f, i) => osc(b, { type: 'triangle', at: 0.05 + i * 0.06, dur: 0.5, f0: f, vol: 0.08 }));
+    },
+    crack(x) {   // the ice breaking when a zombie thaws out
+      const b = bus(x, 0.55, 0.2);
+      nz(b, { dur: 0.05, type: 'highpass', f0: 3000, vol: 0.8 });
+      for (let i = 0; i < 3; i++) nz(b, { at: 0.03 + i * 0.04, dur: 0.03, type: 'bandpass', f0: 2500 + i * 900, q: 5, vol: 0.5 });
+    },
     clang(x) { const b = bus(x, 0.6, 0.3); osc(b, { type: 'triangle', dur: 0.25, f0: 1800, f1: 1700, vol: 0.25 }); osc(b, { dur: 0.3, f0: 2700, vol: 0.15 }); nz(b, { dur: 0.06, type: 'highpass', f0: 3000, vol: 0.5 }); },
     thud(x) { const b = bus(x, 1, 0.3, 0.15), p = shaper(b, punch); osc(p, { dur: 0.35, f0: 90, f1: 30, vol: 1.3 }); nz(p, { dur: 0.25, f0: 1200, f1: 80, vol: 1 }); },
     zap(x) { const b = bus(x, 0.6, 0.2); osc(b, { type: 'square', dur: 0.12, f0: 1400, f1: 300, vol: 0.2 }); nz(b, { dur: 0.1, type: 'highpass', f0: 3500, vol: 0.5 }); },
@@ -233,11 +278,12 @@ const Sound = (() => {
   function startLoop(kind, x) {
     const b = bus(x, 1, 0.2, 0, 0), t = ac.currentTime, parts = [];
     const env = ac.createGain(); env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(1, t + 0.08); env.connect(b);
-    if (kind === 'flame') {
+    if (kind === 'flame' || kind === 'inferno') {   // inferno = the Heavy Incinerator: a deeper, louder roar
+      const big = kind === 'inferno';
       const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1100;
-      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 0.8;
-      const g1 = ac.createGain(); g1.gain.value = 0.9; const g2 = ac.createGain(); g2.gain.value = 0.6;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = big ? 850 : 1100;
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = big ? 290 : 380; bp.Q.value = 0.8;
+      const g1 = ac.createGain(); g1.gain.value = big ? 1.1 : 0.9; const g2 = ac.createGain(); g2.gain.value = big ? 0.8 : 0.6;
       const flutter = ac.createGain(); flutter.gain.value = 0.75;
       const lfo = ac.createOscillator(); lfo.frequency.value = 11; const lg = ac.createGain(); lg.gain.value = 0.25;
       lfo.connect(lg); lg.connect(flutter.gain);
@@ -463,8 +509,8 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60 };
-  const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat']);   // can wait when it's busy
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80 };
+  const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);
     if (x === null) x = undefined;

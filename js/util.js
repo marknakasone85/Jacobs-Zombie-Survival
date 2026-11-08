@@ -75,11 +75,12 @@ const keys = {};
 const mouse = { sx: W / 2, sy: H / 2, down: false, id: null };
 const touch = { left: false, right: false, down: false, jump: false, fire: false };
 // Which keys each player uses. Solo can use either set; in 2 players P1 is WASD and P2 is the arrows.
+// nade = throw a grenade, ntype = switch grenade kind. 'rshift' is the right Shift key (see keyName in game.js).
 const CONTROLS = {
-  solo: { left: ['a', 'arrowleft'], right: ['d', 'arrowright'], jump: ['w', 'arrowup'], down: ['s', 'arrowdown'], fire: [' ', 'j', 'f'], prev: ['q'], next: ['e'], mouse: true, touch: true, slots: true },
-  p1: { left: ['a'], right: ['d'], jump: ['w'], down: ['s'], fire: ['f', ' '], prev: ['q'], next: ['e'], mouse: true, slots: true },
-  p2: { left: ['arrowleft'], right: ['arrowright'], jump: ['arrowup'], down: ['arrowdown'], fire: ['enter', '/'], prev: [','], next: ['.'] },
-  remote: { left: [], right: [], jump: [], down: [], fire: [], prev: [], next: [] },   // Wi-Fi players
+  solo: { left: ['a', 'arrowleft'], right: ['d', 'arrowright'], jump: ['w', 'arrowup'], down: ['s', 'arrowdown'], fire: [' ', 'j', 'f'], prev: ['q'], next: ['e'], nade: ['g'], ntype: ['r'], mouse: true, touch: true, slots: true },
+  p1: { left: ['a'], right: ['d'], jump: ['w'], down: ['s'], fire: ['f', ' '], prev: ['q'], next: ['e'], nade: ['g'], ntype: ['r'], mouse: true, slots: true },
+  p2: { left: ['arrowleft'], right: ['arrowright'], jump: ['arrowup'], down: ['arrowdown'], fire: ['enter', '/'], prev: [','], next: ['.'], nade: ['rshift'], ntype: ["'"] },
+  remote: { left: [], right: [], jump: [], down: [], fire: [], prev: [], next: [], nade: [], ntype: [] },   // Wi-Fi players
 };
 // Wi-Fi players (p.remote) send their buttons over the network instead.
 const held = (p, action) => (p.remote ? !!p.remote[action] : p.ctrl[action].some(k => keys[k]) || (p.ctrl.touch && touch[action]));
@@ -97,7 +98,7 @@ const G = {
   numPlayers: 1, players: [],
   levelIndex: 0, level: null, waveIndex: 0, next: null,
   camX: 0, shake: 0, hurtFlash: 0, coinPulse: 0,
-  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [],
+  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [], nades: [], pools: [],
   queue: [], spawnT: 0, maxAlive: 8, every: 1.4, bossPending: false, bossAt: 0, boss: null,
   collectAll: false, clearT: 0, levelDone: false,
   banner: null, toast: null,
@@ -135,7 +136,8 @@ function drawShadow(c, x, y, w) {
 const SAVE_KEY = 'jacob-zombie-survival.v1';
 const MAX_PLAYERS = 2;
 // armors = armor sets you own, armor = the one you wear, boost = how many health boosts you bought (js/gear.js)
-const newProfile = () => ({ coins: 0, owned: ['shotgun'], equipped: 'shotgun', armors: [], armor: '', boost: 0 });
+// nades = how many grenades of each kind you have, nade = the kind you throw (js/grenades.js). Everyone starts with 3 frags.
+const newProfile = () => ({ coins: 0, owned: ['shotgun'], equipped: 'shotgun', armors: [], armor: '', boost: 0, nades: { frag: 3, he: 0, acid: 0, cryo: 0 }, nade: 'frag' });
 const save = { players: [newProfile(), newProfile()], unlocked: 1, beaten: [], muted: false, numPlayers: 1 };
 function loadSave() {
   try {
@@ -151,6 +153,8 @@ function loadSave() {
           if (Array.isArray(sp.armors)) p.armors = sp.armors.filter(id => typeof id === 'string');
           if (typeof sp.armor === 'string') p.armor = sp.armor;
           if (Number.isFinite(sp.boost)) p.boost = Math.max(0, Math.floor(sp.boost));
+          if (sp.nades && typeof sp.nades === 'object') p.nades = sp.nades;   // checked in game.js (cleanNades)
+          if (typeof sp.nade === 'string') p.nade = sp.nade;
         });
       }
       if (Number.isFinite(s.unlocked)) save.unlocked = Math.max(1, Math.floor(s.unlocked));

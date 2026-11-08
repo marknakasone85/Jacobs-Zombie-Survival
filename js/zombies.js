@@ -98,6 +98,14 @@ function updateZombies(dt) {
       continue;
     }
     z.atkCd -= dt; z.jumpCd -= dt; z.atkAnim = Math.max(0, z.atkAnim - dt);
+    if (z.frozen > 0) {   // frozen solid by a Cryo Grenade: no walking, no biting (crows fall out of the sky)
+      z.frozen -= dt;
+      if (z.frozen <= 0) { z.frozen = 0; sparks(z.x, z.y - z.h * 0.5, 12, -Math.PI / 2, Math.PI, '#dff8ff', 260); Sound.play('crack', z.x); }
+      z.vy = Math.min(z.vy + GRAV * dt, 1400); z.prevY = z.y; z.y += z.vy * dt;
+      z.x = clamp(z.x + z.kbx * dt, 10, G.level.worldW - 10); z.kbx *= Math.exp(-7 * dt);
+      land(z);
+      continue;
+    }
     const target = nearestPlayer(z.x, z.y), body = z.T.body;
     if (z.T.fly) { updateFlyer(z, target, dt); zombieGroan(z, dt); continue; }
     let sp = z.speed * (0.8 + 0.25 * Math.sin(G.t * 3 + z.phase));
@@ -255,6 +263,7 @@ function bossStomp(z) {
 
 function hurtZombie(z, dmg, kx, ky, showNum = true, flash = true) {
   if (z.dead) return;
+  if (z.frozen > 0) dmg *= FROZEN_HURT;   // frozen zombies take extra damage (js/grenades.js)
   z.hp -= dmg;
   if (flash) z.flash = 0.07;
   z.kbx += kx / z.mass;

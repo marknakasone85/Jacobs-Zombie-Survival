@@ -16,9 +16,11 @@ for (const prof of save.players) {
   prof.armors = [...new Set((prof.armors || []).filter(id => ARMOR_MAP[id]))];
   if (!prof.armors.includes(prof.armor)) prof.armor = '';
   prof.boost = clamp(prof.boost || 0, 0, HEALTH_BOOSTS.length);
+  prof.nades = cleanNades(prof.nades);
+  if (!NADE_MAP[prof.nade]) prof.nade = 'frag';
 }
 save.unlocked = clamp(save.unlocked, 1, LEVELS.length);
-makeIcons(); makeGearIcons();
+makeIcons(); makeGearIcons(); makeNadeIcons();
 // On a public website there is no share server, so the WI-FI button would only fail: take it away.
 if (Net.onPublicWebsite()) document.querySelector('#modeRow [data-n="net"]')?.remove();
 const ownedList = prof => WEAPONS.filter(w => prof.owned.includes(w.id)).map(w => w.id);
@@ -28,20 +30,22 @@ const slotOfKey = k => (k === '0' ? 9 : +k - 1);   // keys 1-9 pick the first ni
 const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + aliveZombies() + (G.bossPending ? 1 : 0));
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
-  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams]) arr.length = 0;
+  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools]) arr.length = 0;
   G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0;
 }
 
 // ---- Input ----------------------------------------------------------------
+// The right Shift key gets its own name, so player 2 can throw grenades with it.
+const keyName = e => (e.code === 'ShiftRight' ? 'rshift' : e.key.toLowerCase());
 addEventListener('keydown', e => {
   if (e.target && e.target.tagName === 'INPUT') { if (e.key === 'Enter') joinGame(); return; }   // typing a join code
-  const k = e.key.toLowerCase();
-  if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', '/'].includes(k)) e.preventDefault();
+  const k = keyName(e);
+  if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', '/', "'"].includes(k)) e.preventDefault();   // ' and / open Quick Find in Firefox
   const first = !keys[k];
   keys[k] = true;
   if (first && !e.repeat) onKey(k);
 });
-addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+addEventListener('keyup', e => { keys[keyName(e)] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouse.down = false; });
 // Wi-Fi games keep going in the background (other people are playing!).
 document.addEventListener('visibilitychange', () => { if (document.hidden && !Net.active) pauseGame(); });
@@ -57,6 +61,8 @@ function onKey(k) {
     if (c.fire.includes(k)) NetGame.guestAim = 'keys';
     if (c.prev.includes(k)) NetGame.press('prev');
     if (c.next.includes(k)) NetGame.press('next');
+    if (c.nade.includes(k)) NetGame.press('nade');
+    if (c.ntype.includes(k)) NetGame.press('ntype');
     if (/^[0-9]$/.test(k)) NetGame.press('s' + slotOfKey(k));
     return;
   }
@@ -68,6 +74,8 @@ function onKey(k) {
       if (c.fire.includes(k)) p.aimMode = 'keys';
       if (c.prev.includes(k)) cycleWeapon(p, -1);
       if (c.next.includes(k)) cycleWeapon(p, 1);
+      if (c.nade.includes(k)) throwNade(p);
+      if (c.ntype.includes(k)) cycleNade(p);
       if (c.slots && /^[0-9]$/.test(k)) selectSlot(p, slotOfKey(k));
     }
   } else if (G.state === 'paused' && (k === 'p' || k === 'escape')) resumeGame();
@@ -81,7 +89,14 @@ const mousePlayer = () => G.players.find(p => p.ctrl.mouse && !p.remote);
 canvas.addEventListener('pointerdown', e => {
   Sound.init();
   if (e.pointerType === 'touch') return;   // phones and tablets use the on-screen buttons (auto-aim)
-  toGame(e); mouse.down = true; mouse.id = e.pointerId;
+  toGame(e);
+  if (e.button === 2) {   // right-click throws a grenade at the mouse
+    if (!PLAYING.includes(G.state)) return;
+    if (Net.isGuest) { NetGame.guestAim = 'mouse'; NetGame.press('nade'); return; }
+    const p = mousePlayer(); if (p) { p.aimMode = 'mouse'; throwNade(p); }
+    return;
+  }
+  mouse.down = true; mouse.id = e.pointerId;
   if (Net.isGuest) { NetGame.guestAim = 'mouse'; return; }
   const p = mousePlayer(); if (p) p.aimMode = 'mouse';
 });
@@ -111,6 +126,8 @@ document.querySelectorAll('#touch [data-k]').forEach(b => {
     e.preventDefault(); Sound.init(); b.classList.add('on');
     const p = Net.isGuest ? null : G.players[0];
     if (k === 'swap') { if (Net.isGuest) NetGame.press('next'); else if (p) cycleWeapon(p, 1); return; }
+    if (k === 'nade') { if (Net.isGuest) { NetGame.guestAim = 'keys'; NetGame.press('nade'); } else if (p) { p.aimMode = 'keys'; throwNade(p); } return; }
+    if (k === 'ntype') { if (Net.isGuest) NetGame.press('ntype'); else if (p) cycleNade(p); return; }
     if (k === 'pause') { pauseGame(); return; }
     touch[k] = true;
     if (k === 'jump') { if (Net.isGuest) NetGame.press('jump'); else if (p) p.jumpBuf = 0.13; }
@@ -137,6 +154,7 @@ function updateBullets(dt) {
     const b = bs[i]; let dead = false;
     b.life -= dt;
     if (b.kind === 'flame') { const k = Math.exp(-2.2 * dt); b.vx *= k; b.vy = b.vy * k - 90 * dt; }
+    else if (b.kind === 'inferno') { const k = Math.exp(-1.5 * dt); b.vx *= k; b.vy = b.vy * k - 60 * dt; }   // the incinerator reaches further
     if (b.kind === 'bolt') b.vy += 650 * dt;   // crossbow bolts arc down
     const boom = b.kind === 'rocket' || b.kind === 'bolt';
     if (b.kind === 'rocket') {
@@ -154,7 +172,7 @@ function updateBullets(dt) {
           if (boom) { explode(b.x, b.y, b.wp); dead = true; break; }
           b.hit.add(z);
           const dir = Math.sign(b.vx) || 1;
-          if (b.kind === 'flame') {   // fire doesn't flash, it sets them burning
+          if (isFlame(b.kind)) {   // fire doesn't flash, it sets them burning
             hurtZombie(z, b.dmg, dir * b.knock, 0, false, false);
             if (Math.random() < 0.35) addPart({ type: 'fire', x: z.x + rand(-z.w / 2, z.w / 2), y: z.y - rand(0, z.h), vx: rand(-20, 20), vy: rand(-120, -50), g: 0, life: rand(0.25, 0.5), size: rand(4, 8) });
           } else if (b.kind === 'plasma') {
@@ -169,7 +187,7 @@ function updateBullets(dt) {
       }
       if (!dead && b.y >= GROUND) {
         if (boom) explode(b.x, GROUND - 4, b.wp);
-        else if (b.kind !== 'flame') sparks(b.x, GROUND - 1, 3, -Math.PI / 2, 1.2, b.kind === 'plasma' ? '#8fffd0' : '#ffd27a', 200);
+        else if (!isFlame(b.kind)) sparks(b.x, GROUND - 1, 3, -Math.PI / 2, 1.2, b.kind === 'plasma' ? '#8fffd0' : '#ffd27a', 200);
         dead = true;
       }
     }
@@ -178,12 +196,19 @@ function updateBullets(dt) {
     if (dead) bs.splice(i, 1);
   }
 }
-function explode(x, y, wp) {
+// Hurts every zombie near (x, y): full damage in the middle, half at the edge. onHit(z) runs for each one still standing.
+function blastZombies(x, y, radius, dmg, knock, onHit) {
   for (const z of G.zombies) {
     if (z.dead) continue;
     const cx = clamp(x, z.x - z.w / 2, z.x + z.w / 2), cy = clamp(y, z.y - z.h, z.y), d = Math.hypot(cx - x, cy - y);
-    if (d < wp.radius) { const f = 1 - (d / wp.radius) * 0.5; hurtZombie(z, wp.dmg * f, (Math.sign(z.x - x) || 1) * wp.knock * f, -320 * f, true); }
+    if (d >= radius) continue;
+    const f = 1 - (d / radius) * 0.5;
+    hurtZombie(z, dmg * f, (Math.sign(z.x - x) || 1) * knock * f, -320 * f, true);
+    if (onHit && !z.dead) onHit(z);
   }
+}
+function explode(x, y, wp) {
+  blastZombies(x, y, wp.radius, wp.dmg, wp.knock);
   const s = wp.radius / 130;   // crossbow bolts make a smaller boom than rockets
   flashAt(x, y, 150 * s); fireBurst(x, y, Math.round(34 * s), 1.2 * s); smoke(x, y, Math.round(14 * s), 18 * s, '#3e3846'); ring(x, y, wp.radius, '#ffd27a', 0.4);
   sparks(x, y, 16, -Math.PI / 2, Math.PI, '#ffcf6a', 520 * s);
@@ -215,7 +240,7 @@ function fireLaser(p, sx, sy, mx, my, a, wp) {
 }
 function drawBullets(c) {
   for (const b of G.bullets) {
-    if (b.dist < b.hide || b.kind === 'flame' || b.kind === 'plasma') continue;
+    if (b.dist < b.hide || isFlame(b.kind) || b.kind === 'plasma') continue;
     const a = Math.atan2(b.vy, b.vx);
     if (b.kind === 'rocket') {
       c.save(); c.translate(b.x, b.y); c.rotate(a);
@@ -228,17 +253,18 @@ function drawBullets(c) {
       poly(c, [2, -3, 8, 0, 2, 3], Math.sin(G.t * 40) > 0 ? '#ff5a3a' : '#ffd23f');
       c.restore();
     } else {
-      const len = b.kind === 'slug' ? 0.03 : 0.018;
-      c.strokeStyle = b.kind === 'slug' ? '#ffffff' : '#ffe9a6'; c.lineWidth = b.kind === 'slug' ? 3 : b.kind === 'pellet' ? 2.2 : 2;
+      const len = b.kind === 'slug' ? 0.03 : b.kind === 'shrap' ? 0.024 : 0.018;
+      c.strokeStyle = b.kind === 'slug' ? '#ffffff' : b.kind === 'shrap' ? '#d8d4c0' : '#ffe9a6'; c.lineWidth = b.kind === 'slug' ? 3 : b.kind === 'pellet' || b.kind === 'shrap' ? 2.2 : 2;
       c.beginPath(); c.moveTo(b.x - b.vx * len, b.y - b.vy * len); c.lineTo(b.x, b.y); c.stroke();
     }
   }
   c.globalCompositeOperation = 'lighter';
   for (const b of G.bullets) {
-    if (b.kind !== 'flame' || b.dist < b.hide * 0.7) continue;
+    if (!isFlame(b.kind) || b.dist < b.hide * 0.7) continue;
     const k = b.life / b.max;
     c.globalAlpha = clamp(k * 1.3, 0, 0.9);
-    circle(c, b.x, b.y, 4 + (1 - k) * 15, k > 0.7 ? '#fff0a0' : k > 0.4 ? '#ff9a2e' : '#ff4d1f');
+    if (b.kind === 'inferno') circle(c, b.x, b.y, 5 + (1 - k) * 21, k > 0.78 ? '#e8fbff' : k > 0.55 ? '#ffe070' : k > 0.3 ? '#ff8a2e' : '#ff3d1a');   // white-hot
+    else circle(c, b.x, b.y, 4 + (1 - k) * 15, k > 0.7 ? '#fff0a0' : k > 0.4 ? '#ff9a2e' : '#ff4d1f');
   }
   for (const b of G.bullets) {   // plasma balls glow
     if (b.kind !== 'plasma' || b.dist < b.hide) continue;
@@ -434,6 +460,7 @@ function afterClear() {
     p.prof.coins += c.val; G.run.coins[p.id] = (G.run.coins[p.id] || 0) + c.val;
   }
   G.coins = G.coins.filter(c => c.float);   // coins around the map stay for the next wave
+  G.nades.length = 0; G.pools.length = 0;
   G.collectAll = false;
   writeSave();
   if (G.levelDone) {
@@ -466,6 +493,8 @@ function update(dt) {
   if (G.state === 'playing') updateSpawning(dt);
   updateZombies(dt);
   updateBullets(dt);
+  updateNades(dt);
+  updatePools(dt);
   updatePickups(dt);
   updateFX(dt);
   updateCamera(dt);
@@ -491,14 +520,17 @@ function render() {
   drawPlatforms(c);
   drawPickups(c);
   if (G.state !== 'title' && G.state !== 'lobby') {
+    drawPools(c);
     for (const z of G.zombies) if (!z.dead) drawShadow(c, z.x, z.y, z.w);
     for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, 26);
     for (const z of G.zombies) if (z.dead) drawZombie(c, z);
     for (const z of G.zombies) if (!z.dead) drawZombie(c, z);
+    drawIce(c);
     for (const p of G.players) drawPlayer(c, p);
     drawZombieBars(c);
     drawAimMarkers(c);
     drawBullets(c);
+    drawNades(c);
   }
   drawParticles(c);
   drawTexts(c);
@@ -535,7 +567,7 @@ function drawVignette(c) {
 }
 // One panel per player: health, coins and (with friends) their gun. 3-4 players get smaller panels in a row.
 function drawPlayerPanel(c, p, x, w, compact, isMe) {
-  const y = 12, h = compact ? 58 : 70, multi = G.players.length > 1;
+  const y = 12, h = compact ? 76 : 90, multi = G.players.length > 1;
   fillRR(c, x, y, w, h, 12, 'rgba(10,6,24,0.62)');
   if (isMe) { c.strokeStyle = p.look.tagCol; c.lineWidth = 2; rr(c, x + 1, y + 1, w - 2, h - 2, 11); c.stroke(); }
   if (multi) text(c, p.look.tag, x + 20, y + 19, { size: 14, color: p.look.tagCol });
@@ -559,6 +591,7 @@ function drawPlayerPanel(c, p, x, w, compact, isMe) {
   text(c, String(p.prof.coins), x + 36, cy + 1, { size: compact ? 15 : 18, align: 'left', color: '#FFD23F', stroke: 'rgba(0,0,0,.5)', lw: 3 });
   if (isMe && multi) text(c, 'YOU', x + w - (compact ? 84 : 104), cy + 1, { size: 9, color: p.look.tagCol });
   if (multi) { if (compact) c.drawImage(ICON[p.weapon], x + w - 72, y + 30, 60, 24); else c.drawImage(ICON[p.weapon], x + w - 92, y + 34, 80, 32); }
+  drawNadeRow(c, p, x, compact ? y + 63 : y + 75, w);   // grenades (js/grenades.js)
 }
 function drawPlayerPanels(c) {
   const ps = G.players, n = ps.length, me = Net.isGuest ? Net.id : Net.isHost ? 0 : -1;
@@ -583,7 +616,7 @@ function drawWeaponBar(c, p) {
   if (!IS_TOUCH) text(c, name, W / 2, y0 - 10, { size: 11, color: '#FFD23F', stroke: 'rgba(0,0,0,.6)', lw: 3 });
 }
 function drawHUD(c) {
-  const L = G.level, crowded = G.players.length > 2, ty = crowded ? 94 : 30;
+  const L = G.level, crowded = G.players.length > 2, ty = crowded ? 110 : 30;
   drawPlayerPanels(c);
   const left = zombiesLeft();
   text(c, `WAVE ${G.waveIndex + 1}/${L.waves.length}`, W / 2, ty, { size: 30, font: SPOOKY, color: '#7CFC4A', stroke: 'rgba(8,4,16,.85)', lw: 6 });
@@ -600,7 +633,7 @@ function drawHUD(c) {
   }
   if (G.players.length === 1) {
     drawWeaponBar(c, G.players[0]);
-    if (!IS_TOUCH) text(c, `P ${Net.active ? 'menu' : 'pause'}   M sound${save.muted ? ' (off)' : ''}`, W - 16, 24, { size: 9, align: 'right', color: 'rgba(230,220,255,.6)' });
+    if (!IS_TOUCH) text(c, `G grenade   R switch grenade   P ${Net.active ? 'menu' : 'pause'}   M sound${save.muted ? ' (off)' : ''}`, W - 16, 24, { size: 9, align: 'right', color: 'rgba(230,220,255,.6)' });
   }
   // Arrows for zombies coming from off the screen.
   let offL = 0, offR = 0;
@@ -631,13 +664,17 @@ const CONTROL_HELP = {
     ['<span class="kc">↓</span> or <span class="kc">S</span>', 'Drop off a platform'],
     ['<span class="kc wide">SPACE</span> or <span class="kc wide">CLICK</span>', 'Shoot (click aims with the mouse)'],
     ['<span class="kc">1</span>–<span class="kc">0</span> <span class="kc">Q</span><span class="kc">E</span>', 'Switch gun'],
+    ['<span class="kc">G</span> or <span class="kc wide">RIGHT-CLICK</span>', 'Throw a grenade'],
+    ['<span class="kc">R</span>', 'Switch grenade type'],
     ['<span class="kc">P</span> <span class="kc">M</span>', 'Pause, sound on/off']],
   2: [['<span class="ptag p1">P1</span> <span class="kc">A</span><span class="kc">D</span> <span class="kc">W</span> <span class="kc">S</span>', 'Move, jump, drop'],
     ['<span class="ptag p1">P1</span> <span class="kc">F</span> or <span class="kc wide">CLICK</span>', 'Shoot'],
     ['<span class="ptag p1">P1</span> <span class="kc">Q</span><span class="kc">E</span> <span class="kc">1</span>–<span class="kc">0</span>', 'Switch gun'],
+    ['<span class="ptag p1">P1</span> <span class="kc">G</span> <span class="kc">R</span>', 'Grenade, switch type'],
     ['<span class="ptag p2">P2</span> <span class="kc">←</span><span class="kc">→</span> <span class="kc">↑</span> <span class="kc">↓</span>', 'Move, jump, drop'],
     ['<span class="ptag p2">P2</span> <span class="kc wide">ENTER</span> or <span class="kc">/</span>', 'Shoot'],
-    ['<span class="ptag p2">P2</span> <span class="kc">,</span><span class="kc">.</span>', 'Switch gun']],
+    ['<span class="ptag p2">P2</span> <span class="kc">,</span><span class="kc">.</span>', 'Switch gun'],
+    ['<span class="ptag p2">P2</span> <span class="kc wide">RIGHT SHIFT</span> <span class="kc">\'</span>', 'Grenade, switch type']],
 };
 let titleMode = String(save.numPlayers);   // '1', '2' or 'net'
 function renderTitle() {
@@ -781,12 +818,29 @@ function shopMedkit(id) {
   prof.coins -= MEDKIT.price; p.hp = Math.min(p.maxHp, p.hp + MEDKIT.heal);
   Sound.play('heal'); writeSave(); renderShop();
 }
+// Grenades: buy one more (and throw that kind next), or pick which kind to throw.
+function shopNade(id, kind, nid) {
+  const prof = profOf(id), T = NADE_MAP[nid];
+  const nope = () => { if (!Net.isHost || id === 0) Sound.play('nope'); };
+  if (!prof || !T) return nope();
+  prof.nades = cleanNades(prof.nades);
+  const have = prof.nades[nid];
+  if (kind === 'buy') {
+    if (prof.coins < T.price || have >= T.max) return nope();
+    prof.coins -= T.price; prof.nades[nid] = have + 1; prof.nade = nid; Sound.play('buy');
+  } else {
+    if (!have) return nope();
+    prof.nade = nid; Sound.play('swap');
+  }
+  writeSave(); renderShop();
+}
 // A click in the shop: Wi-Fi guests ask the host, everyone else does it right here.
-// kind: buy equip sell medkit (guns) · armorBuy armorWear armorSell (thing = an armor set) · boost
+// kind: buy equip sell medkit (guns) · armorBuy armorWear armorSell (thing = an armor set) · boost · nadeBuy nadePick (thing = a grenade)
 function shopAct(kind, id, thing) {
   if (Net.isGuest) { Net.send({ t: kind, w: thing && thing.id }, 'host', true); Sound.play('click'); return; }
   if (kind === 'buy') shopBuy(id, thing); else if (kind === 'equip') shopEquip(id, thing.id); else if (kind === 'sell') shopSell(id, thing);
   else if (kind === 'armorBuy') shopArmor(id, 'buy', thing.id); else if (kind === 'armorWear') shopArmor(id, 'wear', thing.id); else if (kind === 'armorSell') shopArmor(id, 'sell', thing.id);
+  else if (kind === 'nadeBuy') shopNade(id, 'buy', thing.id); else if (kind === 'nadePick') shopNade(id, 'pick', thing.id);
   else if (kind === 'boost') shopBoost(id); else shopMedkit(id);
 }
 function shopView() {
@@ -795,12 +849,12 @@ function shopView() {
   if (Net.active) {
     const me = Net.isHost ? 0 : Net.id;
     people = G.players.map(p => ({ id: p.id, tag: p.look.tag, coins: p.prof.coins, owned: p.prof.owned.slice(), weapon: p.weapon, hp: Math.ceil(p.hp), maxHp: p.maxHp, inRun: true, mine: p.id === me,
-      armors: (p.prof.armors || []).slice(), armor: p.armorId || '', boost: p.prof.boost || 0 }));
+      armors: (p.prof.armors || []).slice(), armor: p.armorId || '', boost: p.prof.boost || 0, nades: cleanNades(p.prof.nades), nade: p.prof.nade }));
   } else {
     people = profs().map((prof, i) => {
       const p = G.players[i];
       return { id: i, tag: LOOKS[i].tag, coins: prof.coins, owned: prof.owned.slice(), weapon: p ? p.weapon : prof.equipped, hp: p ? Math.ceil(p.hp) : maxHpOf(prof), maxHp: p ? p.maxHp : maxHpOf(prof), inRun: !!p, mine: true,
-        armors: (prof.armors || []).slice(), armor: armorOf(prof) ? prof.armor : '', boost: prof.boost || 0 };
+        armors: (prof.armors || []).slice(), armor: armorOf(prof) ? prof.armor : '', boost: prof.boost || 0, nades: cleanNades(prof.nades), nade: prof.nade };
     });
   }
   return { next: data.next || { level: G.levelIndex, wave: 0 }, ready: data.ready || [], people, guests: Net.isHost ? NetGame.guestSlots().length : 0, myReady: NetGame.ready, role: Net.role };
@@ -848,12 +902,25 @@ function renderShop(quiet = false) {
   section('Guns', 'Changed your mind? Sell a gun back and get all your coins back.');
   for (const wp of WEAPONS) {
     const el = card(mine.some(pe => pe.weapon === wp.id) ? ' equipped' : '', ICON_URL[wp.id], wp.name, wp.price ? price(wp.price) : '<span class="price free">STARTER</span>', wp.desc,
-      `<div class="stats">${statBar('Damage', Math.sqrt(wp.dmg * wp.pellets / 120), '#ff7a59')}${statBar('Speed', Math.sqrt(1 / wp.cd / 33), '#5ab0ff')}${statBar('Range', wRange(wp) / 1500, '#7CFC4A')}</div>`);
+      `<div class="stats">${statBar('Damage', Math.sqrt(wp.dmg * wp.pellets / 300), '#ff7a59')}${statBar('Speed', Math.sqrt(1 / wp.cd / 33), '#5ab0ff')}${statBar('Range', wRange(wp) / 1500, '#7CFC4A')}</div>`);
     owners(el, v.people, pe => pe.owned.includes(wp.id), pe => pe.weapon === wp.id, ['has it', 'have it']);
     buttons(el, (pe, tag) => {
       if (!pe.owned.includes(wp.id)) return [need(pe, wp.price, tag, 'BUY', () => shopAct('buy', pe.id, wp))];
       const first = pe.weapon === wp.id ? button(`${tag}✓ EQUIPPED`, 'small eq', () => {}, true) : button(`${tag}EQUIP`, 'small alt', () => shopAct('equip', pe.id, wp));
       return wp.price ? [first, sell(tag, wp.price, () => shopAct('sell', pe.id, wp))] : [first];
+    });
+  }
+
+  section('Grenades', `Throw with ${IS_TOUCH ? 'the grenade button' : 'G or right-click'}. A direct hit blows up right away. One that lands bounces, sticks to a zombie and blows up!`);
+  for (const T of NADES) {
+    const counts = mine.map(pe => `${many && mine.length > 1 ? tagOf(pe) : ''}${pe.nades[T.id]} of ${T.max}`).join(' ');
+    const el = card(mine.some(pe => pe.nade === T.id && pe.nades[T.id] > 0) ? ' equipped' : '', NADE_URL[T.id], T.name, price(T.price), T.desc,
+      `<div class="stats">${statBar('Damage', Math.sqrt(T.power / 500), '#ff7a59')}${statBar('Blast', T.radius / 180, '#ffd23f')}</div><div class="owners">You have ${counts}</div>`);
+    buttons(el, (pe, tag) => {
+      const have = pe.nades[T.id];
+      const buy = have >= T.max ? button(`${tag}FULL`, 'small eq', () => {}, true) : need(pe, T.price, tag, 'BUY 1', () => shopAct('nadeBuy', pe.id, T));
+      if (!have) return [buy];
+      return [buy, pe.nade === T.id ? button(`${tag}✓ THROWING`, 'small eq', () => {}, true) : button(`${tag}THROW THIS`, 'small alt', () => shopAct('nadePick', pe.id, T))];
     });
   }
 
@@ -1002,7 +1069,19 @@ function tick(now) {
   render();
   Sound.endFrame();
   $('touch').classList.toggle('show', IS_TOUCH && (G.numPlayers === 1 || Net.active) && (G.state === 'playing' || G.state === 'cleared'));
+  if (IS_TOUCH) updateTouchNade();
   document.body.classList.toggle('ingame', PLAYING.includes(G.state));
+}
+function updateTouchNade() {
+  const p = Net.isGuest ? G.players.find(q => q.id === Net.id) : G.players[0];
+  if (!p) return;
+  const id = NADE_MAP[p.prof.nade] ? p.prof.nade : 'frag', n = nadeCount(p.prof, id), key = id + n;
+  if (key === updateTouchNade.key) return;
+  updateTouchNade.key = key;
+  $('tNadeImg').style.backgroundImage = `url(${NADE_SQ[id]})`;
+  $('tNadeN').textContent = n;
+  $('tNadeType').textContent = NADE_MAP[id].short;
+  $('tNade').classList.toggle('empty', !n);
 }
 function loop(now) { rafPending = false; tick(now); schedule(); }
 function schedule() { if (!rafPending) { rafPending = true; requestAnimationFrame(loop); } }

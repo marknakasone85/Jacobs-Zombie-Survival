@@ -58,15 +58,33 @@ Don't like a gun you bought? **Sell it back** in the Gun Shop and you get all yo
 | Sword | 80 | melee: slices everything in front of you |
 | Magnum Revolver | 90 | a huge hand cannon, each shot goes through 2 zombies |
 | Assault Rifle | 120 | strong, accurate, fast |
-| Sniper | 200 | huge shot through 5 zombies |
+| Sniper | 200 | one massive shot (250 damage) through 8 zombies |
 | War Hammer | 250 | melee: slow but huge, sends zombies flying and shakes the ground |
 | Flamethrower | 300 | short range, burns through crowds |
 | Boom Crossbow | 350 | exploding bolts that arc through the air |
-| Rocket Launcher | 450 | explodes and hits everything nearby |
+| Rocket Launcher | 450 | a huge blast (320 damage) that hits everything nearby |
 | Laser Sword | 500 | melee: a humming blade of light, super fast with long reach |
+| AA-12 Auto Shotgun | 550 | a fully automatic shotgun: hold fire for a storm of buckshot |
 | Plasma Rifle | 600 | glowing plasma balls that burn through 3 zombies |
 | Minigun | 700 | a spinning wall of bullets |
+| Heavy Incinerator | 850 | a monster flamethrower: twice as far and much hotter |
 | Laser Cannon | 1000 | a beam through every zombie in a line |
+
+## Grenades
+
+Throw them with **G**, a **right-click** (it throws at the mouse), or the grenade button on phones and tablets. **R** (or the small button next to it) switches the kind you throw. Buy them in the Gun Shop. Each one is used up when you throw it, and you can carry up to 10 of each kind. Everyone starts with 3 frag grenades.
+
+- A grenade that hits a zombie in the air **blows up right away**.
+- One that hits the ground **bounces and rolls**, then **sticks** to the first zombie it touches and blows up a moment later. If no zombie comes, it blows up by itself.
+
+| Grenade | Price (each) | What it does |
+|---|---|---|
+| Frag Grenade | 15 | a boom, plus sharp metal pieces that fly out and hit zombies further away |
+| High Explosive | 30 | the biggest boom in the shop (480 damage) |
+| Acid Grenade | 25 | a bubbling acid puddle that melts every zombie walking through it for 6 seconds |
+| Cryo Grenade | 25 | freezes zombies solid for 3.5 seconds (bosses shake it off sooner). Frozen zombies can't walk or bite, crows fall out of the sky, and frozen zombies take 50% more damage |
+
+Your grenades show at the bottom of your player panel. The kind you'll throw next is lit up.
 
 ## Armor and health
 
@@ -95,19 +113,21 @@ Also in the Gun Shop. Your armor shows as a **blue ARMOR bar** under your health
 | Space, or click | shoot (clicking aims at the mouse, Space aims at the nearest zombie in front of you) |
 | hold Space and walk away | walk backwards while shooting |
 | 1–9 and 0, Q E, or the mouse wheel | switch weapon |
+| G, or right-click | throw a grenade (right-click throws it at the mouse) |
+| R | switch grenade type |
 | P | pause |
 | M | sound on/off |
 
 **2 players on one keyboard.** Every player has their own coins and guns, and you shop together on the same screen. Each gun has a P1 and a P2 button.
 
-| | Move / jump / drop | Shoot | Switch gun |
-|---|---|---|---|
-| P1 | A D / W / S | F (or click) | Q E, 1–9 and 0 |
-| P2 | ← → / ↑ / ↓ | Enter or / | , . |
+| | Move / jump / drop | Shoot | Switch gun | Grenade / switch grenade |
+|---|---|---|---|---|
+| P1 | A D / W / S | F (or click) | Q E, 1–9 and 0 | G / R (or right-click) |
+| P2 | ← → / ↑ / ↓ | Enter or / | , . | Right Shift / ' |
 
 If one player goes down, they pop back in next to their friend after 6 seconds. Game over only happens if everyone is down.
 
-**Phones and tablets:** on-screen buttons appear in 1-player and Wi-Fi games (◀ ▶ move, ▼ drop down, JUMP, FIRE, ⇄ switch gun, II menu). Hold phones sideways. Aiming is automatic.
+**Phones and tablets:** on-screen buttons appear in 1-player and Wi-Fi games (◀ ▶ move, ▼ drop down, JUMP, FIRE, ⇄ switch gun, the grenade button to throw and the small one next to it to switch grenade type, II menu). Hold phones sideways. Aiming is automatic.
 
 ## Playing together on Wi-Fi (2 to 4 players)
 
@@ -145,6 +165,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/audio.js`: all the sounds (guns, zombie voices, effects)
 - `js/fx.js`: particles, floating numbers, banners
 - `js/weapons.js`: the guns
+- `js/grenades.js`: the grenades (throwing, bouncing, sticking, the four kinds of explosion, acid puddles, ice)
 - `js/gear.js`: armor sets (and how they look) and health boosts
 - `js/levels.js`: levels, backgrounds and platforms
 - `js/themes.js`: backgrounds and platforms for the farm, outback and zoo

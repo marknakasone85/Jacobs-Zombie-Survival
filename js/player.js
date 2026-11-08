@@ -19,7 +19,7 @@ function makePlayer(i, x, o = {}) {
     hp: maxHpOf(prof), maxHp: maxHpOf(prof), dead: false, deadT: 0, inv: 0,
     armorId: armorOf(prof) ? prof.armor : '', armor: armorOf(prof), maxArmor: armorOf(prof),   // js/gear.js
     onGround: true, onPlat: null, dropT: 0, jumpBuf: 0, coyote: 0, jumpCut: true,
-    facing: 1, aim: 0, target: null, cd: 0, recoil: 0, flashT: 0, walkT: 0,
+    facing: 1, aim: 0, target: null, cd: 0, recoil: 0, flashT: 0, walkT: 0, nadeCd: 0, throwT: 0,
     weapon: prof.owned.includes(prof.equipped) ? prof.equipped : 'shotgun',
   };
 }
@@ -72,11 +72,12 @@ function updatePlayer(p, dt) {
   const shooting = (held(p, 'fire') || clicking) && G.state !== 'dying';
   p.firing = shooting;
   if (shooting) tryShoot(p);
-  // The flamethrower roars and the minigun motor whines for as long as you hold fire. The laser sword always hums.
-  Sound.hold('flame' + p.id, 'flame', shooting && p.weapon === 'flame', p.x);
+  // The flamethrowers roar and the minigun motor whines for as long as you hold fire. The laser sword always hums.
+  Sound.hold('flame' + p.id, p.weapon === 'incin' ? 'inferno' : 'flame', shooting && isFlame(WMAP[p.weapon].kind), p.x);
   Sound.hold('motor' + p.id, 'motor', shooting && p.weapon === 'minigun', p.x);
   Sound.hold('hum' + p.id, 'hum', p.weapon === 'saber', p.x);
   p.inv -= dt; p.recoil = Math.max(0, p.recoil - dt * 9); p.flashT -= dt; p.swingT = Math.max(0, (p.swingT || 0) - dt);
+  p.nadeCd -= dt; p.throwT = Math.max(0, (p.throwT || 0) - dt);
 }
 
 // Mouse players aim at the mouse. Keyboard players auto-aim at the closest zombie in front of them.
@@ -146,13 +147,13 @@ function tryShoot(p) {
       let aa = a;
       if (wp.kind === 'pellet') aa += ((i / (wp.pellets - 1)) - 0.5) * 2 * wp.spread + rand(-0.04, 0.04);
       else aa += rand(-wp.spread, wp.spread);
-      const jitter = wp.kind === 'pellet' || wp.kind === 'flame';
+      const jitter = wp.kind === 'pellet' || isFlame(wp.kind);
       const sp = wp.speed * (jitter ? rand(0.82, 1.12) : 1), life = wp.life * (jitter ? rand(0.8, 1.15) : 1);
-      G.bullets.push({ x: sx, y: sy, vx: Math.cos(aa) * sp + (wp.kind === 'flame' ? p.vx * 0.5 : 0), vy: Math.sin(aa) * sp, life, max: life, dist: 0, hide: L - 8,
+      G.bullets.push({ x: sx, y: sy, vx: Math.cos(aa) * sp + (isFlame(wp.kind) ? p.vx * 0.5 : 0), vy: Math.sin(aa) * sp, life, max: life, dist: 0, hide: L - 8,
         dmg: wp.dmg, pierce: wp.pierce, hit: new Set(), kind: wp.kind, knock: wp.knock, wp, owner: p });
     }
   }
-  if (wp.kind !== 'flame') { p.flashT = 0.06; sparks(mx, my, wp.kind === 'pellet' ? 5 : 2, a, 0.35, '#ffd27a', 260); }
+  if (!isFlame(wp.kind)) { p.flashT = 0.06; sparks(mx, my, wp.kind === 'pellet' ? 5 : 2, a, 0.35, '#ffd27a', 260); }
   if (wp.kind === 'rocket') smoke(sh.x - Math.cos(a) * 24, sh.y - Math.sin(a) * 24, 5, 7, '#8a8090');
   p.recoil = 1;
   G.shake = Math.max(G.shake, wp.shake);
@@ -162,7 +163,7 @@ function tryShoot(p) {
     addPart({ type: 'shell', x: sh.x + Math.cos(a) * 16, y: sh.y + Math.sin(a) * 16 - 2, vx: -p.facing * rand(60, 160), vy: rand(-280, -160), g: 1500, life: 1.2,
       size: shell ? 3.5 : 2.4, col: shell ? '#d94a3a' : '#d9a83a', rot: rand(6), vr: rand(-20, 20), bounce: 0.35 });
   }
-  if (wp.kind !== 'flame') Sound.play(wp.sfx, p.x);
+  if (!isFlame(wp.kind)) Sound.play(wp.sfx, p.x);
 }
 
 // Swords and hammers hit every zombie right in front of you in one big swing.
@@ -238,8 +239,10 @@ function drawPlayer(c, p) {
     if (p.swingT > 0) { const k = 1 - p.swingT / (p.swingDur || wp.swing); la = -2.1 + (1 - (1 - k) * (1 - k)) * 3.0; }
     else la = -0.95 + Math.sin(G.t * 2 + p.id) * 0.04;
   }
+  // throwing a grenade: the back arm swings over your head (js/grenades.js)
+  if (p.throwT > 0) drawThrowArm(c, p, shirtD, A ? shade(sleeve, -0.2) : k.skinD, hand);
   // back arm reaching forward to hold the gun
-  if (wp.grip) {
+  else if (wp.grip) {
     c.save(); c.translate(3, -44); c.rotate(la);
     const bx = -5 * Math.cos(la) - Math.sin(la), by = 5 * Math.sin(la) - Math.cos(la);
     c.lineCap = 'round';
@@ -277,7 +280,7 @@ function drawPlayer(c, p) {
   c.save(); c.translate(14 - rec, 1);
   drawGun(c, p.weapon, G.t, p.cd <= 0.08);
   if (wp.grip) circle(c, wp.grip, wp.id === 'minigun' ? -9 : 1.5, 3.2, hand);
-  if (p.flashT > 0 && wp.kind !== 'flame') muzzleFlash(c, wp.len + 2, -2.5, wp.kind);
+  if (p.flashT > 0 && !isFlame(wp.kind)) muzzleFlash(c, wp.len + 2, -2.5, wp.kind);
   c.restore();
   circle(c, 14 - rec, 1.5, 3.4, hand);
   c.restore();

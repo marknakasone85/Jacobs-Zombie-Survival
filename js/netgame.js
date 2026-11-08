@@ -10,7 +10,7 @@
 // Between waves everyone shops together: you see your teammates' wallets, buy for yourself and press READY.
 
 const WEAPON_IDS = WEAPONS.map(w => w.id);
-const BULLET_KINDS = ['pellet', 'bullet', 'slug', 'flame', 'rocket', 'bolt', 'plasma'];
+const BULLET_KINDS = ['pellet', 'bullet', 'slug', 'flame', 'rocket', 'bolt', 'plasma', 'inferno', 'shrap'];
 const r1 = v => Math.round(v * 10) / 10, r2 = v => Math.round(v * 100) / 100;
 const ownedMask = prof => WEAPON_IDS.reduce((m, id, i) => m | (prof.owned.includes(id) ? 1 << i : 0), 0);
 const maskOwned = m => WEAPON_IDS.filter((id, i) => m & (1 << i));
@@ -25,6 +25,8 @@ function cleanProfile(p) {   // a guest's coins and guns as they sent them (chec
     if (Array.isArray(p.armors)) out.armors = [...new Set(p.armors.filter(id => ARMOR_MAP[id]))];
     if (out.armors.includes(p.armor)) out.armor = p.armor;
     if (Number.isFinite(p.boost)) out.boost = clamp(Math.floor(p.boost), 0, HEALTH_BOOSTS.length);
+    if (p.nades && typeof p.nades === 'object') out.nades = cleanNades(p.nades);
+    if (NADE_MAP[p.nade]) out.nade = p.nade;
   }
   return out;
 }
@@ -111,6 +113,8 @@ const NetGame = {
           if (k === 'jump') p.jumpBuf = 0.13;
           else if (k === 'prev') cycleWeapon(p, -1);
           else if (k === 'next') cycleWeapon(p, 1);
+          else if (k === 'nade') throwNade(p);
+          else if (k === 'ntype') cycleNade(p);
           else if (/^s\d{1,2}$/.test(k)) selectSlot(p, +k.slice(1));
         }
         break;
@@ -123,6 +127,7 @@ const NetGame = {
         if (ARMOR_MAP[m.w] && G.state === 'shop') shopArmor(from, m.t.slice(5).toLowerCase(), m.w);
         break;
       case 'boost': if (G.state === 'shop') shopBoost(from); break;
+      case 'nadeBuy': case 'nadePick': if (NADE_MAP[m.w] && G.state === 'shop') shopNade(from, m.t === 'nadeBuy' ? 'buy' : 'pick', m.w); break;
       case 'ready': s.ready = !!m.v; if (G.state === 'shop') renderShop(); break;
     }
   },
@@ -149,9 +154,12 @@ const NetGame = {
     s.pl = G.players.map(p => [p.id, r1(p.x), r1(p.y), Math.round(p.vx), p.facing, r2(p.aim), p.onGround ? 1 : 0, Math.ceil(p.hp), p.dead ? 1 : 0, r2(p.deadT), r2(p.inv),
       WEAPON_IDS.indexOf(p.weapon), r2(p.recoil), r2(p.flashT), r2(p.walkT), p.cd <= 0.08 ? 1 : 0, p.prof.coins, r2(p.coinPulse || 0),
       p.target && !p.target.dead ? p.target.uid : 0, p.aimMode === 'mouse' ? 1 : 0, p.firing ? 1 : 0, ownedMask(p.prof), p.maxHp, r2(p.swingT || 0), r2(p.swingDur || 0),
-      ARMOR_IDS.indexOf(p.armorId) + 1, Math.ceil(p.armor || 0), p.maxArmor || 0, armorMask(p.prof), p.prof.boost || 0]);
-    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0]);
+      ARMOR_IDS.indexOf(p.armorId) + 1, Math.ceil(p.armor || 0), p.maxArmor || 0, armorMask(p.prof), p.prof.boost || 0,
+      NADE_IDS.map(id => nadeCount(p.prof, id)), Math.max(0, NADE_IDS.indexOf(p.prof.nade)), r2(p.throwT || 0)]);
+    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0]);
     s.bu = G.bullets.filter(q => q.dist >= q.hide * 0.7).map(q => [BULLET_KINDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), Math.round(q.vx), Math.round(q.vy), r2(q.life / q.max)]);
+    s.gr = G.nades.map(g => [NADE_IDS.indexOf(g.type), Math.round(g.x), Math.round(g.y), r1(g.rot), g.stuck ? 1 : 0, r2(g.fuse)]);
+    s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max)]);
     s.bm = G.beams.map(m => [Math.round(m.x1), Math.round(m.y1), Math.round(m.x2), Math.round(m.y2), r2(m.t)]);
     s.co = G.coins.map(c => [c.kind === 'heart' ? 1 : 0, c.val, Math.round(c.x), Math.round(c.float ? c.baseY : c.y), c.float ? 1 : 0, r1(c.t), c.pull ? 1 : 0, Math.round(c.vx || 0), Math.round(c.vy || 0)]);
     if (G.state === 'shop') s.shop = { next: G.next, ready: this.readyIds() };
@@ -200,6 +208,8 @@ const NetGame = {
       if (a[23] > (p.swingT || 0) + 0.02) { p.swingT = a[23]; p.swingDur = a[24]; }   // a new melee swing started (we animate it here)
       p.armorId = ARMOR_IDS[(a[25] || 0) - 1] || ''; p.armor = a[26] || 0; p.maxArmor = a[27] || 0;   // armor and health boosts
       p.prof.armors = maskArmors(a[28] || 0); p.prof.armor = p.armorId; p.prof.boost = a[29] || 0;
+      p.prof.nades = Object.fromEntries(NADE_IDS.map((id, i) => [id, (Array.isArray(a[30]) && +a[30][i]) || 0])); p.prof.nade = NADE_IDS[a[31]] || 'frag';
+      if ((a[32] || 0) > (p.throwT || 0) + 0.02) p.throwT = a[32];   // a new grenade throw started (we animate it here)
       return p;
     });
     const oldZ = new Map(G.zombies.map(z => [z.uid, z]));
@@ -209,11 +219,14 @@ const NetGame = {
       [, , z.x, z.y, z.facing] = a;
       z.flash = a[5] ? 0.05 : 0; z.dead = !!a[6]; z.deadT = a[7]; z.walkT = a[8]; z.atkAnim = a[9]; z.hp = a[10]; z.maxHp = 1; z.phase = a[14];
       z.pose = a[16] || 0; z.onGround = a[17] !== 0;   // a charging sheep, a hopping kangaroo...
+      z.frozen = a[18] ? 1 : 0;                          // stuck in a block of ice
       return z;
     });
     G.boss = s.boss ? G.zombies.find(z => z.uid === s.boss) || null : null;
     for (const p of G.players) p.target = p.targetUid ? G.zombies.find(z => z.uid === p.targetUid) || null : null;
     G.bullets = s.bu.map(a => ({ kind: BULLET_KINDS[a[0]], x: a[1], y: a[2], vx: a[3], vy: a[4], life: a[5], max: 1, dist: 1, hide: 0 }));
+    G.nades = (s.gr || []).map(a => ({ type: NADE_IDS[a[0]] || 'frag', x: a[1], y: a[2], rot: a[3], stuck: !!a[4], fuse: a[5] }));
+    G.pools = (s.po || []).map(a => ({ x: a[0], y: a[1], w: a[2], k: a[3] }));
     G.beams = s.bm.map(a => ({ x1: a[0], y1: a[1], x2: a[2], y2: a[3], t: a[4], max: 0.16 }));
     G.coins = s.co.map(a => ({ kind: a[0] ? 'heart' : 'coin', val: a[1], x: a[2], y: a[3], baseY: a[3], float: !!a[4], t: a[5], spin: 0, pull: !!a[6], vx: a[7] || 0, vy: a[8] || 0 }));
     for (const [name, args] of s.fx || []) if (FX_NAMES.has(name) && Array.isArray(args)) window[name](...args);
@@ -233,10 +246,11 @@ const NetGame = {
   // Guest: keep the coins and guns we earned in this game on our own device.
   saveMine() {
     const me = G.players.find(p => p.id === Net.id); if (!me) return;
-    const key = [me.prof.coins, me.prof.owned.join(','), me.weapon, me.prof.armors.join(','), me.prof.armor, me.prof.boost].join('|');
+    const key = [me.prof.coins, me.prof.owned.join(','), me.weapon, me.prof.armors.join(','), me.prof.armor, me.prof.boost, NADE_IDS.map(id => nadeCount(me.prof, id)).join(','), me.prof.nade].join('|');
     if (key === this.profKey) return;
     this.profKey = key;
-    Object.assign(save.players[0], { coins: me.prof.coins, owned: me.prof.owned.slice(), equipped: me.weapon, armors: me.prof.armors.slice(), armor: me.prof.armor, boost: me.prof.boost });
+    Object.assign(save.players[0], { coins: me.prof.coins, owned: me.prof.owned.slice(), equipped: me.weapon, armors: me.prof.armors.slice(), armor: me.prof.armor, boost: me.prof.boost,
+      nades: cleanNades(me.prof.nades), nade: me.prof.nade });
     writeSave();
   },
   guestStateChanged(before) {
@@ -250,11 +264,11 @@ const NetGame = {
   guestTick(dt) {
     Net.maintain(dt, () => this.sayHello(), () => leaveWifi('The Wi-Fi game ended or has a new code. Ask the host for the code and join again.'));
     for (const c of G.coins) { c.spin = G.t * 6 + c.x * 0.1; if (c.float) c.y = c.baseY + Math.sin(G.t * 3 + c.x * 0.05) * 3; }
-    for (const p of G.players) { p.coinPulse = Math.max(0, (p.coinPulse || 0) - dt * 3); p.flashT -= dt; p.swingT = Math.max(0, (p.swingT || 0) - dt); }
+    for (const p of G.players) { p.coinPulse = Math.max(0, (p.coinPulse || 0) - dt * 3); p.flashT -= dt; p.swingT = Math.max(0, (p.swingT || 0) - dt); p.throwT = Math.max(0, (p.throwT || 0) - dt); }
     G.hurtFlash = Math.max(0, G.hurtFlash - dt);
     updateFX(dt);
     for (const p of G.players) {
-      Sound.hold('flame' + p.id, 'flame', p.firing && !p.dead && p.weapon === 'flame', p.x);
+      Sound.hold('flame' + p.id, p.weapon === 'incin' ? 'inferno' : 'flame', p.firing && !p.dead && isFlame(WMAP[p.weapon].kind), p.x);
       Sound.hold('motor' + p.id, 'motor', p.firing && !p.dead && p.weapon === 'minigun', p.x);
       Sound.hold('hum' + p.id, 'hum', !p.dead && p.weapon === 'saber', p.x);
     }

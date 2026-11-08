@@ -1,19 +1,19 @@
 # Jacob's Zombie Survival
 
+<h2 align="center"><a href="https://marknakasone85.github.io/Jacobs-Zombie-Survival/">▶ PLAY NOW</a></h2>
+<p align="center">Free in your web browser, on any computer, tablet or phone. Nothing to download.</p>
+
 A side-scrolling zombie shooter. You're a regular civilian with a shotgun and the zombies are coming.
 Blast them, grab the coins they drop, find the coins hidden around each map, and buy bigger guns in the shop.
 Ammo never runs out. (made by a 9 year old with Claude Code)
 
 ## Play it
 
-**Play online:** https://marknakasone85.github.io/Jacobs-Zombie-Survival/ (1 or 2 players on one device, on any computer, tablet or phone).
+- **In your web browser:** https://marknakasone85.github.io/Jacobs-Zombie-Survival/ (1 or 2 players on one device).
+- **On your own computer:** download the game (the green **Code** button, then **Download ZIP**), unzip it and double-click `index.html`. There's nothing to install. Every picture and sound is made in code.
+- **With friends on your home Wi-Fi (2 to 4 players):** see [Playing together on Wi-Fi](#playing-together-on-wi-fi-2-to-4-players) below.
 
-Double-click `index.html`. There's nothing to install. Every picture and sound is made in code.
-
-It's also a Claude Artifact, a web page you can open anywhere:
-https://claude.ai/artifact/TEJW7sM1nCrghUcRUBMBfJ (1 or 2 players on one device, no Wi-Fi games).
-The Artifact keeps its own coins and guns, separate from the copy on this computer. It's private
-until you share it from the page's Share menu.
+Your coins, guns and levels are saved in the web browser you play in.
 
 The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 

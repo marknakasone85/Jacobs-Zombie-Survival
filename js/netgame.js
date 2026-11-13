@@ -156,10 +156,12 @@ const NetGame = {
       p.target && !p.target.dead ? p.target.uid : 0, p.aimMode === 'mouse' ? 1 : 0, p.firing ? 1 : 0, ownedMask(p.prof), p.maxHp, r2(p.swingT || 0), r2(p.swingDur || 0),
       ARMOR_IDS.indexOf(p.armorId) + 1, Math.ceil(p.armor || 0), p.maxArmor || 0, armorMask(p.prof), p.prof.boost || 0,
       NADE_IDS.map(id => nadeCount(p.prof, id)), Math.max(0, NADE_IDS.indexOf(p.prof.nade)), r2(p.throwT || 0)]);
-    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0]);
+    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0, z.sticky > 0 ? 1 : 0, z.shocked > 0 ? 1 : 0]);
     s.bu = G.bullets.filter(q => q.dist >= q.hide * 0.7).map(q => [BULLET_KINDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), Math.round(q.vx), Math.round(q.vy), r2(q.life / q.max)]);
     s.gr = G.nades.map(g => [NADE_IDS.indexOf(g.type), Math.round(g.x), Math.round(g.y), r1(g.rot), g.stuck ? 1 : 0, r2(g.fuse)]);
-    s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max)]);
+    s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max), Math.max(0, POOL_KINDS.indexOf(q.kind))]);
+    s.ba = G.barrels.map(b => [BARREL_IDS.indexOf(b.kind), r1(b.fly ? b.cx : b.x), r1(b.fly ? b.cy : b.y), r2(b.rot), (b.gone ? 1 : 0) | (b.fly ? 2 : 0) | (b.armed ? 4 : 0),
+      r2(clamp(b.hp / b.T.hp, 0, 1)), r2(b.drop), r2(b.wob), r2(b.flash)]);
     s.bm = G.beams.map(m => [Math.round(m.x1), Math.round(m.y1), Math.round(m.x2), Math.round(m.y2), r2(m.t)]);
     s.co = G.coins.map(c => [c.kind === 'heart' ? 1 : 0, c.val, Math.round(c.x), Math.round(c.float ? c.baseY : c.y), c.float ? 1 : 0, r1(c.t), c.pull ? 1 : 0, Math.round(c.vx || 0), Math.round(c.vy || 0)]);
     if (G.state === 'shop') s.shop = { next: G.next, ready: this.readyIds() };
@@ -220,13 +222,19 @@ const NetGame = {
       z.flash = a[5] ? 0.05 : 0; z.dead = !!a[6]; z.deadT = a[7]; z.walkT = a[8]; z.atkAnim = a[9]; z.hp = a[10]; z.maxHp = 1; z.phase = a[14];
       z.pose = a[16] || 0; z.onGround = a[17] !== 0;   // a charging sheep, a hopping kangaroo...
       z.frozen = a[18] ? 1 : 0;                          // stuck in a block of ice
+      z.sticky = a[19] ? 1 : 0; z.shocked = a[20] ? 1 : 0;   // stuck in slime, zapped by lightning (js/barrels.js)
       return z;
     });
     G.boss = s.boss ? G.zombies.find(z => z.uid === s.boss) || null : null;
     for (const p of G.players) p.target = p.targetUid ? G.zombies.find(z => z.uid === p.targetUid) || null : null;
     G.bullets = s.bu.map(a => ({ kind: BULLET_KINDS[a[0]], x: a[1], y: a[2], vx: a[3], vy: a[4], life: a[5], max: 1, dist: 1, hide: 0 }));
     G.nades = (s.gr || []).map(a => ({ type: NADE_IDS[a[0]] || 'frag', x: a[1], y: a[2], rot: a[3], stuck: !!a[4], fuse: a[5] }));
-    G.pools = (s.po || []).map(a => ({ x: a[0], y: a[1], w: a[2], k: a[3] }));
+    G.pools = (s.po || []).map(a => ({ x: a[0], y: a[1], w: a[2], k: a[3], kind: POOL_KINDS[a[4]] || 'acid' }));
+    G.barrels = (s.ba || []).map(a => {
+      const kind = BARREL_IDS[a[0]] || 'boom', T = BARRELS[kind], f = a[4] | 0;
+      return { kind, T, w: T.w, h: T.h, x: a[1], y: a[2], cx: a[1], cy: a[2], rot: a[3] || 0, gone: !!(f & 1), fly: !!(f & 2), armed: !!(f & 4),
+        hpK: a[5], drop: a[6] || 0, wob: a[7] || 0, flash: a[8] || 0 };
+    });
     G.beams = s.bm.map(a => ({ x1: a[0], y1: a[1], x2: a[2], y2: a[3], t: a[4], max: 0.16 }));
     G.coins = s.co.map(a => ({ kind: a[0] ? 'heart' : 'coin', val: a[1], x: a[2], y: a[3], baseY: a[3], float: !!a[4], t: a[5], spin: 0, pull: !!a[6], vx: a[7] || 0, vy: a[8] || 0 }));
     for (const [name, args] of s.fx || []) if (FX_NAMES.has(name) && Array.isArray(args)) window[name](...args);

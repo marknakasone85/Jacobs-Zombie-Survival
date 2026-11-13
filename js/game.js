@@ -30,7 +30,7 @@ const slotOfKey = k => (k === '0' ? 9 : +k - 1);   // keys 1-9 pick the first ni
 const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + aliveZombies() + (G.bossPending ? 1 : 0));
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
-  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools]) arr.length = 0;
+  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools, G.barrels]) arr.length = 0;
   G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0;
 }
 
@@ -185,6 +185,15 @@ function updateBullets(dt) {
           if (--b.pierce <= 0) { dead = true; break; }
         }
       }
+      const bb = !dead && G.barrels.length ? barrelAt(b.x, b.y) : null;   // js/barrels.js
+      if (bb && !b.hit.has(bb)) {
+        if (boom) { explode(b.x, b.y, b.wp); dead = true; }
+        else {
+          b.hit.add(bb);
+          hitBarrel(bb, isFlame(b.kind) ? b.dmg * 2 : b.dmg, Math.sign(b.vx) || 1);   // fire heats it up fast
+          if (!isFlame(b.kind) && --b.pierce <= 0) dead = true;
+        }
+      }
       if (!dead && b.y >= GROUND) {
         if (boom) explode(b.x, GROUND - 4, b.wp);
         else if (!isFlame(b.kind)) sparks(b.x, GROUND - 1, 3, -Math.PI / 2, 1.2, b.kind === 'plasma' ? '#8fffd0' : '#ffd27a', 200);
@@ -209,6 +218,7 @@ function blastZombies(x, y, radius, dmg, knock, onHit) {
 }
 function explode(x, y, wp) {
   blastZombies(x, y, wp.radius, wp.dmg, wp.knock);
+  blastBarrels(x, y, wp.radius);
   const s = wp.radius / 130;   // crossbow bolts make a smaller boom than rockets
   flashAt(x, y, 150 * s); fireBurst(x, y, Math.round(34 * s), 1.2 * s); smoke(x, y, Math.round(14 * s), 18 * s, '#3e3846'); ring(x, y, wp.radius, '#ffd27a', 0.4);
   sparks(x, y, 16, -Math.PI / 2, Math.PI, '#ffcf6a', 520 * s);
@@ -233,6 +243,11 @@ function fireLaser(p, sx, sy, mx, my, a, wp) {
     if (z.dead) continue;
     const t = rayBox(sx, sy, dx, dy, z.x - z.w / 2, z.y - z.h, z.x + z.w / 2, z.y);
     if (t !== null && t <= end) { hurtZombie(z, wp.dmg, (Math.sign(dx) || 1) * wp.knock, -60, true); goo(sx + dx * t, sy + dy * t, 4, Math.sign(dx)); }
+  }
+  for (const b of G.barrels) {
+    if (b.gone || b.drop > 0) continue;
+    const t = b.fly ? rayBox(sx, sy, dx, dy, b.cx - 20, b.cy - 20, b.cx + 20, b.cy + 20) : rayBox(sx, sy, dx, dy, b.x - b.w / 2, b.y - b.h, b.x + b.w / 2, b.y);
+    if (t !== null && t <= end) hitBarrel(b, wp.dmg, Math.sign(dx) || 1);
   }
   const ex = sx + dx * end, ey = sy + dy * end;
   G.beams.push({ x1: mx, y1: my, x2: ex, y2: ey, t: 0.16, max: 0.16 });
@@ -395,6 +410,7 @@ function startLevel(i) {
   if (Net.isHost) { G.players = NetGame.buildPlayers(sx); for (const s of Object.values(NetGame.slots)) s.ready = false; }
   else { G.players = []; for (let k = 0; k < G.numPlayers; k++) G.players.push(makePlayer(k, sx + k * 60)); }
   for (const s of mapCoinSpots(G.level)) addFloatCoin(s.x, s.y, s.val);
+  G.barrels = buildBarrels(G.level);   // js/barrels.js
   G.camX = camTarget();
   hideOverlays();
   startWave(0);
@@ -411,6 +427,7 @@ function startWave(k) {
   G.bossPending = !!wv.boss; G.bossAt = Math.floor(G.queue.length / 2);
   G.collectAll = false; G.levelDone = false;
   for (const p of G.players) p.armor = p.maxArmor || 0;   // armor is repaired for every wave
+  refillBarrels();
   if (k > 0) sprinkleCoins(5);
   setState('playing');
   if (k === 0) banner(`LEVEL ${G.levelIndex + 1}`, `${L.name}  ·  Wave 1 of ${L.waves.length}`, 2.8);
@@ -496,6 +513,7 @@ function update(dt) {
   updateZombies(dt);
   updateBullets(dt);
   updateNades(dt);
+  updateBarrels(dt);
   updatePools(dt);
   updatePickups(dt);
   updateFX(dt);
@@ -523,16 +541,20 @@ function render() {
   drawPickups(c);
   if (G.state !== 'title' && G.state !== 'lobby') {
     drawPools(c);
+    drawBarrels(c, false);
     for (const z of G.zombies) if (!z.dead) drawShadow(c, z.x, z.y, z.w);
     for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, 26);
     for (const z of G.zombies) if (z.dead) drawZombie(c, z);
     for (const z of G.zombies) if (!z.dead) drawZombie(c, z);
+    drawSlimeFeet(c);
+    drawShocked(c);
     drawIce(c);
     for (const p of G.players) drawPlayer(c, p);
     drawZombieBars(c);
     drawAimMarkers(c);
     drawBullets(c);
     drawNades(c);
+    drawBarrels(c, true);   // gas tanks flying around
   }
   drawParticles(c);
   drawTexts(c);

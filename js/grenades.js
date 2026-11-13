@@ -126,6 +126,7 @@ function nadeBoom(g, on) {
   const T = NADE_MAP[g.type], x = g.x, y = g.y;
   if (!T) return;
   blastZombies(x, y, T.radius, T.dmg, T.knock, T.freeze ? z => freezeZombie(z, T.freeze) : null);
+  blastBarrels(x, y, T.radius);   // js/barrels.js
   if (T.id === 'frag') {
     flashAt(x, y, 150); fireBurst(x, y, 22, 1); smoke(x, y, 12, 16, '#4a4450'); ring(x, y, T.radius, '#ffd27a', 0.4);
     sparks(x, y, 26, -Math.PI / 2, Math.PI, '#e8e0c0', 620);
@@ -146,7 +147,7 @@ function nadeBoom(g, on) {
     goo(x, y, 34, 0, 1.6); ring(x, y, T.radius, '#9dff5a', 0.45); flashAt(x, y, 80); smoke(x, y, 8, 14, '#7fbf3a');
     // The puddle goes where that zombie is standing (not on a car roof above its feet), or under the grenade.
     const floorY = on && on.onGround ? on.y : surfaceBelow(x, y - 2);
-    G.pools.push({ x, y: floorY, w: T.pool.w, t: T.pool.t, max: T.pool.t, dps: T.pool.dps, tick: 0 });
+    G.pools.push({ kind: 'acid', x, y: floorY, w: T.pool.w, t: T.pool.t, max: T.pool.t, dps: T.pool.dps, tick: 0 });
     G.shake = Math.max(G.shake, 8);
     Sound.play('acid', x);
   } else {   // cryo
@@ -164,7 +165,8 @@ function freezeZombie(z, t) {
   z.frozen = Math.max(z.frozen || 0, z.T.boss ? t * 0.4 : t);
   z.chargeT = z.windT = 0; z.pose = 0; z.kbx *= 0.3;
 }
-// Acid puddles melt the zombies standing in them (not crows flying over).
+// Puddles (js/barrels.js makes them too): acid and burning oil hurt the zombies standing in them,
+// sticky slime glues their feet (not crows flying over).
 function updatePools(dt) {
   for (let i = G.pools.length - 1; i >= 0; i--) {
     const q = G.pools[i];
@@ -173,8 +175,12 @@ function updatePools(dt) {
       q.tick = 0.25;
       for (const z of G.zombies) {
         if (z.dead || z.T.fly || Math.abs(z.x - q.x) > q.w / 2 + z.w * 0.25 || Math.abs(z.y - q.y) > 8) continue;
+        if (q.kind === 'goo') { z.sticky = Math.max(z.sticky || 0, 0.4); continue; }   // see updateZombies
         hurtZombie(z, q.dps * 0.25, 0, 0, true, false);
-        if (Math.random() < 0.5) smoke(z.x + rand(-6, 6), z.y - 6, 1, 6, '#9be36a');
+        if (Math.random() < 0.5) {
+          if (q.kind === 'fire') addPart({ type: 'fire', x: z.x + rand(-z.w / 2, z.w / 2), y: z.y - rand(0, z.h * 0.6), vx: rand(-20, 20), vy: rand(-120, -50), g: 0, life: rand(0.25, 0.5), size: rand(4, 8) });
+          else smoke(z.x + rand(-6, 6), z.y - 6, 1, 6, '#9be36a');
+        }
       }
     }
     if (q.t <= 0) G.pools.splice(i, 1);
@@ -241,6 +247,8 @@ function drawPools(c) {
     const k = q.k !== undefined ? q.k : q.t / q.max, a = Math.min(1, k * 4);   // fades away at the end
     const w = q.w * (0.55 + 0.45 * Math.min(1, (1 - k) * 10));                 // spreads out fast
     c.save();
+    if (q.kind === 'fire') { drawFirePool(c, q, w, a); c.restore(); continue; }
+    if (q.kind === 'goo') { drawSlimePool(c, q, w, a); c.restore(); continue; }
     c.globalAlpha = 0.8 * a;
     c.fillStyle = '#4fb81f'; c.beginPath(); c.ellipse(q.x, q.y, w / 2, 6, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#9dff5a'; c.beginPath(); c.ellipse(q.x, q.y - 1, Math.max(4, w / 2 - 10), 3.2, 0, 0, Math.PI * 2); c.fill();

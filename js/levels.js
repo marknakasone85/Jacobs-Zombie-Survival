@@ -12,6 +12,8 @@
 //              haybales tractor barn coop ute watertank termite shack cage kiosk rockpile train statue
 //   coins      extra coins lying around: [x, heightAboveGround, howMany]  (every platform gets a row too)
 //   bigCoins   shiny 10-coins in hard places: [x, heightAboveGround]
+//   barrels    things to shoot that go BOOM (js/barrels.js): [kind, x]
+//              kinds: boom (explosive) oil gas acid goo (sticky slime) ice (liquid nitrogen) zap (electric)
 //   waves      mix = how many of each zombie, every = seconds between zombies, max = most at once,
 //              boss: true = the level boss shows up halfway through that wave
 //   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo' or 'grizz'
@@ -24,6 +26,7 @@ const LEVELS = [
     platforms: [['car', 330, 96, '#b8483b'], ['shed', 720, 110], ['car', 1150, 96, '#3b6a9a'], ['treehouse', 1520, 140], ['van', 1960, 130], ['crate', 2330, 64]],
     coins: [[110, 20, 4], [560, 30, 3], [960, 40, 4], [1380, 30, 3], [1800, 26, 3], [2200, 30, 3]],
     bigCoins: [[1590, 196]],
+    barrels: [['boom', 560], ['goo', 1320], ['zap', 1780], ['boom', 2160]],
     waves: [
       { mix: { walker: 8 }, every: 1.6, max: 8 },
       { mix: { walker: 12, runner: 2, dog: 2 }, every: 1.3, max: 10 },
@@ -36,6 +39,7 @@ const LEVELS = [
     platforms: [['car', 230, 96, '#6b6b3b'], ['crate', 660, 64], ['bus', 1060, 250], ['scaffold', 1560, 170], ['car', 2010, 96, '#3b5a8a'], ['dumpster', 2360, 90], ['scaffold', 2700, 150], ['car', 2990, 96, '#8a3b3b']],
     coins: [[470, 30, 4], [880, 40, 3], [1420, 120, 3], [1830, 30, 4], [2560, 30, 3]],
     bigCoins: [[1645, 196], [2775, 190]],
+    barrels: [['boom', 430], ['gas', 880], ['zap', 1880], ['goo', 2580], ['oil', 2930]],
     waves: [
       { mix: { walker: 12, runner: 4, dog: 3 }, every: 1.2, max: 12 },
       { mix: { walker: 12, runner: 5, leaper: 4, dog: 5 }, every: 1.1, max: 14 },
@@ -49,6 +53,7 @@ const LEVELS = [
     platforms: [['crypt', 420, 140], ['wall', 900, 120], ['mausoleum', 1360, 170], ['wall', 1860, 100], ['crypt', 2240, 140], ['wall', 2660, 90]],
     coins: [[200, 26, 4], [700, 40, 3], [1140, 40, 4], [1660, 40, 3], [2060, 40, 3], [2500, 36, 3], [2860, 26, 3]],
     bigCoins: [[1445, 196], [490, 150]],
+    barrels: [['acid', 680], ['boom', 1640], ['zap', 2100], ['goo', 2540]],
     waves: [
       { mix: { walker: 14, runner: 6, leaper: 4, crow: 5 }, every: 1.0, max: 14 },
       { mix: { walker: 14, runner: 8, leaper: 6, brute: 3, crow: 6, dog: 4 }, every: 0.95, max: 16 },
@@ -62,6 +67,7 @@ const LEVELS = [
     platforms: [['logs', 260, 110], ['cabin', 640, 180], ['icerock', 1080, 90], ['logs', 1420, 110], ['cabin', 1820, 180], ['icerock', 2280, 100], ['logs', 2620, 120]],
     coins: [[470, 30, 4], [910, 40, 3], [1240, 30, 4], [1640, 40, 3], [2100, 30, 4], [2470, 40, 3]],
     bigCoins: [[730, 160], [1910, 160]],
+    barrels: [['ice', 880], ['gas', 1620], ['boom', 2150], ['ice', 2490]],
     waves: [
       { mix: { walker: 14, tiny: 8, dog: 4 }, every: 0.95, max: 14 },
       { mix: { walker: 14, runner: 8, tiny: 10, leaper: 4, dog: 6 }, every: 0.9, max: 16 },
@@ -76,6 +82,7 @@ const LEVELS = [
     platforms: [['barrels', 240, 70], ['trailer', 600, 190], ['canopy', 1100, 280], ['rock', 1640, 140], ['trailer', 2060, 190], ['barrels', 2500, 70], ['rock', 2820, 130]],
     coins: [[420, 30, 4], [880, 40, 3], [1500, 30, 3], [1880, 40, 4], [2340, 30, 3], [2680, 40, 3]],
     bigCoins: [[1240, 200], [1710, 170]],
+    barrels: [['oil', 450], ['gas', 950], ['gas', 1500], ['boom', 1990], ['oil', 2690]],
     waves: [
       { mix: { walker: 16, runner: 8, bloater: 4, dog: 4 }, every: 0.9, max: 16 },
       { mix: { walker: 16, runner: 10, bloater: 6, tiny: 8, crow: 6 }, every: 0.85, max: 18 },
@@ -90,6 +97,7 @@ const LEVELS = [
     platforms: [['container', 260, 180, '#3a6a8a'], ['tank', 720, 170], ['tower', 1180, 110], ['bunker', 1600, 210], ['container', 2100, 180, '#8a4a2a'], ['tank', 2560, 170], ['tower', 3020, 110]],
     coins: [[480, 30, 4], [960, 40, 3], [1420, 30, 3], [1880, 40, 4], [2340, 30, 3], [2800, 40, 3]],
     bigCoins: [[1235, 200], [3075, 200]],
+    barrels: [['boom', 560], ['gas', 1010], ['zap', 1520], ['boom', 1960], ['acid', 2390], ['ice', 2880]],
     waves: [
       { mix: { walker: 18, runner: 10, dog: 6 }, every: 0.85, max: 18 },
       { mix: { walker: 18, runner: 10, leaper: 8, tiny: 10, dog: 8 }, every: 0.8, max: 20 },
@@ -105,6 +113,7 @@ const LEVELS = [
     platforms: [['stand', 280, 150], ['wagon', 720, 190], ['stage', 1200, 260], ['stand', 1760, 150], ['boxes', 2160, 90], ['wagon', 2560, 190], ['stage', 3040, 240]],
     coins: [[500, 30, 4], [1000, 40, 3], [1540, 30, 4], [1980, 40, 3], [2380, 30, 4], [2840, 40, 3]],
     bigCoins: [[1330, 120], [2205, 130], [3160, 120]],
+    barrels: [['gas', 560], ['goo', 1000], ['boom', 1620], ['zap', 2050], ['ice', 2420], ['boom', 2900]],
     waves: [
       { mix: { walker: 20, tiny: 12, runner: 10 }, every: 0.8, max: 20 },
       { mix: { walker: 20, runner: 12, bloater: 8, leaper: 8, roo: 4 }, every: 0.75, max: 22 },
@@ -120,6 +129,7 @@ const LEVELS = [
     platforms: [['haybales', 260, 120], ['tractor', 680, 150], ['coop', 1120, 110], ['barn', 1500, 220], ['haybales', 2000, 120], ['tractor', 2400, 150], ['coop', 2880, 110]],
     coins: [[520, 30, 4], [960, 40, 3], [1360, 30, 4], [1820, 40, 3], [2240, 30, 4], [2700, 40, 3], [3150, 30, 3]],
     bigCoins: [[1610, 200], [745, 150]],
+    barrels: [['oil', 520], ['boom', 960], ['goo', 1820], ['gas', 2260], ['acid', 2700]],
     waves: [
       { mix: { walker: 16, dog: 8, crow: 6 }, every: 0.8, max: 20 },
       { mix: { walker: 16, sheep: 8, dog: 8, crow: 8 }, every: 0.75, max: 22 },
@@ -134,6 +144,7 @@ const LEVELS = [
     platforms: [['ute', 240, 130, '#d8d4c8'], ['termite', 640, 80], ['watertank', 980, 100], ['shack', 1380, 200], ['ute', 1900, 130, '#c8a040'], ['termite', 2300, 80], ['watertank', 2650, 100], ['shack', 3020, 200]],
     coins: [[460, 30, 4], [840, 40, 3], [1200, 30, 4], [1700, 40, 3], [2120, 30, 4], [2480, 40, 3], [2850, 30, 4]],
     bigCoins: [[1030, 196], [2700, 196], [3110, 170]],
+    barrels: [['oil', 480], ['gas', 840], ['boom', 1700], ['goo', 2160], ['zap', 2520], ['oil', 2900]],
     waves: [
       { mix: { walker: 16, roo: 6, dog: 8 }, every: 0.78, max: 20 },
       { mix: { walker: 18, roo: 8, dog: 10, crow: 8 }, every: 0.74, max: 22 },
@@ -148,6 +159,7 @@ const LEVELS = [
     platforms: [['cage', 260, 150], ['kiosk', 700, 130], ['rockpile', 1080, 170], ['train', 1500, 220], ['statue', 2020, 140], ['cage', 2420, 150], ['kiosk', 2860, 130], ['rockpile', 3260, 170]],
     coins: [[500, 30, 4], [920, 40, 3], [1340, 30, 4], [1820, 40, 3], [2260, 30, 4], [2680, 40, 3], [3120, 30, 4], [3560, 40, 3]],
     bigCoins: [[2090, 210], [765, 200], [3330, 170]],
+    barrels: [['acid', 540], ['ice', 960], ['boom', 1820], ['zap', 2280], ['goo', 2700], ['gas', 3120], ['boom', 3560]],
     waves: [
       { mix: { walker: 18, dog: 10, crow: 10 }, every: 0.75, max: 22 },
       { mix: { walker: 18, roo: 8, sheep: 8, tiny: 12 }, every: 0.72, max: 22 },
@@ -484,12 +496,6 @@ function drawCactus(c, x, base, h, col, arms) {
   if (arms >= 1) { fillRR(c, x + w / 2 - 1, base - h * 0.55, w * 0.9, w * 0.7, 3, col); fillRR(c, x + w * 1.1, base - h * 0.85, w * 0.7, h * 0.36, w * 0.35, col); }
   if (arms >= 2) { fillRR(c, x - w * 1.4, base - h * 0.45, w * 0.95, w * 0.7, 3, col); fillRR(c, x - w * 1.5, base - h * 0.7, w * 0.7, h * 0.3, w * 0.35, col); }
 }
-function drawTumbleweed(c, x, y, rot) {
-  c.save(); c.translate(x, y); c.rotate(rot); c.strokeStyle = '#8a6a3a'; c.lineWidth = 1.5;
-  c.beginPath(); c.arc(0, 0, 12, 0, Math.PI * 2);
-  for (let k = 0; k < 5; k++) { const a = k * 1.3; c.moveTo(Math.cos(a) * 12, Math.sin(a) * 12); c.lineTo(Math.cos(a + 2.4) * 10, Math.sin(a + 2.4) * 10); }
-  c.stroke(); c.restore();
-}
 function drawSkull(c, x) {
   fillRR(c, x - 7, GROUND - 12, 14, 10, 4, '#ece4d4');
   c.strokeStyle = '#ece4d4'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x - 6, GROUND - 10); c.quadraticCurveTo(x - 16, GROUND - 14, x - 14, GROUND - 22); c.moveTo(x + 6, GROUND - 10); c.quadraticCurveTo(x + 16, GROUND - 14, x + 14, GROUND - 22); c.stroke();
@@ -557,7 +563,7 @@ function drawWorldBack(c, L, camX) {
     drawStreet(c, x0, x1, '#6e6480', '#8a7f9c', '#4a4058', '#2b2636', '#b8952f');
   } else if (L.theme === 'city') {
     for (let i = 0, x = 210; x < L.worldW; i++, x += 420) if (vis(x, 160)) drawLamp(c, x, i, '255,214,140');
-    for (const b of bg.barrels) if (vis(b)) drawBarrel(c, b);
+    for (const b of bg.barrels) if (vis(b)) drawFireBarrel(c, b);
     drawStreet(c, x0, x1, '#3b3452', '#4d4566', '#2a2440', '#1d1a2b', '#6e5d2a');
   } else if (L.theme === 'snow') {
     for (const t of bg.trees) if (vis(t.x, 100)) drawPine(c, t.x, GROUND - 2, t.h, '#1a3a2e', '#eef5fb');
@@ -663,7 +669,7 @@ function drawMailbox(c, x) {
   fillRR(c, x - 10, GROUND - 42, 20, 13, 5, '#3a5a8a');
   c.fillStyle = '#e8413a'; c.fillRect(x + 7, GROUND - 48, 2, 10); c.fillRect(x + 7, GROUND - 48, 6, 4);
 }
-function drawBarrel(c, x) {
+function drawFireBarrel(c, x) {
   glow(c, x, GROUND - 40, 110, '255,140,60', 0.28);
   fillRR(c, x - 12, GROUND - 32, 24, 32, 3, '#5a4a3a');
   c.fillStyle = '#463a2e'; c.fillRect(x - 12, GROUND - 24, 24, 3); c.fillRect(x - 12, GROUND - 10, 24, 3);
@@ -769,7 +775,7 @@ function drawWorldFront(c, L, camX) {
   }
 }
 
-function drawTumbleweed(c, x, y, rot, r) {
+function drawTumbleweed(c, x, y, rot, r = 12) {
   c.fillStyle = 'rgba(0,0,0,0.25)';
   c.beginPath(); c.ellipse(x, GROUND + 1, r * 0.9, 3, 0, 0, Math.PI * 2); c.fill();
   c.save(); c.translate(x, y); c.rotate(rot);

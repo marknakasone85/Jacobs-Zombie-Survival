@@ -105,7 +105,7 @@ const G = {
   numPlayers: 1, players: [],
   levelIndex: 0, level: null, waveIndex: 0, next: null,
   camX: 0, shake: 0, hurtFlash: 0, coinPulse: 0,
-  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [], nades: [], pools: [],
+  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [], nades: [], pools: [], barrels: [],
   queue: [], spawnT: 0, maxAlive: 8, every: 1.4, bossPending: false, bossAt: 0, boss: null,
   collectAll: false, clearT: 0, levelDone: false,
   banner: null, toast: null,

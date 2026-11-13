@@ -87,6 +87,22 @@ Throw them with **G**, a **right-click** (it throws at the mouse), or the grenad
 
 Your grenades show at the bottom of your player panel. The kind you'll throw next is lit up.
 
+## Barrels
+
+Every map has a few barrels and tanks standing around. Shoot one, hit it with a sword or hammer, burn it, or blow it up, and it goes off. Wait until zombies are crowding around it! Explosions set off the barrels close by too, for a **CHAIN REACTION**. The electric barrel's lightning sets them off as well. Each one you shoot comes back 30 seconds later (it drops in from the sky), and they are all back for every new wave. Careful: the explosive ones hurt you a bit if you stand right next to them.
+
+| Barrel | What it does |
+|---|---|
+| Explosive Barrel (red, with a flame sign) | a huge boom (340 damage) |
+| Oil Drum (black, OIL) | a fireball, then burning oil on the ground for 7 seconds |
+| Toxic Barrel (yellow, with a toxic sign) | a wide puddle of acid that melts zombies for 8 seconds |
+| Sticky Slime Barrel (purple, pink slime) | pink slime everywhere for 10 seconds: zombies stuck in it can only wade along very slowly, and can't jump, hop or charge |
+| Liquid Nitrogen Tank (light blue, snowflake) | freezes every zombie close by for 4.5 seconds |
+| Gas Tank (white, GAS) | the valve breaks and it **rockets off**, spinning, then blows up on the first zombie it hits. Shoot it in the air to blow it up early! |
+| Electric Barrel (a giant battery) | lightning jumps from zombie to zombie, up to 12 of them, and stuns them for 2.5 seconds |
+
+Shot barrels leak (fire, gas, oil, acid, slime or sparks), so you can see which ones are about to go.
+
 ## Armor and health
 
 Also in the Gun Shop. Your armor shows as a **blue ARMOR bar** under your health. It takes the hits before your health does, and it's repaired at the start of every wave. You wear one set at a time (you can own several and switch), and armor can be sold back for all your coins too.
@@ -173,7 +189,7 @@ Security: only the game files are shared, read-only. Only the host's own compute
 
 ## Adding a level
 
-Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the top explains every field (theme, platforms, coins, waves, boss). The farm, outback and zoo backgrounds and their platforms are in `js/themes.js`.
+Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the top explains every field (theme, platforms, coins, barrels, waves, boss). The farm, outback and zoo backgrounds and their platforms are in `js/themes.js`.
 
 ## Files
 
@@ -184,6 +200,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/fx.js`: particles, floating numbers, banners
 - `js/weapons.js`: the guns
 - `js/grenades.js`: the grenades (throwing, bouncing, sticking, the four kinds of explosion, acid puddles, ice)
+- `js/barrels.js`: the barrels and tanks on the maps (explosions, chain reactions, burning oil, sticky slime, lightning, flying gas tanks)
 - `js/gear.js`: armor sets (and how they look) and health boosts
 - `js/levels.js`: levels, backgrounds and platforms
 - `js/themes.js`: backgrounds and platforms for the farm, outback and zoo

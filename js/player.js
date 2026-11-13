@@ -190,6 +190,11 @@ function meleeSwing(p, wp) {
     }
     dust(qx, p.y, 10); ring(qx, p.y - 2, wp.quake, '#e8d8b0', 0.4);
   }
+  for (const b of G.barrels) {   // whack a barrel and it goes off (js/barrels.js)
+    if (b.gone || b.fly || b.drop > 0) continue;
+    const dx = (b.x - p.x) * dir;
+    if (dx + b.w / 2 > -12 && dx - b.w / 2 < wp.reach && b.y - b.h < p.y + 6 && b.y > p.y - p.h - 34) hitBarrel(b, wp.dmg, dir);
+  }
   addPart({ type: 'slash', x: p.x + dir * 6, y: p.y - 44, vx: 0, vy: 0, g: 0, life: 0.18, size: wp.reach, dir, col: wp.id === 'saber' ? '#7fffa0' : wp.id === 'hammer' ? '#e8d8b0' : '#ffffff' });
   G.shake = Math.max(G.shake, hit.size ? wp.shake : wp.shake * 0.3);
   Sound.play(wp.sfx, p.x);

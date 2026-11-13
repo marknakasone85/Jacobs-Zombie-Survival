@@ -4,8 +4,13 @@
 const MAX_PARTS = 900;
 function addPart(p) { if (G.particles.length < MAX_PARTS) { p.max = p.life; G.particles.push(p); } }
 
-function goo(x, y, n, dir = 0, big = 1) {
-  for (let i = 0; i < n; i++) addPart({ type: 'goo', x, y, vx: dir * rand(40, 240) + rand(-80, 80), vy: rand(-340, -60), g: 1400, life: rand(0.4, 0.9), size: rand(1.8, 4.2) * big, col: pick(['#7bd64a', '#5fae3a', '#9be36a', '#4c8f2e']), floor: true });
+const GOO_COLS = Object.assign(Object.create(null), {   // no prototype: a Wi-Fi host names the colors
+  zombie: ['#7bd64a', '#5fae3a', '#9be36a', '#4c8f2e'],
+  slime: ['#e070f0', '#b03ad8', '#ff9af2', '#8a2fb8'],   // the sticky slime barrel (js/barrels.js)
+});
+function goo(x, y, n, dir = 0, big = 1, pal = 'zombie') {
+  const cols = GOO_COLS[pal] || GOO_COLS.zombie;
+  for (let i = 0; i < n; i++) addPart({ type: 'goo', x, y, vx: dir * rand(40, 240) + rand(-80, 80), vy: rand(-340, -60), g: 1400, life: rand(0.4, 0.9), size: rand(1.8, 4.2) * big, col: pick(cols), floor: true });
 }
 function sparks(x, y, n, ang, spread, col = '#ffd27a', speed = 300) {
   for (let i = 0; i < n; i++) { const a = ang + rand(-spread, spread), s = rand(0.4, 1) * speed; addPart({ type: 'spark', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 500, life: rand(0.12, 0.3), size: rand(1, 2), col }); }
@@ -131,6 +136,8 @@ function drawParticles(c) {
     if (p.type === 'fire') {
       c.globalAlpha = a * 0.9;
       circle(c, p.x, p.y, p.size * (0.4 + a * 0.8), a > 0.65 ? '#fff0a0' : a > 0.35 ? '#ffa23a' : '#ff4d1f');
+    } else if (p.type === 'zap') {   // lightning from the electric barrel (js/barrels.js)
+      drawZap(c, p.x, p.y, p.x2, p.y2, p.seed + Math.floor(G.t * 30), a);
     } else if (p.type === 'flash') {
       c.globalAlpha = a;
       const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);

@@ -493,6 +493,38 @@ const Sound = (() => {
       voice(x, { f0: who ? 230 : 180, f1: who ? 120 : 90, dur: 0.7, from: 'ah', to: 'uh', rasp: 0.2, breath: 0.4, vol: 0.45, shift: 1.1, atk: 0.02, makeup: 3 });
       const b = bus(undefined, 0.5, 0.4); [392, 330, 262, 196].forEach((f, i) => osc(b, { type: 'triangle', at: 0.3 + i * 0.22, dur: 0.3, f0: f, f1: f * 0.97, vol: 0.35 }));
     },
+    drumhit(x) {   // a bullet hitting a metal barrel: a hollow bong
+      const b = bus(x, 0.55, 0.25);
+      osc(b, { type: 'triangle', dur: 0.3, f0: 430, f1: 395, vol: 0.3 }); osc(b, { dur: 0.22, f0: 690, f1: 660, vol: 0.14 });
+      nz(b, { dur: 0.04, type: 'bandpass', f0: 2400, q: 3, vol: 0.7 });
+    },
+    hiss(x) {   // a gas tank's valve breaks: pop, then a screaming hiss as it takes off
+      const b = bus(x, 0.9, 0.25, 0.1);
+      nz(b, { dur: 0.04, type: 'highpass', f0: 2000, vol: 1 });
+      nz(b, { at: 0.02, dur: 1.2, type: 'highpass', f0: 3000, f1: 5000, vol: 0.5, atk: 0.03 });
+      nz(b, { at: 0.02, dur: 1.1, type: 'bandpass', f0: 900, f1: 1800, q: 2, vol: 0.4, atk: 0.05 });
+      osc(b, { at: 0.05, dur: 1.0, f0: 1400, f1: 2600, vol: 0.05, atk: 0.1 });
+    },
+    fireball(x) {   // an oil drum going up: a boom and a roaring WHOOMP of fire
+      const b = bus(x, 1.1, 0.45, 0.25), p = shaper(b, grit);
+      nz(p, { dur: 0.03, type: 'highpass', f0: 900, vol: 1.1 });
+      nz(p, { dur: 1.1, f0: 1800, f1: 80, vol: 1.2 });
+      osc(b, { dur: 0.7, f0: 70, f1: 24, vol: 1.2 });
+      nz(b, { at: 0.04, dur: 1.5, type: 'bandpass', f0: 240, f1: 900, q: 0.8, vol: 0.8, atk: 0.1 });
+    },
+    slime(x) {   // the sticky slime barrel: a big wet SPLURT and a bloop
+      const b = bus(x, 1, 0.3, 0.1), p = shaper(b, grit);
+      nz(p, { dur: 0.5, f0: 900, f1: 70, vol: 1.1 });
+      osc(b, { dur: 0.35, f0: 240, f1: 90, vol: 0.7 }); osc(b, { at: 0.16, dur: 0.25, f0: 360, f1: 150, vol: 0.4 });
+      for (let i = 0; i < 4; i++) nz(b, { at: 0.1 + Math.random() * 0.5, dur: 0.06, type: 'bandpass', f0: 250 + Math.random() * 400, q: 3, vol: 0.45 });
+    },
+    shock(x) {   // the electric barrel: a crackling ZZZAP and a buzz
+      const b = bus(x, 0.8, 0.3, 0.15);
+      nz(b, { dur: 0.05, type: 'highpass', f0: 3000, vol: 1 });
+      osc(b, { type: 'sawtooth', dur: 0.6, f0: 120, f1: 60, vol: 0.35 });
+      osc(b, { type: 'square', dur: 0.5, f0: 240, f1: 180, vol: 0.12 });
+      for (let i = 0; i < 10; i++) nz(b, { at: Math.random() * 0.6, dur: 0.02, type: 'highpass', f0: 2500 + Math.random() * 3000, vol: 0.6 });
+    },
     stomp(x) { const b = bus(x, 1.1, 0.4, 0.2), p = shaper(b, punch); nz(p, { dur: 0.6, f0: 500, f1: 40, vol: 1 }); osc(b, { dur: 0.5, f0: 60, f1: 25, vol: 1.1 }); },
     jump(x) { const b = bus(x, 0.35, 0.05); nz(b, { dur: 0.1, type: 'bandpass', f0: 700, f1: 1500, q: 1, vol: 0.5 }); },
     land(x) { const b = bus(x, 0.4, 0.05); nz(b, { dur: 0.08, f0: 600, f1: 100, vol: 0.8 }); },
@@ -509,8 +541,8 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80 };
-  const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack']);   // can wait when it's busy
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60 };
+  const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack', 'drumhit']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);
     if (x === null) x = undefined;

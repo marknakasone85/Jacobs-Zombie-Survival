@@ -37,6 +37,12 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - Every sound's mixer (`bus()`) is unplugged after `life` seconds (3.5 s, longer than any sound), or phones pile them up and the sound breaks up as a fight goes on. A new sound longer than about 3 s needs a bigger `life`. Loops unplug their own bus.
 - `Sound.stats()` shows the phone mix, the mixers still plugged in, voices and limiter squash (dB) for testing. In the pane, the mobile preset turns on the phone mix (reload after resizing), and a real click is needed before sound starts.
 
+## Barrels
+- `js/barrels.js`: the barrels on each map (`barrels: [[kind, x]]` in `js/levels.js`). Every explosion calls `blastBarrels()` (grenades, rockets, bolts, bloaters, barrels), so add it to any new explosion. Bullets, lasers and melee call `hitBarrel()`.
+- Wi-Fi guests get barrels in the snapshot (`ba`), puddle kinds (`po`) and two zombie flags (stuck in slime, shocked). Lightning is a `zap` particle, so it reaches guests like other effects. `BARRELS` and `GOO_COLS` have no prototype.
+- The city's burning barrels in the background are scenery (`drawFireBarrel`), not barrels you can shoot.
+- Two functions with the same name in different files don't cause an error: the later one silently wins. That is how the desert's small tumbleweeds vanished in the controllers update. Search for a name before adding a function.
+
 ## Game controllers
 - `js/gamepad.js` turns controller buttons into pretend keys (`pad0:jump` ...) that are listed in `CONTROLS` (`js/util.js`), so they reach every place keys do, Wi-Fi guests included. Start calls `onKey('p')`. Two players with one controller: it is P2's.
 - Test with a fake `navigator.getGamepads = () => [pad]` (buttons with `pressed`/`value`, `axes`), then `pollPads()` and `step()`.

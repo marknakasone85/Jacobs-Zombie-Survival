@@ -98,9 +98,14 @@ function updateZombies(dt) {
       continue;
     }
     z.atkCd -= dt; z.jumpCd -= dt; z.atkAnim = Math.max(0, z.atkAnim - dt);
-    if (z.frozen > 0) {   // frozen solid by a Cryo Grenade: no walking, no biting (crows fall out of the sky)
-      z.frozen -= dt;
-      if (z.frozen <= 0) { z.frozen = 0; sparks(z.x, z.y - z.h * 0.5, 12, -Math.PI / 2, Math.PI, '#dff8ff', 260); Sound.play('crack', z.x); }
+    if (z.sticky > 0) z.sticky = Math.max(0, z.sticky - dt);
+    if (z.shocked > 0) z.shocked = Math.max(0, z.shocked - dt);
+    // Frozen solid by a Cryo Grenade, or zapped by an electric barrel: no walking, no biting (crows fall out of the sky).
+    if (z.frozen > 0 || z.shocked > 0) {
+      if (z.frozen > 0) {
+        z.frozen -= dt;
+        if (z.frozen <= 0) { z.frozen = 0; sparks(z.x, z.y - z.h * 0.5, 12, -Math.PI / 2, Math.PI, '#dff8ff', 260); Sound.play('crack', z.x); }
+      }
       z.vy = Math.min(z.vy + GRAV * dt, 1400); z.prevY = z.y; z.y += z.vy * dt;
       z.x = clamp(z.x + z.kbx * dt, 10, G.level.worldW - 10); z.kbx *= Math.exp(-7 * dt);
       land(z);
@@ -129,9 +134,12 @@ function updateZombies(dt) {
         }
       }
       z.vx = adx < 6 ? 0 : dir * sp;
-      if (body === 'sheep') sheepCharge(z, target, adx, dir, dt);
-      if (body === 'roo') rooHop(z, target, adx, dir, sp, dt);
-      else if (z.onGround && !(z.chargeT > 0) && !(z.windT > 0)) {
+      // Stuck in sticky slime (js/barrels.js): a slow wade, and no charging, hopping or jumping.
+      const stuck = z.sticky > 0;
+      if (stuck) { z.vx *= z.T.boss ? 0.45 : SLIME_SLOW; z.chargeT = z.windT = 0; z.pose = 0; }
+      if (body === 'sheep' && !stuck) sheepCharge(z, target, adx, dir, dt);
+      if (body === 'roo' && !stuck) rooHop(z, target, adx, dir, sp, dt);
+      else if (!stuck && z.onGround && !(z.chargeT > 0) && !(z.windT > 0)) {
         if (target.y < z.y - 24 && adx < 170 && z.jumpCd <= 0) {
           // You're up on something: try to jump up after you.
           z.vy = -z.jumpV * rand(0.9, 1.05); z.onGround = false; z.jumpCd = rand(1.0, 2.2);
@@ -297,6 +305,7 @@ function bloaterPop(z) {
   Sound.play('splat', x);
   for (const q of G.zombies) if (!q.dead && q !== z && Math.hypot(q.x - x, (q.y - q.h / 2) - y) < 110) hurtZombie(q, 55, (Math.sign(q.x - x) || 1) * 300, -200, true);
   for (const p of G.players) if (!p.dead && Math.hypot(p.x - x, (p.y - 32) - y) < 85) hurtPlayer(p, 12, Math.sign(p.x - x) || 1);
+  blastBarrels(x, y, 110);   // and barrels (js/barrels.js)
 }
 // Spills coins out of a zombie. Bigger piles come out as some 5-coins.
 function dropCoins(x, y, total) {

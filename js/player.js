@@ -20,7 +20,7 @@ function makePlayer(i, x, o = {}) {
     armorId: armorOf(prof) ? prof.armor : '', armor: armorOf(prof), maxArmor: armorOf(prof),   // js/gear.js
     onGround: true, onPlat: null, dropT: 0, jumpBuf: 0, coyote: 0, jumpCut: true,
     facing: 1, aim: 0, target: null, cd: 0, recoil: 0, flashT: 0, walkT: 0, nadeCd: 0, throwT: 0,
-    weapon: prof.owned.includes(prof.equipped) ? prof.equipped : 'shotgun',
+    weapon: prof.owned.includes(prof.equipped) ? prof.equipped : 'pistol',
   };
 }
 const alivePlayers = () => G.players.filter(p => !p.dead);

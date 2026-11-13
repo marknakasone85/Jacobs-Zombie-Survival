@@ -8,7 +8,9 @@
 //   reach = how far   swing = how long the swing takes   lift = how high zombies get knocked   quake = ground shockwave size
 
 const WEAPONS = [
-  { id: 'shotgun', name: 'Shotgun', price: 0, desc: 'Your trusty boomstick. A wide blast that knocks zombies back.',
+  { id: 'pistol', name: '9mm Pistol', price: 0, desc: 'Your starter pistol. Not great, but it never runs out. Grab coins and buy something better!',
+    cd: 0.3, pellets: 1, spread: 0.04, speed: 1250, dmg: 7, life: 0.5, knock: 40, pierce: 1, kind: 'bullet', shake: 1.2, sfx: 'pistol', len: 18, grip: 0, bounds: [-5, 18, -7, 11] },
+  { id: 'shotgun', name: 'Pump Shotgun', price: 35, desc: 'A trusty pump-action boomstick. A wide blast that knocks zombies back.',
     cd: 0.72, pellets: 7, spread: 0.26, speed: 980, dmg: 8, life: 0.36, knock: 210, pierce: 1, kind: 'pellet', shake: 6, sfx: 'shotgun', len: 34, grip: 18, kick: 70, bounds: [-18, 35, -6, 9] },
   { id: 'smg', name: 'Rapid SMG', price: 50, desc: 'Small and speedy. Sprays bullets super fast.',
     cd: 0.085, pellets: 1, spread: 0.08, speed: 1150, dmg: 7, life: 0.5, knock: 30, pierce: 1, kind: 'bullet', shake: 1.4, sfx: 'smg', len: 24, grip: 0, bounds: [-6, 25, -7, 13] },
@@ -18,6 +20,8 @@ const WEAPONS = [
     cd: 0.42, pellets: 1, spread: 0.01, speed: 2200, dmg: 48, life: 0.45, knock: 240, pierce: 2, kind: 'slug', shake: 6, sfx: 'magnum', len: 26, grip: 0, kick: 50, bounds: [-6, 28, -8, 11] },
   { id: 'rifle', name: 'Assault Rifle', price: 120, desc: 'Strong, accurate and fast. A great all-rounder.',
     cd: 0.12, pellets: 1, spread: 0.03, speed: 1450, dmg: 15, life: 0.65, knock: 55, pierce: 1, kind: 'bullet', shake: 2.2, sfx: 'rifle', len: 37, grip: 18, bounds: [-19, 38, -9, 14] },
+  { id: 'deagle', name: 'Hand Cannon', price: 180, desc: 'A giant .50 pistol. Every BANG hits super hard, but it only goes through 1 zombie.',
+    cd: 0.6, pellets: 1, spread: 0.01, speed: 2400, dmg: 110, life: 0.45, knock: 330, pierce: 1, kind: 'slug', shake: 7, sfx: 'hcannon', len: 26, grip: 0, kick: 90, bounds: [-6, 27, -9, 13] },
   { id: 'sniper', name: 'Sniper', price: 200, desc: 'One MASSIVE shot that zips through 8 zombies. Takes out a brute in one hit.',
     cd: 0.9, pellets: 1, spread: 0, speed: 3200, dmg: 250, life: 0.7, knock: 360, pierce: 8, kind: 'slug', shake: 7, sfx: 'sniper', len: 54, grip: 24, kick: 40, bounds: [-22, 55, -13, 11] },
   { id: 'hammer', name: 'War Hammer', price: 250, desc: 'Slow but HUGE. Smashes zombies flying and shakes the ground.',
@@ -48,6 +52,29 @@ const wRange = w => (w.kind === 'laser' ? w.range : w.kind === 'melee' ? w.reach
 // Draws a gun pointing right, with the shooting hand at (0, 0).
 function drawGun(c, id, t = 0, loaded = true) {
   switch (id) {
+    case 'pistol': {   // a plain black 9mm pistol
+      poly(c, [-3, 1, 4, 1, 6.5, 10, -0.5, 10], '#1c1c22');               // grip
+      fillRR(c, -4, -5, 21, 6, 1.5, '#30323a');                            // slide
+      c.fillStyle = '#22232a'; c.fillRect(-2, 0.5, 18, 2.5);              // frame
+      c.fillStyle = '#1a1a1e'; for (const x of [-2.5, -1, 0.5]) c.fillRect(x, -4.5, 0.7, 5);   // slide grooves
+      c.fillStyle = '#5a5e68'; c.fillRect(5, -5, 11, 1);
+      c.fillStyle = '#111'; c.fillRect(15, -6.2, 1.5, 1.4); c.fillRect(-3, -6.2, 2, 1.4);   // sights
+      c.strokeStyle = '#26272e'; c.lineWidth = 1.2; c.beginPath(); c.arc(2.5, 3.5, 2.6, 0, Math.PI); c.stroke();   // trigger guard
+      break;
+    }
+    case 'deagle': {   // a huge chrome hand cannon
+      poly(c, [-4, 2, 4, 2, 7, 12, -1, 12], '#1c1c22');                  // grip
+      c.fillStyle = '#34343c'; for (const y of [5, 7.5, 10]) c.fillRect(-1 + y * 0.32, y, 5, 0.8);
+      c.fillStyle = '#9aa2ac'; c.fillRect(-3, 1, 25, 2.2);                // frame
+      fillRR(c, -5, -7, 31, 8.5, 1.5, '#c3cad3');                          // the big slide
+      c.fillStyle = '#8a929c'; c.fillRect(-5, -1.2, 31, 2);
+      c.fillStyle = '#eef2f6'; c.fillRect(-3, -6.2, 27, 1.4);             // shine
+      c.fillStyle = '#5a6068'; for (const x of [-3.5, -2, -0.5]) c.fillRect(x, -6, 0.8, 5);
+      poly(c, [12, -4.5, 20, -4.5, 16, -1.8], '#8a929c');                 // the triangle on the barrel
+      c.fillStyle = '#2a2a2a'; c.fillRect(24, -8.6, 2, 1.8); c.fillRect(-4, -8.6, 2.5, 1.8);   // sights
+      c.strokeStyle = '#5a6068'; c.lineWidth = 1.4; c.beginPath(); c.arc(2, 4.5, 3.2, 0, Math.PI); c.stroke();   // trigger guard
+      break;
+    }
     case 'shotgun': {
       poly(c, [-18, -2, -2, -3, -2, 3, -18, 5], '#7a4a24');              // wooden stock
       c.fillStyle = '#5e3818'; c.fillRect(-18, -2, 2.5, 7);

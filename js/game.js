@@ -11,8 +11,8 @@ const MEDKIT = { price: 25, heal: 50 };
 // Clean up the save in case it mentions guns or levels that don't exist (any more).
 for (const prof of save.players) {
   prof.owned = [...new Set(prof.owned.filter(id => WMAP[id]))];
-  if (!prof.owned.includes('shotgun')) prof.owned.unshift('shotgun');
-  if (!prof.owned.includes(prof.equipped)) prof.equipped = 'shotgun';
+  if (!prof.owned.includes('pistol')) prof.owned.unshift('pistol');   // the starter pistol (older saves keep their shotgun)
+  if (!prof.owned.includes(prof.equipped)) prof.equipped = 'pistol';
   prof.armors = [...new Set((prof.armors || []).filter(id => ARMOR_MAP[id]))];
   if (!prof.armors.includes(prof.armor)) prof.armor = '';
   prof.boost = clamp(prof.boost || 0, 0, HEALTH_BOOSTS.length);
@@ -30,7 +30,7 @@ const slotOfKey = k => (k === '0' ? 9 : +k - 1);   // keys 1-9 pick the first ni
 const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + aliveZombies() + (G.bossPending ? 1 : 0));
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
-  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools, G.barrels]) arr.length = 0;
+  for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools, G.barrels, G.shots]) arr.length = 0;
   G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0;
 }
 
@@ -424,6 +424,7 @@ function startWave(k) {
   for (const [type, n] of Object.entries(wv.mix)) for (let i = 0; i < Math.round(n * more); i++) G.queue.push(type);
   shuffle(G.queue);
   G.spawnT = 1.6; G.every = wv.every; G.maxAlive = Math.round(wv.max * (1 + 0.15 * (team - 1)));
+  G.killGoal = G.run.kills; for (let j = k; j < L.waves.length; j++) G.killGoal += waveSize(j);   // the kill counter (drawKillCount)
   G.bossPending = !!wv.boss; G.bossAt = Math.floor(G.queue.length / 2);
   G.collectAll = false; G.levelDone = false;
   for (const p of G.players) p.armor = p.maxArmor || 0;   // armor is repaired for every wave
@@ -433,6 +434,13 @@ function startWave(k) {
   if (k === 0) banner(`LEVEL ${G.levelIndex + 1}`, `${L.name}  ·  Wave 1 of ${L.waves.length}`, 2.8);
   else banner(`WAVE ${k + 1}`, wv.boss ? 'Something BIG is coming...' : `of ${L.waves.length}`, 2.4);
   Sound.play('wave');
+}
+// How many zombies wave k sends with this many players (the same sum as startWave), plus the boss
+// and the little zombies that come out of it (King Bloat's bloaters).
+function waveSize(k) {
+  const team = Math.max(1, G.players.length), more = 1 + 0.3 * (team - 1), wv = G.level.waves[k];
+  const boss = wv.boss ? 1 + (ZTYPES[G.level.bossType || 'boss'].minis || 0) : 0;
+  return Object.values(wv.mix).reduce((n, c) => n + Math.round(c * more), 0) + boss;
 }
 const aliveZombies = () => G.zombies.reduce((n, z) => n + (z.dead ? 0 : 1), 0);
 function updateSpawning(dt) {
@@ -445,7 +453,7 @@ function updateSpawning(dt) {
   if (G.bossPending && G.queue.length <= G.bossAt) {
     G.bossPending = false; G.shake = 12;
     const boss = spawnZombie(G.level.bossType || 'boss');
-    banner((G.level.boss || 'Boss zombie').toUpperCase(), 'Hit it with everything you have!', 2.4, '#ff5a5a');
+    banner((G.level.boss || 'Boss zombie').toUpperCase(), G.level.bossLine || 'Hit it with everything you have!', 2.4, '#ff5a5a');
     Sound.zombie(boss, 'roar');
   }
   if (!G.queue.length && !G.bossPending && aliveZombies() === 0) waveCleared();
@@ -477,7 +485,7 @@ function afterClear() {
     p.prof.coins += c.val; G.run.coins[p.id] = (G.run.coins[p.id] || 0) + c.val;
   }
   G.coins = G.coins.filter(c => c.float);   // coins around the map stay for the next wave
-  G.nades.length = 0; G.pools.length = 0;
+  G.nades.length = 0; G.pools.length = 0; G.shots.length = 0;
   G.collectAll = false;
   writeSave();
   if (G.levelDone) {
@@ -512,6 +520,7 @@ function update(dt) {
   if (G.state === 'playing') updateSpawning(dt);
   updateZombies(dt);
   updateBullets(dt);
+  updateShots(dt);   // snowballs and goo thrown by bosses (js/bosses.js)
   updateNades(dt);
   updateBarrels(dt);
   updatePools(dt);
@@ -553,6 +562,7 @@ function render() {
     drawZombieBars(c);
     drawAimMarkers(c);
     drawBullets(c);
+    drawShots(c);
     drawNades(c);
     drawBarrels(c, true);   // gas tanks flying around
   }
@@ -644,6 +654,7 @@ function drawHUD(c) {
   drawPlayerPanels(c);
   const left = zombiesLeft();
   text(c, `WAVE ${G.waveIndex + 1}/${L.waves.length}`, W / 2, ty, { size: 30, font: SPOOKY, color: '#7CFC4A', stroke: 'rgba(8,4,16,.85)', lw: 6 });
+  drawKillCount(c, ty);
   text(c, `LEVEL ${G.levelIndex + 1}: ${L.name.toUpperCase()}  ·  ${left} ZOMBIE${left === 1 ? '' : 'S'} LEFT`, W / 2, ty + 27, { size: 10, color: '#e4dcff', stroke: 'rgba(8,4,16,.85)', lw: 3 });
   if (Net.active) {   // the join code is always on screen so late friends can join
     const where = Net.isHost && Net.address ? `  ·  ${Net.address.replace(/^https?:\/\//, '')}` : '';
@@ -667,6 +678,21 @@ function drawHUD(c) {
   if (offL) { poly(c, [8, GROUND - 40, 24, GROUND - 52, 24, GROUND - 28], '#ff5a5a'); text(c, String(offL), 36, GROUND - 40, { size: 13, align: 'left', color: '#ff5a5a', stroke: 'rgba(0,0,0,.6)', lw: 3 }); }
   if (offR) { poly(c, [W - 8, GROUND - 40, W - 24, GROUND - 52, W - 24, GROUND - 28], '#ff5a5a'); text(c, String(offR), W - 36, GROUND - 40, { size: 13, align: 'right', color: '#ff5a5a', stroke: 'rgba(0,0,0,.6)', lw: 3 }); }
   c.globalAlpha = 1;
+}
+
+// Kills this level out of every zombie the level sends (bosses too): a little skull and "37/120" next to the wave.
+function drawKillCount(c, ty) {
+  const [k, goal] = Net.isGuest ? G.netKills || [0, 0] : [G.run.kills, G.killGoal];
+  if (!goal) return;
+  const str = `${Math.min(k, goal)}/${goal}`, done = k >= goal;
+  c.font = `12px ${FONT}`;
+  const w = c.measureText(str).width + 34, x = W / 2 + 92, y = ty - 11;
+  fillRR(c, x, y, w, 22, 11, 'rgba(10,6,24,.6)');
+  const sx = x + 13, sy = y + 10.5, bone = done ? '#7CFC4A' : '#e8e0c8';
+  circle(c, sx, sy - 1, 6, bone); fillRR(c, sx - 3.5, sy + 2, 7, 4.5, 1.5, bone);
+  circle(c, sx - 2.2, sy - 1, 1.7, '#1a1020'); circle(c, sx + 2.2, sy - 1, 1.7, '#1a1020');
+  c.fillStyle = '#1a1020'; c.fillRect(sx - 1.6, sy + 3.5, 0.9, 2.5); c.fillRect(sx + 0.7, sy + 3.5, 0.9, 2.5);
+  text(c, str, x + 23, y + 11.5, { size: 12, align: 'left', color: done ? '#7CFC4A' : '#ffffff' });
 }
 
 // ---- Menus and the shop (HTML on top of the canvas) ------------------------
@@ -797,14 +823,14 @@ function shopBuy(id, wp) {
   Sound.play('buy');
   shopEquip(id, wp.id);
 }
-// Sell a gun back for coins. You can't sell the starter shotgun.
+// Sell a gun back for coins. You can't sell the starter pistol.
 function shopSell(id, wp) {
   const prof = profOf(id);
   if (!prof || !wp.price || !prof.owned.includes(wp.id)) { if (!Net.isHost || id === 0) Sound.play('nope'); return; }
   prof.coins += Math.round(wp.price * SELL_BACK);
   prof.owned = prof.owned.filter(w => w !== wp.id);
   Sound.play('coin');
-  if (prof.equipped === wp.id) shopEquip(id, 'shotgun');
+  if (prof.equipped === wp.id) shopEquip(id, 'pistol');
   else { writeSave(); renderShop(); }
 }
 // Armor: buy (and put it on), wear one you own, or sell it back.

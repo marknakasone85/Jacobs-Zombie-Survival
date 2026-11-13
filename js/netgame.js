@@ -20,7 +20,7 @@ function cleanProfile(p) {   // a guest's coins and guns as they sent them (chec
   const out = newProfile();
   if (p && typeof p === 'object') {
     if (Number.isFinite(p.coins)) out.coins = clamp(Math.floor(p.coins), 0, 999999);
-    if (Array.isArray(p.owned)) out.owned = [...new Set(['shotgun', ...p.owned.filter(id => WMAP[id])])];
+    if (Array.isArray(p.owned)) out.owned = [...new Set(['pistol', ...p.owned.filter(id => WMAP[id])])];
     if (WMAP[p.equipped] && out.owned.includes(p.equipped)) out.equipped = p.equipped;
     if (Array.isArray(p.armors)) out.armors = [...new Set(p.armors.filter(id => ARMOR_MAP[id]))];
     if (out.armors.includes(p.armor)) out.armor = p.armor;
@@ -160,6 +160,8 @@ const NetGame = {
     s.bu = G.bullets.filter(q => q.dist >= q.hide * 0.7).map(q => [BULLET_KINDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), Math.round(q.vx), Math.round(q.vy), r2(q.life / q.max)]);
     s.gr = G.nades.map(g => [NADE_IDS.indexOf(g.type), Math.round(g.x), Math.round(g.y), r1(g.rot), g.stuck ? 1 : 0, r2(g.fuse)]);
     s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max), Math.max(0, POOL_KINDS.indexOf(q.kind))]);
+    s.es = G.shots.map(q => [SHOT_IDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), r1(q.rot)]);
+    s.kc = [G.run.kills, G.killGoal];
     s.ba = G.barrels.map(b => [BARREL_IDS.indexOf(b.kind), r1(b.fly ? b.cx : b.x), r1(b.fly ? b.cy : b.y), r2(b.rot), (b.gone ? 1 : 0) | (b.fly ? 2 : 0) | (b.armed ? 4 : 0),
       r2(clamp(b.hp / b.T.hp, 0, 1)), r2(b.drop), r2(b.wob), r2(b.flash)]);
     s.bm = G.beams.map(m => [Math.round(m.x1), Math.round(m.y1), Math.round(m.x2), Math.round(m.y2), r2(m.t)]);
@@ -204,7 +206,7 @@ const NetGame = {
       const p = oldP.get(a[0]) || makePlayer(a[0], a[1], { ctrl: CONTROLS.remote, prof: newProfile(), remote: {} });
       [, p.x, p.y, p.vx, p.facing, p.aim] = a;
       p.onGround = !!a[6]; p.hp = a[7]; p.dead = !!a[8]; p.deadT = a[9]; p.inv = a[10];
-      p.weapon = WEAPON_IDS[a[11]] || 'shotgun'; p.recoil = a[12]; p.flashT = a[13]; p.walkT = a[14]; p.cd = a[15] ? 0 : 1;
+      p.weapon = WEAPON_IDS[a[11]] || 'pistol'; p.recoil = a[12]; p.flashT = a[13]; p.walkT = a[14]; p.cd = a[15] ? 0 : 1;
       p.prof.coins = a[16]; p.coinPulse = a[17]; p.targetUid = a[18]; p.aimMode = a[19] ? 'mouse' : 'keys'; p.firing = !!a[20];
       p.prof.owned = maskOwned(a[21]); p.prof.equipped = p.weapon; p.maxHp = a[22];
       if (a[23] > (p.swingT || 0) + 0.02) { p.swingT = a[23]; p.swingDur = a[24]; }   // a new melee swing started (we animate it here)
@@ -230,6 +232,8 @@ const NetGame = {
     G.bullets = s.bu.map(a => ({ kind: BULLET_KINDS[a[0]], x: a[1], y: a[2], vx: a[3], vy: a[4], life: a[5], max: 1, dist: 1, hide: 0 }));
     G.nades = (s.gr || []).map(a => ({ type: NADE_IDS[a[0]] || 'frag', x: a[1], y: a[2], rot: a[3], stuck: !!a[4], fuse: a[5] }));
     G.pools = (s.po || []).map(a => ({ x: a[0], y: a[1], w: a[2], k: a[3], kind: POOL_KINDS[a[4]] || 'acid' }));
+    G.shots = (s.es || []).map(a => ({ kind: SHOT_IDS[a[0]] || 'snow', x: a[1], y: a[2], rot: a[3] || 0 }));
+    if (Array.isArray(s.kc)) G.netKills = s.kc;
     G.barrels = (s.ba || []).map(a => {
       const kind = BARREL_IDS[a[0]] || 'boom', T = BARRELS[kind], f = a[4] | 0;
       return { kind, T, w: T.w, h: T.h, x: a[1], y: a[2], cx: a[1], cy: a[2], rot: a[3] || 0, gone: !!(f & 1), fly: !!(f & 2), armed: !!(f & 4),

@@ -37,6 +37,11 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - Every sound's mixer (`bus()`) is unplugged after `life` seconds (3.5 s, longer than any sound), or phones pile them up and the sound breaks up as a fight goes on. A new sound longer than about 3 s needs a bigger `life`. Loops unplug their own bus.
 - `Sound.stats()` shows the phone mix, the mixers still plugged in, voices and limiter squash (dB) for testing. In the pane, the mobile preset turns on the phone mix (reload after resizing), and a real click is needed before sound starts.
 
+## Guns, bosses and the kill counter
+- Everyone starts with the 9mm Pistol (`pistol`, price 0 = the starter that can't be sold). Older saves keep their shotgun; the save code always adds the pistol.
+- Every level has a boss in its last wave. The newer ones (`mower`, `ratking`, `yeti`, `kingbloat`) are drawn in `js/bosses.js`; their stats are in `ZTYPES`. Things bosses throw are `G.shots` (snapshot `es`).
+- The kill counter is `G.run.kills` out of `G.killGoal`, set at every `startWave` from `waveSize()`. A boss that releases zombies when it dies lists how many in `minis`, so the total is right from the start. Anything new that spawns zombies outside the wave queue must be counted the same way. Guests get both numbers in the snapshot (`kc`).
+
 ## Barrels
 - `js/barrels.js`: the barrels on each map (`barrels: [[kind, x]]` in `js/levels.js`). Every explosion calls `blastBarrels()` (grenades, rockets, bolts, bloaters, barrels), so add it to any new explosion. Bullets, lasers and melee call `hitBarrel()`.
 - Wi-Fi guests get barrels in the snapshot (`ba`), puddle kinds (`po`) and two zombie flags (stuck in slime, shocked). Lightning is a `zap` particle, so it reaches guests like other effects. `BARRELS` and `GOO_COLS` have no prototype.

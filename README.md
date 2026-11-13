@@ -3,7 +3,7 @@
 <h2 align="center"><a href="https://marknakasone85.github.io/Jacobs-Zombie-Survival/">▶ PLAY NOW</a></h2>
 <p align="center">Free in your web browser, on any computer, tablet or phone. Nothing to download.</p>
 
-A side-scrolling zombie shooter. You're a regular civilian with a shotgun and the zombies are coming.
+A side-scrolling zombie shooter. You're a regular civilian with a pistol and the zombies are coming.
 Blast them, grab the coins they drop, find the coins hidden around each map, and buy bigger guns in the shop.
 Ammo never runs out. (made by a 9 year old with Claude Code)
 
@@ -19,15 +19,16 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 
 ## How it works
 
-- **Levels and waves:** 10 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones). Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends.
+- **Levels and waves:** 10 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones), and its own **boss**. Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends.
+- **Kill counter:** next to the wave number, a little skull shows how many zombies you've beaten out of everything the level sends, like **37/120** (bosses included). It turns green when you've got them all.
 
   | # | Level | What's new |
   |---|---|---|
-  | 1 | Maple Street (suburbs at sunset) | walkers, runners, the first zombie dogs (3 waves) |
-  | 2 | Downtown (city at night) | leapers that jump onto platforms, brutes, stray zombie dogs (4 waves) |
+  | 1 | Maple Street (suburbs at sunset) | walkers, runners, the first zombie dogs, and the boss: **Mr. Mower** (3 waves) |
+  | 2 | Downtown (city at night) | leapers that jump onto platforms, brutes, stray zombie dogs, and the boss: **The Rat King** (4 waves) |
   | 3 | Graveyard (rainy night, ground fog) | zombie crows, plus the boss: **The Grave Giant** (4 waves) |
-  | 4 | Frozen Forest (snowy night, northern lights) | swarms of tiny zombies, zombie wolves, bears, a giant (5 waves) |
-  | 5 | Desert Gas Stop (sunset, cacti, blowing sand, tumbleweeds rolling by) | bloaters, giants, zombie vultures (5 waves) |
+  | 4 | Frozen Forest (snowy night, northern lights) | swarms of tiny zombies, zombie wolves, bears, a giant, and the boss: **The Yeti** (5 waves) |
+  | 5 | Desert Gas Stop (sunset, cacti, blowing sand, tumbleweeds rolling by) | bloaters, giants, zombie vultures, and the boss: **King Bloat** (5 waves) |
   | 6 | Army Base (searchlights, tanks, watchtowers) | army dogs, plus the boss: **General Rotten** (6 waves) |
   | 7 | Creepy Carnival (Ferris wheel, circus tents) | boxing kangaroos, the petting zoo sheep, and the boss: **The Big Top Brute** (6 waves) |
   | 8 | Zombie Farm (sunny morning, barn, cornfield) | dogs, charging sheep, crows, a bear, and the boss: **The Big Bad Ram** (5 waves) |
@@ -42,6 +43,13 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   - **Crows** fly around above you and dive down to peck.
   - **Bears** are huge and tough. They rear up and swipe.
   - Bosses: **The Big Bad Ram** charges, **King Roo** shakes the ground when it lands, and **Big Grizz** stomps and swipes.
+- **Every level has a boss** in its last wave (some scary, some funny):
+  - **Mr. Mower** (Maple Street): a grumpy zombie dad in a pink bathrobe and fuzzy slippers on a ride-on lawn mower. He revs up, then charges across the street spraying grass. Jump over him!
+  - **The Rat King** (Downtown): a giant sewer rat with a little gold crown. Watch out for its huge pounces.
+  - **The Grave Giant** (Graveyard), **General Rotten** (Army Base) and **The Big Top Brute** (Carnival): huge zombies that stomp the ground.
+  - **The Yeti** (Frozen Forest): throws giant snowballs at you and stomps.
+  - **King Bloat** (Desert Gas Stop): spits goo and belly-flops. When he pops, four little bloaters burst out of him!
+  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo).
 - **Coins:** zombies drop coins (big zombies drop more), and coins get sucked into you like a **black hole**. They spiral around faster and faster until you swallow them, with a golden swirl around you. Coins dropped by zombies come from anywhere on the map. Coins lying around the map (on cars, sheds, scaffolds, crypts and so on, plus shiny **10-coins** in the hardest spots) start flying to you once you get close. More coins appear each wave. You keep your coins and weapons between games.
 - **Hearts:** zombies sometimes drop a heart (+25 health). You also heal 25 after every wave.
 - **Platforms:** jump up through cars, sheds, the bus, scaffolds and crypts and stand on top. Press Down to drop off. Most zombies can only jump onto low ones, but leapers can reach you anywhere.
@@ -50,15 +58,17 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 
 Ammo never runs out. Melee weapons hit every zombie right in front of you in one swing.
 Damage numbers add up: keep hitting the same zombie and its number counts up (it turns gold at 50 and orange at 200). A really big hit (200 or more, like a Sniper shot, a rocket or a High Explosive grenade) freezes the action for a split second, so you feel it.
-Don't like a gun you bought? **Sell it back** in the Gun Shop and you get all your coins back (you can't sell the starter shotgun).
+You start with a plain 9mm pistol: save up after the first wave for the Pump Shotgun. Don't like a gun you bought? **Sell it back** in the Gun Shop and you get all your coins back (you can't sell the starter pistol).
 
 | Weapon | Price | What it does |
 |---|---|---|
-| Shotgun | starter | wide blast, knocks zombies back |
+| 9mm Pistol | starter | weak and slow (as strong per shot as the SMG, but much slower) |
+| Pump Shotgun | 35 | wide blast, knocks zombies back |
 | Rapid SMG | 50 | very fast, small bullets |
 | Sword | 80 | melee: slices everything in front of you |
 | Magnum Revolver | 90 | a huge hand cannon, each shot goes through 2 zombies |
 | Assault Rifle | 120 | strong, accurate, fast |
+| Hand Cannon | 180 | a giant .50 pistol: 110 damage a shot, but it only goes through 1 zombie |
 | Sniper | 200 | one massive shot (250 damage) through 8 zombies |
 | War Hammer | 250 | melee: slow but huge, sends zombies flying and shakes the ground |
 | Flamethrower | 300 | short range, burns through crowds |
@@ -206,6 +216,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/themes.js`: backgrounds and platforms for the farm, outback and zoo
 - `js/player.js`: the civilians
 - `js/zombies.js`: the zombies and zombie animals
+- `js/bosses.js`: Mr. Mower, the Rat King, the Yeti and King Bloat (their pictures, snowballs and goo)
 - `js/gamepad.js`: game controllers
 - `js/net.js`, `js/netgame.js`: Wi-Fi co-op (connection, lobby, sending the game to friends)
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop

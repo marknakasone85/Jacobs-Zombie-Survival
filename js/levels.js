@@ -16,13 +16,14 @@
 //              kinds: boom (explosive) oil gas acid goo (sticky slime) ice (liquid nitrogen) zap (electric)
 //   waves      mix = how many of each zombie, every = seconds between zombies, max = most at once,
 //              boss: true = the level boss shows up halfway through that wave
-//   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo' or 'grizz'
+//   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo', 'grizz',
+//              'mower', 'ratking', 'yeti' or 'kingbloat' (js/bosses.js).  bossLine = what the banner says when it shows up
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
 
 const LEVELS = [
   {
-    name: 'Maple Street', blurb: 'A quiet street at sunset. Not so quiet any more.', theme: 'suburb',
-    worldW: 2600, hp: 1, speed: 1,
+    name: 'Maple Street', blurb: 'A quiet street at sunset. Not so quiet any more... and Mr. Mower wants you OFF his lawn.', theme: 'suburb',
+    worldW: 2600, hp: 1, speed: 1, boss: 'Mr. Mower', bossType: 'mower', bossLine: 'GET OFF MY LAWN! Jump over his charge!',
     platforms: [['car', 330, 96, '#b8483b'], ['shed', 720, 110], ['car', 1150, 96, '#3b6a9a'], ['treehouse', 1520, 140], ['van', 1960, 130], ['crate', 2330, 64]],
     coins: [[110, 20, 4], [560, 30, 3], [960, 40, 4], [1380, 30, 3], [1800, 26, 3], [2200, 30, 3]],
     bigCoins: [[1590, 196]],
@@ -30,12 +31,12 @@ const LEVELS = [
     waves: [
       { mix: { walker: 8 }, every: 1.6, max: 8 },
       { mix: { walker: 12, runner: 2, dog: 2 }, every: 1.3, max: 10 },
-      { mix: { walker: 14, runner: 5, dog: 3 }, every: 1.15, max: 12 },
+      { mix: { walker: 14, runner: 5, dog: 3 }, boss: true, every: 1.15, max: 12 },
     ],
   },
   {
-    name: 'Downtown', blurb: 'The city at night. Watch out for jumpers and stray zombie dogs!', theme: 'city',
-    worldW: 3200, hp: 1.25, speed: 1.05,
+    name: 'Downtown', blurb: 'The city at night. Watch out for jumpers, stray zombie dogs... and the Rat King from the sewers!', theme: 'city',
+    worldW: 3200, hp: 1.25, speed: 1.05, boss: 'The Rat King', bossType: 'ratking', bossLine: 'He crawled up out of the sewers. Watch his pounce!',
     platforms: [['car', 230, 96, '#6b6b3b'], ['crate', 660, 64], ['bus', 1060, 250], ['scaffold', 1560, 170], ['car', 2010, 96, '#3b5a8a'], ['dumpster', 2360, 90], ['scaffold', 2700, 150], ['car', 2990, 96, '#8a3b3b']],
     coins: [[470, 30, 4], [880, 40, 3], [1420, 120, 3], [1830, 30, 4], [2560, 30, 3]],
     bigCoins: [[1645, 196], [2775, 190]],
@@ -44,7 +45,7 @@ const LEVELS = [
       { mix: { walker: 12, runner: 4, dog: 3 }, every: 1.2, max: 12 },
       { mix: { walker: 12, runner: 5, leaper: 4, dog: 5 }, every: 1.1, max: 14 },
       { mix: { walker: 14, runner: 6, leaper: 5, brute: 2, dog: 6 }, every: 1.0, max: 16 },
-      { mix: { walker: 16, runner: 8, leaper: 6, brute: 3, dog: 8 }, every: 0.95, max: 18 },
+      { mix: { walker: 16, runner: 8, leaper: 6, brute: 3, dog: 8 }, boss: true, every: 0.95, max: 18 },
     ],
   },
   {
@@ -62,8 +63,8 @@ const LEVELS = [
     ],
   },
   {
-    name: 'Frozen Forest', blurb: 'A snowy night under the northern lights. Tiny zombies, zombie wolves and a BEAR!', theme: 'snow',
-    worldW: 3000, hp: 1.8, speed: 1.12,
+    name: 'Frozen Forest', blurb: 'A snowy night under the northern lights. Tiny zombies, zombie wolves, a BEAR... and the Yeti!', theme: 'snow',
+    worldW: 3000, hp: 1.8, speed: 1.12, boss: 'The Yeti', bossType: 'yeti', bossLine: 'Look out for flying snowballs!',
     platforms: [['logs', 260, 110], ['cabin', 640, 180], ['icerock', 1080, 90], ['logs', 1420, 110], ['cabin', 1820, 180], ['icerock', 2280, 100], ['logs', 2620, 120]],
     coins: [[470, 30, 4], [910, 40, 3], [1240, 30, 4], [1640, 40, 3], [2100, 30, 4], [2470, 40, 3]],
     bigCoins: [[730, 160], [1910, 160]],
@@ -73,12 +74,12 @@ const LEVELS = [
       { mix: { walker: 14, runner: 8, tiny: 10, leaper: 4, dog: 6 }, every: 0.9, max: 16 },
       { mix: { walker: 16, tiny: 12, leaper: 6, brute: 3, dog: 6, bear: 1 }, every: 0.85, max: 18 },
       { mix: { walker: 16, runner: 10, tiny: 12, brute: 3, giant: 1, dog: 8 }, every: 0.8, max: 20 },
-      { mix: { walker: 18, tiny: 14, dog: 10, bear: 2, giant: 1 }, every: 0.8, max: 20 },
+      { mix: { walker: 18, tiny: 14, dog: 10, bear: 2, giant: 1 }, boss: true, every: 0.8, max: 20 },
     ],
   },
   {
-    name: 'Desert Gas Stop', blurb: 'Hot sand, cactus, BLOATERS and zombie vultures. Pop them from far away!', theme: 'desert',
-    worldW: 3200, hp: 2.1, speed: 1.15,
+    name: 'Desert Gas Stop', blurb: 'Hot sand, cactus, BLOATERS and zombie vultures. Pop them from far away! Their king is the biggest of all.', theme: 'desert',
+    worldW: 3200, hp: 2.1, speed: 1.15, boss: 'King Bloat', bossType: 'kingbloat', bossLine: 'Dodge his goo, and stand back when he POPS!',
     platforms: [['barrels', 240, 70], ['trailer', 600, 190], ['canopy', 1100, 280], ['rock', 1640, 140], ['trailer', 2060, 190], ['barrels', 2500, 70], ['rock', 2820, 130]],
     coins: [[420, 30, 4], [880, 40, 3], [1500, 30, 3], [1880, 40, 4], [2340, 30, 3], [2680, 40, 3]],
     bigCoins: [[1240, 200], [1710, 170]],
@@ -88,7 +89,7 @@ const LEVELS = [
       { mix: { walker: 16, runner: 10, bloater: 6, tiny: 8, crow: 6 }, every: 0.85, max: 18 },
       { mix: { walker: 18, leaper: 8, bloater: 6, brute: 4, dog: 6 }, every: 0.8, max: 18 },
       { mix: { walker: 18, runner: 12, bloater: 8, brute: 4, giant: 2, crow: 8 }, every: 0.75, max: 20 },
-      { mix: { walker: 20, runner: 12, bloater: 8, dog: 10, crow: 8, giant: 2 }, every: 0.75, max: 22 },
+      { mix: { walker: 20, runner: 12, bloater: 8, dog: 10, crow: 8, giant: 2 }, boss: true, every: 0.75, max: 22 },
     ],
   },
   {

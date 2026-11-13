@@ -105,12 +105,12 @@ const G = {
   numPlayers: 1, players: [],
   levelIndex: 0, level: null, waveIndex: 0, next: null,
   camX: 0, shake: 0, hurtFlash: 0, coinPulse: 0,
-  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [], nades: [], pools: [], barrels: [],
+  platforms: [], zombies: [], bullets: [], coins: [], particles: [], texts: [], beams: [], nades: [], pools: [], barrels: [], shots: [],
   queue: [], spawnT: 0, maxAlive: 8, every: 1.4, bossPending: false, bossAt: 0, boss: null,
   collectAll: false, clearT: 0, levelDone: false,
   banner: null, toast: null,
   hitStop: 0, hitStopCd: 0,   // a tiny freeze on big hits (hitStop in js/fx.js)
-  run: { kills: 0, coins: 0 },
+  run: { kills: 0, coins: 0 }, killGoal: 0,   // killGoal = every zombie this level sends (the kill counter)
 };
 function setState(s) { G.state = s; }
 
@@ -145,7 +145,7 @@ const SAVE_KEY = 'jacob-zombie-survival.v1';
 const MAX_PLAYERS = 2;
 // armors = armor sets you own, armor = the one you wear, boost = how many health boosts you bought (js/gear.js)
 // nades = how many grenades of each kind you have, nade = the kind you throw (js/grenades.js). Everyone starts with 3 frags.
-const newProfile = () => ({ coins: 0, owned: ['shotgun'], equipped: 'shotgun', armors: [], armor: '', boost: 0, nades: { frag: 3, he: 0, acid: 0, cryo: 0 }, nade: 'frag' });
+const newProfile = () => ({ coins: 0, owned: ['pistol'], equipped: 'pistol', armors: [], armor: '', boost: 0, nades: { frag: 3, he: 0, acid: 0, cryo: 0 }, nade: 'frag' });
 const save = { players: [newProfile(), newProfile()], unlocked: 1, beaten: [], muted: false, numPlayers: 1 };
 function loadSave() {
   try {
@@ -171,7 +171,7 @@ function loadSave() {
       save.muted = !!s.muted;
     }
   } catch (e) { /* private mode or broken save: start fresh */ }
-  for (const p of save.players) if (!p.owned.includes('shotgun')) p.owned.unshift('shotgun');
+  for (const p of save.players) if (!p.owned.includes('pistol')) p.owned.unshift('pistol');   // everyone always has the starter pistol
 }
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* can't save: keep playing */ } }
 function resetSave() {

@@ -107,6 +107,7 @@ h2 { font-family: 'Bungee', sans-serif; font-weight: 400; margin: 0; font-size: 
 
 .controls { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, auto); grid-auto-flow: column; gap: 7px 22px; text-align: left; margin: 0 auto 12px; max-width: 600px; font-size: 13.5px; color: #ddd6f5; }
 .controls em { font-style: normal; color: var(--muted); margin-left: 6px; }
+.controls .padrow { grid-column: 1 / -1; grid-row: 5; text-align: center; color: var(--muted); }   /* game controller help (js/gamepad.js) */
 .kc {
   display: inline-block; min-width: 22px; padding: 2px 6px; margin-right: 2px; border-radius: 6px;
   background: #2e2550; border: 1px solid #4a3f78; border-bottom-width: 3px; font-family: 'Bungee'; font-size: 10px; text-align: center; color: #fff;
@@ -207,4 +208,4 @@ h2 { font-family: 'Bungee', sans-serif; font-weight: 400; margin: 0; font-size: 
 }
 @media (max-height: 520px) and (pointer: coarse) { .controls { display: none; } }   /* keyboard help, not needed on phones */
 
-@media (max-width: 640px) { .controls { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; } }
+@media (max-width: 640px) { .controls { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; } .controls .padrow { grid-row: auto; text-align: left; } }

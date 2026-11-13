@@ -25,9 +25,9 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   |---|---|---|
   | 1 | Maple Street (suburbs at sunset) | walkers, runners, the first zombie dogs (3 waves) |
   | 2 | Downtown (city at night) | leapers that jump onto platforms, brutes, stray zombie dogs (4 waves) |
-  | 3 | Graveyard | zombie crows, plus the boss: **The Grave Giant** (4 waves) |
+  | 3 | Graveyard (rainy night, ground fog) | zombie crows, plus the boss: **The Grave Giant** (4 waves) |
   | 4 | Frozen Forest (snowy night, northern lights) | swarms of tiny zombies, zombie wolves, bears, a giant (5 waves) |
-  | 5 | Desert Gas Stop (sunset, cacti, tumbleweeds) | bloaters, giants, zombie vultures (5 waves) |
+  | 5 | Desert Gas Stop (sunset, cacti, blowing sand, tumbleweeds rolling by) | bloaters, giants, zombie vultures (5 waves) |
   | 6 | Army Base (searchlights, tanks, watchtowers) | army dogs, plus the boss: **General Rotten** (6 waves) |
   | 7 | Creepy Carnival (Ferris wheel, circus tents) | boxing kangaroos, the petting zoo sheep, and the boss: **The Big Top Brute** (6 waves) |
   | 8 | Zombie Farm (sunny morning, barn, cornfield) | dogs, charging sheep, crows, a bear, and the boss: **The Big Bad Ram** (5 waves) |
@@ -49,6 +49,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 ## Weapons
 
 Ammo never runs out. Melee weapons hit every zombie right in front of you in one swing.
+Damage numbers add up: keep hitting the same zombie and its number counts up (it turns gold at 50 and orange at 200). A really big hit (200 or more, like a Sniper shot, a rocket or a High Explosive grenade) freezes the action for a split second, so you feel it.
 Don't like a gun you bought? **Sell it back** in the Gun Shop and you get all your coins back (you can't sell the starter shotgun).
 
 | Weapon | Price | What it does |
@@ -129,6 +130,23 @@ If one player goes down, they pop back in next to their friend after 6 seconds. 
 
 **Phones and tablets:** on-screen buttons appear in 1-player and Wi-Fi games (◀ ▶ move, ▼ drop down, JUMP, FIRE, ⇄ switch gun, the grenade button to throw and the small one next to it to switch grenade type, II menu). Hold phones sideways. Aiming is automatic.
 
+**Game controllers** (Xbox, PlayStation, Switch Pro and others): plug one in or connect it by Bluetooth, then press any button so the browser notices it. A controller line appears under the keys on the start screen.
+
+| Button | Action |
+|---|---|
+| left stick or D-pad | move (down drops off a platform) |
+| A, or D-pad up | jump |
+| RT or X | shoot |
+| LT or B | throw a grenade |
+| Y | switch grenade type |
+| LB / RB | switch gun |
+| Start | pause |
+
+On a PlayStation controller A is ✕, B is ◯, X is □, Y is △, LB/RB are L1/R1 and LT/RT are L2/R2.
+- 1 player: any controller. 2 players: controller 1 is P1 and controller 2 is P2. With just one controller it's P2's, and P1 uses the keyboard.
+- The controller buzzes when you get hurt and on really big hits (if the controller and browser can buzz).
+- In Wi-Fi games every player can use a controller on their own device. Some browsers only allow controllers on secure (https) pages, so on friends' devices a controller may not work through the Wi-Fi share address. It always works on the public web page.
+
 ## Playing together on Wi-Fi (2 to 4 players)
 
 Everyone plays on their own computer, tablet or phone, on the same home Wi-Fi. Up to 4 players fight the waves and the whole campaign together.
@@ -171,6 +189,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/themes.js`: backgrounds and platforms for the farm, outback and zoo
 - `js/player.js`: the civilians
 - `js/zombies.js`: the zombies and zombie animals
+- `js/gamepad.js`: game controllers
 - `js/net.js`, `js/netgame.js`: Wi-Fi co-op (connection, lobby, sending the game to friends)
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop
 - `share-on-network.command`, `tools/share_server.py`: shares the game on your home Wi-Fi
@@ -187,7 +206,7 @@ Content: cartoon fighting against made-up zombies and zombie animals, with carto
 
 The game collects no personal information. It has no accounts, ads, analytics or tracking.
 - Coins, guns and unlocked levels are saved only in your own web browser and never leave your device.
-- The fonts come with the game, so playing never contacts another website.
+- The fonts come with the game, so playing never contacts another website. A security setting in the page (a Content Security Policy) also tells the browser to refuse anything from another website: no outside scripts, pictures, fonts or connections.
 - Wi-Fi games stay on your home network. Button presses and game updates go between the players' devices through the host computer and are kept in memory only.
 - The public web page is hosted by GitHub Pages, which keeps the usual web server logs (see GitHub's privacy statement).
 

@@ -704,13 +704,55 @@ function drawWorldFront(c, L, camX) {
   const FOG = { graveyard: [120, 220, 150, 0.2], city: [130, 110, 180, 0.08], suburb: [255, 190, 150, 0.06], snow: [210, 230, 255, 0.16], desert: [255, 180, 110, 0.12], military: [140, 170, 170, 0.12], carnival: [210, 90, 200, 0.1] };
   const TH = THEMES[L.theme], [r, g, b, a] = (TH && TH.fog) || FOG[L.theme] || FOG.suburb;
   if (TH && TH.front) TH.front(c, L, camX);
-  if (L.theme === 'snow') {   // falling snow (worked out from the clock, so it's free)
-    c.fillStyle = 'rgba(255,255,255,0.85)';
-    for (let i = 0; i < 90; i++) {
-      const fall = 30 + hash(i * 3.1) * 50, drift = Math.sin(G.t * 0.8 + i) * 18, span = W + 60;
-      const x = camX + ((((hash(i) * span + G.t * (12 + hash(i + 9) * 20) + drift) % span) + span) % span) - 30;
-      const y = (hash(i + 5) * H + G.t * fall) % H, s = 1 + hash(i + 2) * 2.2;
-      c.fillRect(x, y, s, s);
+  // Weather is worked out from the clock alone, so it costs nothing to keep and nothing to send over Wi-Fi.
+  // d = how close a flake or drop is: close ones are bigger, brighter, faster, and slide by faster as you run.
+  const wrapX = (v, span) => camX + (((v % span) + span) % span) - 30;
+  if (L.theme === 'snow') {   // falling snow
+    const n = IS_TOUCH ? 80 : 130, span = W + 60;
+    c.fillStyle = '#fff';
+    for (let i = 0; i < n; i++) {
+      const d = 0.3 + hash(i + 7) * 0.7, drift = Math.sin(G.t * 0.8 + i) * 18 * d;
+      const x = wrapX(hash(i) * span + G.t * (10 + 22 * d) + drift - camX * (0.3 + 0.7 * d), span);
+      const y = ((hash(i + 5) * (H + 20) + G.t * (25 + 60 * d)) % (H + 20)) - 10;
+      c.globalAlpha = 0.45 + 0.5 * d;
+      c.beginPath(); c.arc(x, y, 0.7 + 2.3 * d, 0, Math.PI * 2); c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+  if (L.theme === 'graveyard') {   // light rain, with little splashes on the ground
+    const n = IS_TOUCH ? 60 : 100, span = W + 80;
+    c.strokeStyle = '#c4d4ff'; c.lineWidth = 1.2;
+    for (let i = 0; i < n; i++) {
+      const d = 0.3 + hash(i + 11) * 0.7, sp = 560 + 420 * d, len = 9 + 16 * d;
+      const x = wrapX(hash(i) * span - G.t * sp * 0.16 - camX * (0.3 + 0.7 * d), span);
+      const y = ((hash(i + 5) * (H + 60) + G.t * sp) % (H + 60)) - 40;
+      c.globalAlpha = 0.12 + 0.28 * d;
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x - len * 0.16, y + len); c.stroke();
+    }
+    c.lineWidth = 1;
+    for (let i = 0; i < (IS_TOUCH ? 10 : 18); i++) {
+      const ph = G.t * 2.2 + hash(i + 40), k = ph - Math.floor(ph);
+      const x = camX + hash(i * 13 + Math.floor(ph) * 7.3) * W;
+      c.globalAlpha = (1 - k) * 0.35;
+      c.beginPath(); c.ellipse(x, GROUND + 3, 2 + 7 * k, 1 + 2 * k, 0, 0, Math.PI * 2); c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
+  if (L.theme === 'desert') {   // blowing sand, and now and then a tumbleweed bouncing through
+    const n = IS_TOUCH ? 45 : 80, span = W + 60;
+    c.fillStyle = '#ffe2b0';
+    for (let i = 0; i < n; i++) {
+      const d = 0.3 + hash(i + 21) * 0.7;
+      const x = wrapX(hash(i) * span + G.t * (120 + 220 * d) - camX * (0.3 + 0.7 * d), span);
+      const y = GROUND - 8 - hash(i + 3) * 300 * (1 - d * 0.5) + Math.sin(G.t * 3 + i) * 6;
+      c.globalAlpha = 0.25 + 0.4 * d;
+      c.fillRect(x, y, 5 + 14 * d, 1.2 + 1.3 * d);
+    }
+    c.globalAlpha = 1;
+    for (let k = 0; k < 2; k++) {
+      const loop = L.worldW + 900, x = ((G.t * (150 + k * 40) + k * 1700) % loop) - 300;
+      if (x < camX - 60 || x > camX + W + 60) continue;
+      drawTumbleweed(c, x, GROUND - 16 - Math.abs(Math.sin(G.t * 4.5 + k * 2)) * 24, G.t * (6 + k), 16 + k * 4);
     }
   }
   const gr = c.createLinearGradient(0, GROUND - 90, 0, GROUND + 20);
@@ -725,6 +767,17 @@ function drawWorldFront(c, L, camX) {
       c.fillStyle = fg; c.fillRect(fx - 160, fy - 60, 320, 120);
     }
   }
+}
+
+function drawTumbleweed(c, x, y, rot, r) {
+  c.fillStyle = 'rgba(0,0,0,0.25)';
+  c.beginPath(); c.ellipse(x, GROUND + 1, r * 0.9, 3, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.translate(x, y); c.rotate(rot);
+  c.strokeStyle = '#8a6a3c'; c.lineWidth = 1.6;
+  for (let i = 0; i < 7; i++) { c.beginPath(); c.ellipse(0, 0, r, r * (0.35 + hash(i) * 0.5), i * 0.9, 0, Math.PI * 2); c.stroke(); }
+  c.strokeStyle = '#c9a56a'; c.lineWidth = 1;
+  for (let i = 0; i < 5; i++) { c.beginPath(); c.ellipse(0, 0, r * 0.75, r * (0.2 + hash(i + 9) * 0.5), i * 1.3 + 0.4, 0, Math.PI * 2); c.stroke(); }
+  c.restore();
 }
 
 // ---- Platforms (things you can jump on) -----------------------------------

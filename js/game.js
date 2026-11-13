@@ -31,7 +31,7 @@ const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + alive
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
   for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools]) arr.length = 0;
-  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0;
+  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0;
 }
 
 // ---- Input ----------------------------------------------------------------
@@ -489,6 +489,8 @@ function updateCamera(dt) {
 }
 
 function update(dt) {
+  G.hitStopCd = Math.max(0, G.hitStopCd - dt);
+  if (G.hitStop > 0) { G.hitStop -= dt; return; }   // the world holds still for a moment after a huge hit
   for (const p of G.players) updatePlayer(p, dt);
   if (G.state === 'playing') updateSpawning(dt);
   updateZombies(dt);
@@ -676,6 +678,8 @@ const CONTROL_HELP = {
     ['<span class="ptag p2">P2</span> <span class="kc">,</span><span class="kc">.</span>', 'Switch gun'],
     ['<span class="ptag p2">P2</span> <span class="kc wide">RIGHT SHIFT</span> <span class="kc">\'</span>', 'Grenade, switch type']],
 };
+// Shown under the keys once a game controller is plugged in (js/gamepad.js).
+const PAD_HELP = 'stick move · <span class="kc">A</span> jump · <span class="kc">RT</span> shoot · <span class="kc">LT</span> grenade · <span class="kc">Y</span> grenade type · <span class="kc">LB</span><span class="kc">RB</span> gun · <span class="kc wide">START</span> pause';
 let titleMode = String(save.numPlayers);   // '1', '2' or 'net'
 function renderTitle() {
   document.querySelectorAll('#modeRow button').forEach(b => b.classList.toggle('active', b.dataset.n === titleMode));
@@ -693,7 +697,8 @@ function renderTitle() {
     $('netWallet').innerHTML = `Your coins: <i class="coin"></i><b>${save.players[0].coins}</b>`;
     return;
   }
-  $('controls').innerHTML = CONTROL_HELP[save.numPlayers].map(([k, what]) => `<div>${k}<em>${what}</em></div>`).join('');
+  $('controls').innerHTML = CONTROL_HELP[save.numPlayers].map(([k, what]) => `<div>${k}<em>${what}</em></div>`).join('')
+    + (padCount ? `<div class="padrow">🎮 ${save.numPlayers === 2 ? (padCount === 1 ? 'Controller = <span class="ptag p2">P2</span>' : 'Controller 1 = <span class="ptag p1">P1</span>, 2 = <span class="ptag p2">P2</span>') : 'Controller'}: ${PAD_HELP}</div>` : '');
   $('wallets').innerHTML = profs().map((p, i) => `<span>${pTag(i)}<i class="coin"></i><b>${p.coins}</b> coins</span>`).join('');
   const box = $('levelList'); box.innerHTML = '';
   LEVELS.forEach((L, i) => {
@@ -1065,6 +1070,7 @@ function tick(now) {
   // Slow frames (or the background timer) are caught up in small steps so the game never runs in slow motion.
   const elapsed = Math.min(0.1, Math.max(0, (now - lastTick) / 1000)); lastTick = now;
   const steps = Math.max(1, Math.ceil(elapsed / 0.034));
+  pollPads();   // game controllers (js/gamepad.js)
   for (let i = 0; i < steps; i++) step(elapsed / steps);
   render();
   Sound.endFrame();

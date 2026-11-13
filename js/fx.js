@@ -25,6 +25,27 @@ function addText(x, y, str, col = '#fff', size = 14) {
   G.texts.push({ x, y, str, col, size, life: 0.8, max: 0.8, vy: -60 });
   if (G.texts.length > 70) G.texts.shift();
 }
+// Damage numbers. Hits on the same zombie close together add up into one number that counts up,
+// so a Minigun burst shows "340" instead of a tower of "11"s. uid = which zombie was hit.
+function hitNum(uid, x, y, dmg) {
+  if (typeof uid !== 'number' || ![x, y, dmg].every(Number.isFinite)) return;
+  let t = G.texts.find(q => q.uid === uid && q.hold < 0.45);
+  if (!t) {
+    t = { uid, total: 0, x, y, str: '', col: '#fff', size: 14, life: 0.8, max: 0.8, vy: -60, hold: 0, pop: 0 };
+    G.texts.push(t);
+    if (G.texts.length > 70) G.texts.shift();
+  }
+  t.total += dmg; t.str = String(Math.round(t.total));
+  t.x = x; t.y = y; t.vy = -60; t.life = t.max; t.hold = 0; t.pop = 1;
+  [t.col, t.size] = t.total >= 200 ? ['#ff9a3d', 24] : t.total >= 50 ? ['#FFD23F', 20] : ['#fff', 14];
+}
+// A tiny freeze on a really big hit (Sniper, Rocket, High Explosive, a boss going down) makes it feel heavy.
+// Not in Wi-Fi games: there the other players would see it as the connection stuttering.
+function hitStop(t) {
+  if (Net.active || (G.hitStopCd > 0 && t <= G.hitStop)) return;
+  G.hitStop = Math.max(G.hitStop, t); G.hitStopCd = 0.4;
+  padRumble(1, 0.7, 200);   // js/gamepad.js
+}
 function banner(title, sub, dur = 2.4, color = '#7CFC4A') { G.banner = { title, sub, t: 0, dur, color }; }
 function toast(msg) { G.toast = { msg, t: 0 }; }
 
@@ -36,7 +57,7 @@ function netRound(a) {
 }
 // Wrap the effect makers so a Wi-Fi host can record them (see Rec in util.js).
 // Only the outermost call is recorded (goo() calls addPart() inside, for example).
-for (const name of ['goo', 'sparks', 'smoke', 'fireBurst', 'dust', 'ring', 'flashAt', 'addText', 'addPart', 'banner', 'toast']) {
+for (const name of ['goo', 'sparks', 'smoke', 'fireBurst', 'dust', 'ring', 'flashAt', 'addText', 'hitNum', 'addPart', 'banner', 'toast']) {
   const orig = window[name];
   window[name] = function (...args) {
     const rec = Rec.on && Rec.depth === 0;
@@ -45,7 +66,7 @@ for (const name of ['goo', 'sparks', 'smoke', 'fireBurst', 'dust', 'ring', 'flas
     try { return orig.apply(this, args); } finally { Rec.depth--; }
   };
 }
-const FX_NAMES = new Set(['goo', 'sparks', 'smoke', 'fireBurst', 'dust', 'ring', 'flashAt', 'addText', 'addPart', 'banner', 'toast']);
+const FX_NAMES = new Set(['goo', 'sparks', 'smoke', 'fireBurst', 'dust', 'ring', 'flashAt', 'addText', 'hitNum', 'addPart', 'banner', 'toast']);
 
 function updateFX(dt) {
   const ps = G.particles;
@@ -64,7 +85,9 @@ function updateFX(dt) {
     }
   }
   for (let i = G.texts.length - 1; i >= 0; i--) {
-    const t = G.texts[i]; t.life -= dt; t.y += t.vy * dt; t.vy *= Math.exp(-2 * dt);
+    const t = G.texts[i]; t.life -= dt;
+    if (t.hold !== undefined) { t.hold += dt; t.pop = Math.max(0, t.pop - dt * 6); }
+    if (!(t.hold < 0.12)) { t.y += t.vy * dt; t.vy *= Math.exp(-2 * dt); }   // a number still being hit stays on the zombie
     if (t.life <= 0) G.texts.splice(i, 1);
   }
   for (let i = G.beams.length - 1; i >= 0; i--) { G.beams[i].t -= dt; if (G.beams[i].t <= 0) G.beams.splice(i, 1); }
@@ -121,7 +144,7 @@ function drawParticles(c) {
 function drawTexts(c) {
   for (const t of G.texts) {
     c.globalAlpha = clamp(t.life / t.max * 2, 0, 1);
-    text(c, t.str, t.x, t.y, { size: t.size, color: t.col, stroke: 'rgba(10,5,20,.8)', lw: 3 });
+    text(c, t.str, t.x, t.y, { size: t.size * (1 + 0.35 * (t.pop || 0)), color: t.col, stroke: 'rgba(10,5,20,.8)', lw: 3 });
   }
   c.globalAlpha = 1;
 }

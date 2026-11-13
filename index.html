@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<!-- Security: the browser may only use this game's own files. Nothing can load from or talk to another website. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file: 'unsafe-inline'; img-src 'self' file: data: blob:; font-src 'self' file:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Zombie Survival</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -141,6 +143,7 @@
 <script src="js/zombies.js"></script>
 <script src="js/net.js"></script>
 <script src="js/netgame.js"></script>
+<script src="js/gamepad.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

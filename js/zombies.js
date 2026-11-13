@@ -268,7 +268,8 @@ function hurtZombie(z, dmg, kx, ky, showNum = true, flash = true) {
   if (flash) z.flash = 0.07;
   z.kbx += kx / z.mass;
   if (ky && !z.T.boss) z.vy += ky / z.mass;
-  if (showNum) addText(z.x + rand(-8, 8), z.y - z.h - 8, String(Math.round(dmg)), dmg >= 50 ? '#FFD23F' : '#fff', dmg >= 50 ? 20 : 14);
+  if (showNum) hitNum(z.uid, z.x, z.y - z.h - 8, dmg);   // js/fx.js: hits close together add up
+  if (dmg >= 200) hitStop(0.06);
   if (z.hp <= 0) killZombie(z, kx);
   else Sound.zombie(z, 'hit');
 }
@@ -283,7 +284,7 @@ function killZombie(z, kx) {
   if (Math.random() < z.T.heart) G.coins.push({ kind: 'heart', val: 25, x: z.x, y: z.y - z.h * 0.6, vx: rand(-80, 80), vy: -380, t: 0, spin: 0 });
   if (z.type === 'bloater') bloaterPop(z);
   if (z.T.boss) {
-    G.shake = 20; flashAt(z.x, z.y - 60, 200); fireBurst(z.x, z.y - 60, 30, 1.4);
+    G.shake = 20; flashAt(z.x, z.y - 60, 200); fireBurst(z.x, z.y - 60, 30, 1.4); hitStop(0.14);
     banner(`${(G.level.boss || 'Boss').toUpperCase()} IS DOWN!`, 'Grab all those coins!', 2.4, '#FFD23F');
     Sound.play('boom', z.x);
   }

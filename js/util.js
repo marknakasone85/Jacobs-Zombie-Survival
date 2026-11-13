@@ -82,6 +82,13 @@ const CONTROLS = {
   p2: { left: ['arrowleft'], right: ['arrowright'], jump: ['arrowup'], down: ['arrowdown'], fire: ['enter', '/'], prev: [','], next: ['.'], nade: ['rshift'], ntype: ["'"] },
   remote: { left: [], right: [], jump: [], down: [], fire: [], prev: [], next: [], nade: [], ntype: [] },   // Wi-Fi players
 };
+// Game controllers (js/gamepad.js) press pretend keys like 'pad0:jump'. One player can use any controller;
+// with two players, controller 1 is player 1 and controller 2 is player 2.
+for (const a of ['left', 'right', 'jump', 'down', 'fire', 'prev', 'next', 'nade', 'ntype']) {
+  CONTROLS.solo[a].push(`pad0:${a}`, `pad1:${a}`);
+  CONTROLS.p1[a].push(`pad0:${a}`);
+  CONTROLS.p2[a].push(`pad1:${a}`);
+}
 // Wi-Fi players (p.remote) send their buttons over the network instead.
 const held = (p, action) => (p.remote ? !!p.remote[action] : p.ctrl[action].some(k => keys[k]) || (p.ctrl.touch && touch[action]));
 
@@ -102,6 +109,7 @@ const G = {
   queue: [], spawnT: 0, maxAlive: 8, every: 1.4, bossPending: false, bossAt: 0, boss: null,
   collectAll: false, clearT: 0, levelDone: false,
   banner: null, toast: null,
+  hitStop: 0, hitStopCd: 0,   // a tiny freeze on big hits (hitStop in js/fx.js)
   run: { kills: 0, coins: 0 },
 };
 function setState(s) { G.state = s; }

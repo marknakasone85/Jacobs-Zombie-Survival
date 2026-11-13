@@ -29,6 +29,7 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - https://marknakasone85.github.io/Jacobs-Zombie-Survival/ is served by GitHub Pages straight from `main` (the whole repo, with `.nojekyll` so GitHub serves the files as they are). Every `git push` updates it within a minute or two.
 - No WI-FI button there: `Net.onPublicWebsite()` says any name that isn't an IP address or a home name (localhost, *.local ...) is a public website, the same rule as the share server's `host_ok`.
 - Fonts come from `css/fonts` (SIL Open Font License files next to them), not from Google, so the page contacts no other website. Keep it that way: no outside scripts, fonts, trackers or analytics.
+- `index.html` has a Content-Security-Policy `<meta>` that enforces this. It lists `file:` so double-clicking `index.html` still works (Safari gives file pages no 'self'), `blob:` for the Wi-Fi background timer (a Worker) and `data:` for the icons drawn in code. A new kind of file or connection must be added there or the browser blocks it. `make_artifact.py` leaves it out of the Artifact (it only copies the title, stylesheet links and body).
 - Everything in the repo can be read on the page too (README, CLAUDE.md, tools), so never put private details in any tracked file.
 
 ## Sound on phones
@@ -36,9 +37,15 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - Every sound's mixer (`bus()`) is unplugged after `life` seconds (3.5 s, longer than any sound), or phones pile them up and the sound breaks up as a fight goes on. A new sound longer than about 3 s needs a bigger `life`. Loops unplug their own bus.
 - `Sound.stats()` shows the phone mix, the mixers still plugged in, voices and limiter squash (dB) for testing. In the pane, the mobile preset turns on the phone mix (reload after resizing), and a real click is needed before sound starts.
 
+## Game controllers
+- `js/gamepad.js` turns controller buttons into pretend keys (`pad0:jump` ...) that are listed in `CONTROLS` (`js/util.js`), so they reach every place keys do, Wi-Fi guests included. Start calls `onKey('p')`. Two players with one controller: it is P2's.
+- Test with a fake `navigator.getGamepads = () => [pad]` (buttons with `pressed`/`value`, `axes`), then `pollPads()` and `step()`.
+
 ## Testing
 - The app's browser pane: `.claude/launch.json` has `zombie-survival` (local only, port 8781), `zombie-survival-wifi` (port 8010) and `zombie-artifact-preview` (port 8782).
 - The app may stop a server it started (the Wi-Fi share once stopped mid-session), so check `preview_list` before telling the owner a link still works.
 - A hidden pane doesn't animate: drive the game with `step(dt)` from the page, or `startHostTicker()`.
 - Several Wi-Fi players in one browser: give each its own origin (`localhost`, `127.0.0.1`, the Mac's Wi-Fi address, `zombie.localhost`) so their saves don't mix, and call `startHostTicker()` on each guest.
-- Tests change the save (`localStorage` key `jacob-zombie-survival.v1`): back it up first and put it back afterwards, on every origin you used.
+- Tests change the save (`localStorage` key `jacob-zombie-survival.v1`): back it up first and put it back afterwards, on every origin you used. Set the page's in-memory `save` too (`Object.assign(save, ...)`) before reloading, or the page writes the test save back.
+- When the app window isn't open, pane screenshots don't refresh. Take pictures with headless Chrome instead (`--headless=new --screenshot`, its own `--user-data-dir` in the scratchpad) of a scratch copy of `index.html` with a `<base href>` to this folder and the CSP line removed, plus a small script that sets up the scene with `startLevel`, `spawnZombie` and `step`.
+- Republishing the Artifact may be refused until you read the changed files with the Artifact tool (`action: read`, `paths`).

@@ -112,6 +112,7 @@ function hurtPlayer(p, dmg, dir, knock = 1) {   // knock = how far you get throw
   p.hp -= toHp; p.inv = 0.8;
   p.vx = dir * 320 * knock; p.vy = -280 * Math.sqrt(knock); p.onGround = false; p.jumpCut = true;
   G.shake = Math.max(G.shake, toHp ? 8 : 4); G.hurtFlash = toHp ? 0.35 : G.hurtFlash;
+  if (!p.remote) padRumble(toHp ? 0.7 : 0.3, 0.5, 150, p.id);   // the hurt player's controller buzzes
   if (soak) {
     sparks(p.x, p.y - 40, 8, -Math.PI / 2, 1.4, '#8fd4ff', 260);
     addText(p.x - (toHp ? 12 : 0), p.y - 74, `-${soak}`, '#8fd4ff', 15);

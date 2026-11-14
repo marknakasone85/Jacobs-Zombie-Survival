@@ -31,7 +31,7 @@ const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + alive
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
   for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools, G.barrels, G.shots]) arr.length = 0;
-  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0; G.finale = null;
+  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0; G.finale = null; G.slowT = 0;
 }
 
 // ---- Input ----------------------------------------------------------------
@@ -1142,9 +1142,10 @@ $('joinCode').addEventListener('input', e => { e.target.value = e.target.value.r
 // animating hidden tabs), so a tiny background timer keeps the game ticking.
 let lastTick = performance.now(), rafPending = false, ticker = null;
 function step(dt) {
-  G.t += dt;
+  const k = Net.isGuest ? (G.finale && G.finale.slow) || 1 : slowMo(dt);   // slow motion in the air strike (js/finale.js)
+  G.t += dt * k;
   if (Net.isGuest) NetGame.guestTick(dt);
-  else if (PLAYING.includes(G.state)) update(dt);
+  else if (PLAYING.includes(G.state)) update(dt * k);
   else if (G.state === 'rescue') updateRescue(dt);
   else if (G.state === 'title' || G.state === 'lobby') {
     G.camX = (Math.sin(G.t * 0.06) * 0.5 + 0.5) * Math.max(0, G.level.worldW - W);

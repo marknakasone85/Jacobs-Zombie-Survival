@@ -146,7 +146,7 @@ const MAX_PLAYERS = 2;
 // armors = armor sets you own, armor = the one you wear, boost = how many health boosts you bought (js/gear.js)
 // nades = how many grenades of each kind you have, nade = the kind you throw (js/grenades.js). Everyone starts with 3 frags.
 const newProfile = () => ({ coins: 0, owned: ['pistol'], equipped: 'pistol', armors: [], armor: '', boost: 0, nades: { frag: 3, he: 0, acid: 0, cryo: 0 }, nade: 'frag' });
-const save = { players: [newProfile(), newProfile()], unlocked: 1, beaten: [], muted: false, numPlayers: 1, lv: 3 };   // lv = which order the levels are in (see loadSave)
+const save = { players: [newProfile(), newProfile()], unlocked: 1, beaten: [], muted: false, numPlayers: 1, lv: 4 };   // lv = which order the levels are in (see loadSave)
 function loadSave() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
@@ -172,6 +172,8 @@ function loadSave() {
       if (!(s.lv >= 2)) { save.beaten = save.beaten.map(i => (i >= 10 ? i + 2 : i)); if (save.unlocked >= 11) save.unlocked += 2; }
       // Later: Sewer Escape came in as level 13, before Highway Escape (it was level 13). Same again: move it along one.
       if (!(s.lv >= 3)) { save.beaten = save.beaten.map(i => (i >= 12 ? i + 1 : i)); if (save.unlocked >= 13) save.unlocked += 1; }
+      // Then Zombie Beach and the Shopping Mall came in as levels 11 and 12, after the Zoo: everything from New York City on moves along two.
+      if (!(s.lv >= 4)) { save.beaten = save.beaten.map(i => (i >= 10 ? i + 2 : i)); if (save.unlocked >= 11) save.unlocked += 2; }
       if (s.numPlayers === 2) save.numPlayers = 2;
       save.muted = !!s.muted;
     }

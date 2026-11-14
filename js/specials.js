@@ -123,6 +123,10 @@ function gearBody(c, z, tw, fl) {
     c.fillStyle = 'rgba(20,16,16,0.45)'; circle(c, -tw * 0.4, -14, 3); circle(c, tw * 0.5, -6, 2.4); circle(c, -tw * 0.1, -22, 2);
   } else if (z.type === 'screamer') {   // a long, torn dress
     poly(c, [-tw, -2, tw, -2, tw + 3, 14, tw - 2, 11, tw * 0.4, 16, -tw * 0.1, 12, -tw * 0.6, 17, -tw - 2, 12], z.shirt);
+  } else if (z.type === 'mannequin') {   // a joint at the waist, and a price tag on a string
+    c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(-tw, -3, tw * 2, 1.5);
+    c.strokeStyle = '#ddd'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(tw * 0.6, -4); c.lineTo(tw * 0.9, 4); c.stroke();
+    fillRR(c, tw * 0.6, 4, 6, 4, 1, '#ffffff'); c.fillStyle = '#d83a2a'; c.fillRect(tw * 0.6 + 1, 5.5, 4, 1);
   }
 }
 // In the head's frame (the face looks to the right).
@@ -140,6 +144,8 @@ function gearHead(c, z, fl) {
   } else if (z.type === 'bombie') {   // a red bandana
     fillRR(c, -8.5, -9.5, 17.5, 4.5, 2, W1 || '#d83a2a');
     poly(c, [-8, -7, -14, -9, -13, -4], W1 || '#b82a1a'); poly(c, [-8, -6, -13, -2, -10, -1], W1 || '#d83a2a');
+  } else if (z.type === 'mannequin' && z.pose !== 3 && !fl) {   // moving: cracks in its plastic face
+    c.strokeStyle = 'rgba(60,40,30,0.7)'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(-4, -8); c.lineTo(-1, -3); c.lineTo(-3, 1); c.moveTo(7, -7); c.lineTo(5, -4); c.stroke();
   } else if (z.type === 'screamer') {   // long stringy hair, and a HUGE mouth when it screams
     c.strokeStyle = fl ? '#ffffff' : '#1e1a22'; c.lineWidth = 2.2; c.lineCap = 'round'; c.beginPath();
     for (let i = 0; i < 6; i++) { const hx = -8 + i * 2.6; c.moveTo(hx, -9); c.quadraticCurveTo(hx - 4, 2, hx - 6 + Math.sin(G.t * 2 + i + z.phase) * 1.5, 16 - i); }
@@ -157,6 +163,7 @@ function gearArm(z, atk) {
   if (z.type === 'bombie') return z.pose === 1 ? -1.55 + Math.sin(G.t * 30) * 0.05 : 0.15;
   if (z.type === 'thrower' && z.pose === 1) return -2.5;
   if (z.type === 'riot') return 0.1;   // holding the shield
+  if (z.type === 'mannequin' && z.pose === 3) return -1.3;   // posing like a model in a shop window
   return walk;
 }
 function gearHand(c, z, bw, a, fl) {

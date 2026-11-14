@@ -164,7 +164,8 @@ const NetGame = {
     s.es = G.shots.map(q => [SHOT_IDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), r1(q.rot)]);
     s.kc = [G.run.kills, G.killGoal];
     if (G.state === 'rescue') s.rs = [r2(G.rescueT), Math.round(G.rescueX)];   // the ending (js/rescue.js)
-    if (G.finale) s.fn = [r2(G.finale.t), Math.round(G.finale.x), Math.round(G.finale.bx), Math.round(G.finale.gx), r2(G.finale.endT)];   // the twist (js/finale.js)
+    if (G.finale) s.fn = [r2(G.finale.t), Math.round(G.finale.x), Math.round(G.finale.bx), Math.round(G.finale.gx), r2(G.finale.endT),
+      Math.round(G.finale.jx), Math.round(G.finale.hx), r2(G.finale.slow)];   // the twist (js/finale.js): where the jets and heavy bombers aim, slow motion
     s.ba = G.barrels.map(b => [BARREL_IDS.indexOf(b.kind), r1(b.fly ? b.cx : b.x), r1(b.fly ? b.cy : b.y), r2(b.rot), (b.gone ? 1 : 0) | (b.fly ? 2 : 0) | (b.armed ? 4 : 0),
       r2(clamp(b.hp / b.T.hp, 0, 1)), r2(b.drop), r2(b.wob), r2(b.flash)]);
     s.bm = G.beams.map(m => [Math.round(m.x1), Math.round(m.y1), Math.round(m.x2), Math.round(m.y2), r2(m.t)]);
@@ -240,7 +241,10 @@ const NetGame = {
     G.shots = (s.es || []).map(a => ({ kind: SHOT_IDS[a[0]] || 'snow', x: a[1], y: a[2], rot: a[3] || 0 }));
     if (Array.isArray(s.kc)) G.netKills = s.kc;
     if (Array.isArray(s.rs)) [G.rescueT, G.rescueX] = s.rs;
-    if (Array.isArray(s.fn) && s.fn.every(Number.isFinite)) { G.finale = G.finale || {}; [G.finale.t, G.finale.x, G.finale.bx, G.finale.gx, G.finale.endT] = s.fn; } else G.finale = null;
+    if (Array.isArray(s.fn) && s.fn.every(Number.isFinite)) {
+      const F = G.finale = G.finale || {};
+      [F.t, F.x, F.bx, F.gx, F.endT] = s.fn; F.jx = s.fn[5] ?? F.x; F.hx = s.fn[6] ?? F.x; F.slow = clamp(s.fn[7] || 1, 0.1, 1);
+    } else G.finale = null;
     G.barrels = (s.ba || []).map(a => {
       const kind = BARREL_IDS[a[0]] || 'boom', T = BARRELS[kind], f = a[4] | 0;
       return { kind, T, w: T.w, h: T.h, x: a[1], y: a[2], cx: a[1], cy: a[2], rot: a[3] || 0, gone: !!(f & 1), fly: !!(f & 2), armed: !!(f & 4),
@@ -285,8 +289,9 @@ const NetGame = {
     for (const c of G.coins) { c.spin = G.t * 6 + c.x * 0.1; if (c.float) c.y = c.baseY + Math.sin(G.t * 3 + c.x * 0.05) * 3; }
     for (const p of G.players) { p.coinPulse = Math.max(0, (p.coinPulse || 0) - dt * 3); p.flashT -= dt; p.swingT = Math.max(0, (p.swingT || 0) - dt); p.throwT = Math.max(0, (p.throwT || 0) - dt); }
     G.hurtFlash = Math.max(0, G.hurtFlash - dt);
-    updateFX(dt);
-    if (G.finale) { G.finale.t += dt; if (G.finale.t >= FIN.gun && (!G.finale.endT || G.finale.t < G.finale.endT + 3.5)) Sound.hold('gunships', 'rotor', true, G.finale.gx); }
+    const slow = (G.finale && G.finale.slow) || 1;   // slow motion in the air strike
+    updateFX(dt * slow);
+    if (G.finale) { G.finale.t += dt * slow; if (G.finale.t >= FIN.gun && (!G.finale.endT || G.finale.t < G.finale.endT + 3.5)) Sound.hold('gunships', 'rotor', true, G.finale.gx); }
     if (G.state === 'rescue') { G.rescueT = (G.rescueT || 0) + dt; Sound.hold('rotor', 'rotor', G.rescueT < RESCUE_TIME - 1, heliPos(G.rescueT).x); }
     for (const p of G.players) {
       Sound.hold('flame' + p.id, p.weapon === 'incin' ? 'inferno' : 'flame', p.firing && !p.dead && isFlame(WMAP[p.weapon].kind), p.x);

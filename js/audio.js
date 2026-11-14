@@ -434,6 +434,7 @@ const Sound = (() => {
     thrower: { f0: [80, 105], shift: 0.88, rasp: 0.75, raspHz: 26, breath: 0.25, vol: 0.42 },
     riot: { f0: [70, 90], shift: 0.82, rasp: 0.8, raspHz: 24, breath: 0.2, vol: 0.45 },
     screamer: { f0: [260, 320], shift: 1.25, rasp: 0.5, raspHz: 44, breath: 0.7, vol: 0.4 },
+    mannequin: { f0: [120, 150], shift: 1.05, rasp: 0.9, raspHz: 18, breath: 0.2, vol: 0.38 },   // creaky plastic
   };
   // Zombie animals: a growling, barking dog, a bleating sheep, a grunting kangaroo, a cawing crow, a roaring bear.
   const AV = {
@@ -448,12 +449,21 @@ const Sound = (() => {
     gator: { f0: [58, 68], shift: 0.7, rasp: 1, raspHz: 14, breath: 0.6, vol: 0.7 },
     bat: { f0: [700, 900], shift: 1.6, rasp: 0.5, raspHz: 70, breath: 0.3, vol: 0.28 },
     slime: { f0: [70, 90], shift: 0.8, rasp: 1, raspHz: 9, breath: 0.6, vol: 0.5 },   // gurgly, like a bloater
+    penguin: { f0: [220, 280], shift: 1.2, rasp: 0.7, raspHz: 34, breath: 0.4, vol: 0.4 },   // honks
+    snake: { f0: [200, 240], shift: 1.2, rasp: 0.4, raspHz: 30, breath: 0.9, vol: 0.32 },
+    spider: { f0: [300, 380], shift: 1.3, rasp: 0.6, raspHz: 50, breath: 0.5, vol: 0.32 },
+    crab: { f0: [260, 320], shift: 1.2, rasp: 0.5, raspHz: 40, breath: 0.4, vol: 0.32 },
+    gull: { f0: [560, 700], shift: 1.5, rasp: 0.7, raspHz: 60, breath: 0.3, vol: 0.34 },   // squawks like a crow, only higher
+    mascot: { f0: [60, 72], shift: 0.7, rasp: 1, raspHz: 16, breath: 0.6, vol: 0.75 },     // a muffled roar inside a costume
   };
   function squelch(x, vol = 0.5) { const b = bus(x, vol, 0.05); nz(b, { dur: 0.05, type: 'bandpass', f0: rand(500, 900), q: 1.2, vol: 0.9 }); osc(b, { dur: 0.05, f0: 140, f1: 70, vol: 0.4 }); }
   function splat(x) { const b = bus(x, 0.7, 0.15); nz(b, { at: 0.05, dur: 0.25, f0: 900, f1: 90, vol: 1 }); osc(b, { at: 0.05, dur: 0.12, f0: 120, f1: 50, vol: 0.5 }); }
   function animal(z, kind, body, boss) {
     const v = AV[body], x = z.x, f = rand(v.f0[0], v.f0[1]) * (z.voice || 1) * (boss ? 0.62 : 1), V = (o) => voice(x, { ...v, ...o });
     const big = boss ? 1.5 : 1;
+    if (body === 'gull') body = 'crow';      // a seagull squawks like a crow (its own, higher voice)
+    if (body === 'mascot') body = 'bear';    // the Mega Mascot roars like a bear
+    const clicks = (at, n, gap, f0) => { const b = bus(x, 0.5, 0.05); for (let i = 0; i < n; i++) click(b, at + i * gap, f0 + Math.random() * 600, 0.9, 8); };
     if (body === 'dog') {
       const bark = (at, loud = 1) => V({ f0: f * 3, f1: f * 2.3, dur: 0.13, from: 'ah', to: 'uh', atk: 0.005, at, vol: v.vol * 1.3 * loud, rasp: 0.5, wet: 0.35, echo: 0.2 });
       if (kind === 'groan') { if (Math.random() < 0.45) { bark(0); bark(0.22); } else V({ f0: f, f1: f * 0.9, dur: rand(0.6, 0.9), from: 'uh', to: 'er', atk: 0.1, wobble: 0.02, vol: v.vol * 0.7 }); }
@@ -513,6 +523,30 @@ const Sound = (() => {
       else if (kind === 'die') { if (limited('zdie', 40)) return; V({ f0: f * 1.2, f1: f * 0.5, dur: 1.4, from: 'ah', to: 'oo', rasp: 1, atk: 0.05 }); splat(x); }
       else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.6); }
       else { V({ f0: f, f1: f * 0.6, dur: 2.2, from: 'uh', to: 'aa', atk: 0.2, wet: 0.5, echo: 0.3, vol: v.vol * 1.5 }); hiss(0.4, 1.2, 0.7); snap(1.6); }
+    } else if (body === 'penguin') {   // honks
+      const honk = (at, o) => V({ f0: f, f1: f * 0.85, dur: 0.18, from: 'aa', to: 'ah', atk: 0.01, at, ...o });
+      if (kind === 'groan') { honk(0); honk(0.25, { f0: f * 0.9 }); }
+      else if (kind === 'screech') honk(0, { dur: 0.45, f0: f * 1.2, vol: v.vol * 1.3 });
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; honk(0, { dur: 0.12 }); clicks(0.02, 1, 0, 1800); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; honk(0, { f1: f * 0.4, dur: 0.6, rasp: 1 }); splat(x); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.4); }
+      else honk(0, { dur: 1.2, f1: f * 0.5 });
+    } else if (body === 'snake') {   // hisses and a rattle
+      const hiss = (at, dur, vol) => { const b = bus(x, vol, 0.15); nz(b, { at, dur, type: 'highpass', f0: 3500, vol: 0.5, atk: 0.04 }); };
+      if (kind === 'groan') hiss(0, 0.6, 0.4);
+      else if (kind === 'screech') { clicks(0, 14, 0.035, 2600); hiss(0.1, 0.5, 0.5); }   // the RATTLE
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; hiss(0, 0.15, 0.6); clicks(0.05, 1, 0, 1500); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; hiss(0, 0.8, 0.5); splat(x); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.35); }
+      else hiss(0, 1.4, 0.7);
+    } else if (body === 'spider' || body === 'crab') {   // clicking, chittering and snapping
+      const fast = body === 'spider';
+      if (kind === 'groan') clicks(0, fast ? 8 : 5, fast ? 0.04 : 0.08, fast ? 2400 : 1600);
+      else if (kind === 'screech') { clicks(0, 12, 0.03, 2800); V({ f0: f * 1.5, f1: f * 1.2, dur: 0.25, from: 'eh', atk: 0.01, vol: v.vol * 0.8 }); }
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; const b = bus(x, 0.7, 0.1), p = shaper(b, punch); nz(p, { dur: 0.06, type: 'bandpass', f0: 1600, q: 2, vol: 1 }); clicks(0.04, 2, 0.05, 2000); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; clicks(0, 6, 0.05, 1200); splat(x); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.4); }
+      else { clicks(0, 20, 0.05, 1200); V({ f0: f * 0.5, f1: f * 0.35, dur: 1.6, from: 'uh', to: 'aa', atk: 0.2, wet: 0.5, echo: 0.3, vol: v.vol * 2 }); }
     } else if (body === 'bat') {   // tiny squeaks and a leathery flap
       const eek = (at, o) => V({ f0: f, f1: f * 1.2, dur: 0.08, from: 'eh', atk: 0.005, at, ...o });
       if (kind === 'groan') { eek(0); eek(0.12); const b = bus(x, 0.3, 0.05); nz(b, { at: 0.05, dur: 0.06, type: 'bandpass', f0: 500, q: 1, vol: 0.6 }); }
@@ -643,6 +677,11 @@ const Sound = (() => {
       nz(b, { dur: 3, f0: 500, f1: 300, vol: 0.4, atk: 0.8 });
     },
     whistle(x) { const b = bus(x, 0.6, 0.2); osc(b, { dur: 0.9, f0: 1900, f1: 500, vol: 0.09, atk: 0.05 }); },   // a falling bomb
+    slowmo() {   // time slows down: a deep, swelling WHOOOM
+      const b = bus(undefined, 0.9, 0.6, 0.3);
+      osc(b, { dur: 1.6, f0: 70, f1: 32, vol: 0.9, atk: 0.15 });
+      nz(b, { dur: 1.4, type: 'lowpass', f0: 900, f1: 120, vol: 0.6, atk: 0.4 });
+    },
     fuse(x) {   // a Bomb Carrier lights its fuse: a sizzle and beeps getting faster
       const b = bus(x, 0.8, 0.15);
       nz(b, { dur: 0.85, type: 'highpass', f0: 4000, f1: 6000, vol: 0.35, atk: 0.02 });
@@ -673,7 +712,7 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60, slime: 70, fuse: 60, scream: 250, bigboom: PHONE ? 300 : 0 };   // phones: at most about 3 big booms a second (the bomb run)
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60, slime: 70, fuse: 60, scream: 250, bigboom: PHONE ? 300 : 70 };   // phones: at most about 3 big booms a second (the bomb run)
   const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack', 'drumhit']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);

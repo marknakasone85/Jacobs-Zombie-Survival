@@ -12,6 +12,7 @@ const SHOT_KINDS = Object.assign(Object.create(null), {   // no prototype, like 
   brick: { r: 9, dmg: 10, knock: 1 },     // the Junk Thrower's junk (js/specials.js): bricks, tin cans and old boots
   can: { r: 8, dmg: 8, knock: 0.8 },
   boot: { r: 9, dmg: 9, knock: 0.9 },
+  coconut: { r: 11, dmg: 16, knock: 1.2 },   // Captain Crab's coconuts (js/creatures.js)
 });
 const JUNK = ['brick', 'can', 'boot'];
 const SHOT_IDS = Object.keys(SHOT_KINDS);
@@ -27,7 +28,7 @@ function bossThrowAI(z, target, adx, dir, dt) {
     if (z.throwT <= 0) { z.pose = 0; bossThrow(z, target); z.throwCd = rand(2.6, 4.2); }
     return;
   }
-  if (z.onGround && z.throwCd <= 0 && adx > 140 && adx < 700) { z.throwT = THROW_WIND; z.facing = dir; Sound.zombie(z, 'screech'); }
+  if (z.onGround && z.throwCd <= 0 && adx > 140 && adx < 700 && !(z.chargeT > 0) && !(z.windT > 0)) { z.throwT = THROW_WIND; z.facing = dir; Sound.zombie(z, 'screech'); }
 }
 // Lobs it in an arc so it comes down where the player is (or is about to be).
 function bossThrow(z, target) {
@@ -56,6 +57,9 @@ function shotSplat(q) {
   if (q.kind === 'snow') {   // POOF
     smoke(q.x, y, 9, 10, '#f0f6ff'); sparks(q.x, y, 14, -Math.PI / 2, 1.3, '#ffffff', 320);
     Sound.play('crack', q.x);
+  } else if (q.kind === 'coconut') {   // BONK: it cracks in half
+    for (const d of [-1, 1]) addPart({ type: 'goo', x: q.x, y, vx: d * rand(80, 160), vy: rand(-260, -160), g: 1400, life: 0.8, size: 5, col: '#6a4a2a', floor: true });
+    sparks(q.x, y, 8, -Math.PI / 2, 1.2, '#f4f0e8', 220); Sound.play('drumhit', q.x);
   } else if (JUNK.includes(q.kind)) {   // clonk
     dust(q.x, y, 4, q.kind === 'brick' ? '#b8705a' : '#a8a4b0'); Sound.play('clink', q.x);
   } else {
@@ -70,6 +74,10 @@ function drawShots(c) {
       c.fillStyle = 'rgba(120,150,190,0.35)'; c.beginPath(); c.arc(0, 0, 13, 0.4, Math.PI - 0.4); c.fill();
     } else if (JUNK.includes(q.kind)) {
       drawJunk(c, q.kind);   // js/specials.js
+    } else if (q.kind === 'coconut') {
+      circle(c, 0, 0, 11, '#6a4a2a'); c.strokeStyle = '#4a3218'; c.lineWidth = 1.2; c.beginPath();
+      for (let i = 0; i < 5; i++) { c.moveTo(-9 + i * 4, -7); c.lineTo(-7 + i * 4, 7); } c.stroke();
+      for (const [ex, ey] of [[-3, -4], [2, -5], [0, 0]]) circle(c, ex, ey, 1.3, '#2a1a0a');
     } else {
       circle(c, 0, 0, 11, '#7aa82a'); circle(c, -1.5, -1.5, 8.5, '#9acd32'); circle(c, -4, -4, 2.6, '#e0ff9a');
       circle(c, 7, 6, 4, '#9acd32'); circle(c, -8, 5, 3, '#7aa82a');

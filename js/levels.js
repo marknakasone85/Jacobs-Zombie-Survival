@@ -10,7 +10,7 @@
 //              kinds: car van shed treehouse crate bus scaffold dumpster crypt wall mausoleum logs cabin icerock
 //              barrels trailer canopy rock container tank tower bunker stand wagon stage boxes
 //              haybales tractor barn coop ute watertank termite shack cage kiosk rockpile train statue
-//              taxi cart (js/bigcity.js)  pipe catwalk junk (js/sewer.js)
+//              taxi cart (js/bigcity.js)  pipe catwalk junk (js/sewer.js)  lifeguard hut boat fountain display carousel (js/beachmall.js)
 //   coins      extra coins lying around: [x, heightAboveGround, howMany]  (every platform gets a row too)
 //   bigCoins   shiny 10-coins in hard places: [x, heightAboveGround]
 //   barrels    things to shoot that go BOOM (js/barrels.js): [kind, x]
@@ -22,6 +22,8 @@
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
 //              with tricks (js/specials.js): bombie (Bomb Carrier) thrower riot (shield) screamer
 //              sewer creatures: rat bat croc (Baby Gator) slime (splits into two little blobs)
+//              more creatures (js/creatures.js): penguin snake spider crab gull mannequin
+//   bosses also: 'capcrab' (Captain Crab) and 'mascot' (The Mega Mascot)
 //   vehicle    'truck' = everyone drives a truck, 'heli' = everyone flies a helicopter (js/vehicles.js).  start = where the players start (x)
 //   finale     true = after the last wave comes the twist: a flood of zombies, then jets, a bomber and gunships (js/finale.js)
 //   New levels go BEFORE the last one (the last level ends with the rescue), and the save needs moving: see loadSave in js/util.js.
@@ -56,7 +58,7 @@ const LEVELS = [
     ],
   },
   {
-    name: 'Graveyard', blurb: 'Where they all came from. Zombie crows in the trees... and something BIG.', theme: 'graveyard',
+    name: 'Graveyard', blurb: 'Where they all came from. Zombie crows in the trees, spiders dropping from above... and something BIG.', theme: 'graveyard',
     worldW: 3000, hp: 1.5, speed: 1.1, boss: 'The Grave Giant',
     platforms: [['crypt', 420, 140], ['wall', 900, 120], ['mausoleum', 1360, 170], ['wall', 1860, 100], ['crypt', 2240, 140], ['wall', 2660, 90]],
     coins: [[200, 26, 4], [700, 40, 3], [1140, 40, 4], [1660, 40, 3], [2060, 40, 3], [2500, 36, 3], [2860, 26, 3]],
@@ -64,13 +66,13 @@ const LEVELS = [
     barrels: [['acid', 680], ['boom', 1640], ['zap', 2100], ['goo', 2540]],
     waves: [
       { mix: { walker: 14, runner: 6, leaper: 4, crow: 5 }, every: 1.0, max: 14 },
-      { mix: { walker: 14, runner: 8, leaper: 6, brute: 3, crow: 6, dog: 4 }, every: 0.95, max: 16 },
-      { mix: { walker: 16, runner: 8, leaper: 6, brute: 3, crow: 8, dog: 6 }, every: 0.9, max: 18 },
-      { mix: { walker: 16, runner: 8, leaper: 6, brute: 3, crow: 8 }, boss: true, every: 0.9, max: 18 },
+      { mix: { walker: 11, runner: 8, leaper: 6, brute: 3, crow: 6, dog: 4, spider: 3 }, every: 0.95, max: 16 },
+      { mix: { walker: 12, runner: 8, leaper: 6, brute: 3, crow: 8, dog: 6, spider: 4 }, every: 0.9, max: 18 },
+      { mix: { walker: 12, runner: 8, leaper: 6, brute: 3, crow: 8, spider: 4 }, boss: true, every: 0.9, max: 18 },
     ],
   },
   {
-    name: 'Frozen Forest', blurb: 'A snowy night under the northern lights. Tiny zombies, zombie wolves, a BEAR... and the Yeti!', theme: 'snow',
+    name: 'Frozen Forest', blurb: 'A snowy night under the northern lights. Tiny zombies, zombie wolves, belly-sliding penguins, a BEAR... and the Yeti!', theme: 'snow',
     worldW: 3000, hp: 1.8, speed: 1.12, boss: 'The Yeti', bossType: 'yeti', bossLine: 'Look out for flying snowballs!',
     platforms: [['logs', 260, 110], ['cabin', 640, 180], ['icerock', 1080, 90], ['logs', 1420, 110], ['cabin', 1820, 180], ['icerock', 2280, 100], ['logs', 2620, 120]],
     coins: [[470, 30, 4], [910, 40, 3], [1240, 30, 4], [1640, 40, 3], [2100, 30, 4], [2470, 40, 3]],
@@ -78,14 +80,14 @@ const LEVELS = [
     barrels: [['ice', 880], ['gas', 1620], ['boom', 2150], ['ice', 2490]],
     waves: [
       { mix: { walker: 14, tiny: 8, dog: 4 }, every: 0.95, max: 14 },
-      { mix: { walker: 14, runner: 8, tiny: 10, leaper: 4, dog: 6 }, every: 0.9, max: 16 },
-      { mix: { walker: 16, tiny: 12, leaper: 6, brute: 3, dog: 6, bear: 1 }, every: 0.85, max: 18 },
-      { mix: { walker: 16, runner: 10, tiny: 12, brute: 3, giant: 1, dog: 8 }, every: 0.8, max: 20 },
-      { mix: { walker: 18, tiny: 14, dog: 10, bear: 2, giant: 1 }, boss: true, every: 0.8, max: 20 },
+      { mix: { walker: 11, runner: 8, tiny: 10, leaper: 4, dog: 6, penguin: 3 }, every: 0.9, max: 16 },
+      { mix: { walker: 12, tiny: 12, leaper: 6, brute: 3, dog: 6, bear: 1, penguin: 4 }, every: 0.85, max: 18 },
+      { mix: { walker: 12, runner: 10, tiny: 12, brute: 3, giant: 1, dog: 8, penguin: 4 }, every: 0.8, max: 20 },
+      { mix: { walker: 13, tiny: 14, dog: 10, bear: 2, giant: 1, penguin: 5 }, boss: true, every: 0.8, max: 20 },
     ],
   },
   {
-    name: 'Desert Gas Stop', blurb: 'Hot sand, cactus, BLOATERS and zombie vultures. Pop them from far away! Their king is the biggest of all.', theme: 'desert',
+    name: 'Desert Gas Stop', blurb: 'Hot sand, cactus, BLOATERS, rattlesnakes (aim low!) and zombie vultures. Their king is the biggest of all.', theme: 'desert',
     worldW: 3200, hp: 2.1, speed: 1.15, boss: 'King Bloat', bossType: 'kingbloat', bossLine: 'Dodge his goo, and stand back when he POPS!',
     platforms: [['barrels', 240, 70], ['trailer', 600, 190], ['canopy', 1100, 280], ['rock', 1640, 140], ['trailer', 2060, 190], ['barrels', 2500, 70], ['rock', 2820, 130]],
     coins: [[420, 30, 4], [880, 40, 3], [1500, 30, 3], [1880, 40, 4], [2340, 30, 3], [2680, 40, 3]],
@@ -93,10 +95,10 @@ const LEVELS = [
     barrels: [['oil', 450], ['gas', 950], ['gas', 1500], ['boom', 1990], ['oil', 2690]],
     waves: [
       { mix: { walker: 16, runner: 8, bloater: 4, dog: 4 }, every: 0.9, max: 16 },
-      { mix: { walker: 16, runner: 10, bloater: 6, tiny: 8, crow: 6 }, every: 0.85, max: 18 },
-      { mix: { walker: 18, leaper: 8, bloater: 6, brute: 4, dog: 6 }, every: 0.8, max: 18 },
-      { mix: { walker: 18, runner: 12, bloater: 8, brute: 4, giant: 2, crow: 8 }, every: 0.75, max: 20 },
-      { mix: { walker: 20, runner: 12, bloater: 8, dog: 10, crow: 8, giant: 2 }, boss: true, every: 0.75, max: 22 },
+      { mix: { walker: 13, runner: 10, bloater: 6, tiny: 8, crow: 6, snake: 3 }, every: 0.85, max: 18 },
+      { mix: { walker: 14, leaper: 8, bloater: 6, brute: 4, dog: 6, snake: 4 }, every: 0.8, max: 18 },
+      { mix: { walker: 14, runner: 12, bloater: 8, brute: 4, giant: 2, crow: 8, snake: 4 }, every: 0.75, max: 20 },
+      { mix: { walker: 15, runner: 12, bloater: 8, dog: 10, crow: 8, giant: 2, snake: 5 }, boss: true, every: 0.75, max: 22 },
     ],
   },
   {
@@ -175,6 +177,38 @@ const LEVELS = [
       { mix: { walker: 20, roo: 10, sheep: 10, bloater: 8, crow: 12 }, every: 0.68, max: 24 },
       { mix: { walker: 22, bear: 4, giant: 2, runner: 14, dog: 12 }, every: 0.65, max: 26 },
       { mix: { walker: 24, roo: 12, sheep: 10, bear: 3, crow: 12, giant: 2 }, boss: true, every: 0.62, max: 26 },
+    ],
+  },
+  {
+    // Zombie Beach (js/beachmall.js): crabs, seagulls and Captain Crab (js/creatures.js).
+    name: 'Zombie Beach', blurb: 'Sun, sand and ZOMBIES! Crabs scuttle, seagulls swoop... and Captain Crab throws coconuts.', theme: 'beach',
+    worldW: 3800, hp: 3.0, speed: 1.24, boss: 'Captain Crab', bossType: 'capcrab', bossLine: 'Dodge his coconuts, and jump when he scuttles at you!',
+    platforms: [['lifeguard', 300, 110], ['hut', 760, 170], ['boat', 1240, 150], ['lifeguard', 1720, 110], ['hut', 2180, 170], ['boat', 2680, 150], ['lifeguard', 3200, 110]],
+    coins: [[560, 30, 4], [1060, 40, 3], [1480, 30, 4], [1980, 40, 3], [2480, 30, 4], [2980, 40, 3], [3500, 30, 4]],
+    bigCoins: [[355, 180], [1775, 180], [3255, 180]],
+    barrels: [['boom', 600], ['oil', 1100], ['zap', 1580], ['goo', 2060], ['boom', 2540], ['ice', 3020], ['gas', 3500]],
+    waves: [
+      { mix: { walker: 30, runner: 14, crab: 16, gull: 8 }, every: 0.55, max: 26 },
+      { mix: { walker: 30, crab: 20, gull: 12, dog: 8, thrower: 4 }, every: 0.5, max: 28 },
+      { mix: { walker: 32, runner: 16, crab: 20, gull: 12, bombie: 6, brute: 4 }, every: 0.48, max: 30 },
+      { mix: { walker: 34, crab: 24, gull: 14, riot: 4, screamer: 4, giant: 2 }, every: 0.45, max: 30 },
+      { mix: { walker: 36, runner: 18, crab: 24, gull: 14, bombie: 6, thrower: 6, giant: 3 }, boss: true, every: 0.45, max: 32 },
+    ],
+  },
+  {
+    // The Shopping Mall (js/beachmall.js): mannequins and the Mega Mascot (js/creatures.js).
+    name: 'Shopping Mall', blurb: 'The mall at midnight. The mannequins only move when you look away... and the Mega Mascot wants a hug!', theme: 'mall',
+    worldW: 3800, hp: 3.1, speed: 1.26, boss: 'The Mega Mascot', bossType: 'mascot', bossLine: "Don't let it hug you! Watch out when it lands!",
+    platforms: [['fountain', 320, 150], ['display', 760, 120], ['carousel', 1200, 220], ['cart', 1700, 70], ['display', 2050, 120], ['fountain', 2500, 150], ['carousel', 2950, 220], ['display', 3450, 120]],
+    coins: [[560, 30, 4], [1000, 40, 3], [1520, 30, 4], [1880, 40, 3], [2300, 30, 4], [2780, 40, 3], [3300, 30, 4]],
+    bigCoins: [[1310, 190], [3060, 190], [820, 150]],
+    barrels: [['zap', 620], ['boom', 1060], ['goo', 1600], ['gas', 2000], ['ice', 2420], ['boom', 2860], ['acid', 3380]],
+    waves: [
+      { mix: { walker: 30, runner: 14, mannequin: 8, tiny: 12 }, every: 0.55, max: 26 },
+      { mix: { walker: 30, mannequin: 12, runner: 14, screamer: 4, thrower: 6 }, every: 0.5, max: 28 },
+      { mix: { walker: 32, mannequin: 14, tiny: 16, riot: 6, bombie: 6, brute: 4 }, every: 0.48, max: 30 },
+      { mix: { walker: 34, mannequin: 16, runner: 18, screamer: 6, leaper: 8, giant: 2 }, every: 0.45, max: 30 },
+      { mix: { walker: 36, mannequin: 18, runner: 18, bombie: 8, riot: 6, thrower: 6, giant: 3 }, boss: true, every: 0.45, max: 32 },
     ],
   },
   {

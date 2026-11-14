@@ -19,7 +19,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 
 ## How it works
 
-- **Levels and waves:** 14 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones), and its own **boss**. Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends. Beat the last level and a rescue helicopter comes for you: **YOU SURVIVED!**
+- **Levels and waves:** 16 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones), and its own **boss**. Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends. Beat the last level and a rescue helicopter comes for you: **YOU SURVIVED!**
 - **Kill counter:** next to the wave number, a little skull shows how many zombies you've beaten out of everything the level sends, like **37/120** (bosses included). It turns green when you've got them all.
 
   | # | Level | What's new |
@@ -34,10 +34,12 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   | 8 | Zombie Farm (sunny morning, barn, cornfield) | dogs, charging sheep, crows, a bear, and the boss: **The Big Bad Ram** (5 waves) |
   | 9 | The Outback (red dirt, gum trees, a giant red rock) | kangaroos everywhere, and the boss: **King Roo** (5 waves) |
   | 10 | Zombie Zoo (moonlit zoo, open cages) | every animal at once, and the boss: **Big Grizz** (6 waves) |
-  | 11 | New York City (skyscrapers, billboards, yellow taxis) | the craziest level: **1,200 zombies** (with one player) that swarm in fast, and the boss: **The Sewer Gator** (5 waves) |
-  | 12 | Sky Escape (a huge bridge at sunrise) | **you fly a helicopter!** **1,600 zombies** (with one player): a ground army below, zombie crows in the air, and the boss: **The Storm Crow** (4 waves) |
-  | 13 | Sewer Escape (brick tunnels, slime pipes, a river of sludge) | sewer rats, bats, baby gators, **slime blobs that split in two**, and all the new zombies with tricks. About **1,200 zombies** (with one player), and the boss: **The Sludge Monster** (5 waves) |
-  | 14 | Highway Escape (night highway, the burning city behind you) | **you drive a truck!** About 1,000 zombies from both sides, the boss **The Road Hulk** (4 waves)... and then a twist. The rescue helicopter flies you out at the very end |
+  | 11 | Zombie Beach (sunny day, the sea, a pier, palm trees) | zombie crabs that scuttle at you, zombie seagulls, and the boss: **Captain Crab** (5 waves) |
+  | 12 | Shopping Mall (midnight, neon shop signs, a carousel and a fountain) | **mannequins that only move when you're not looking at them**, and the boss: **The Mega Mascot** (5 waves) |
+  | 13 | New York City (skyscrapers, billboards, yellow taxis) | the craziest level: **1,200 zombies** (with one player) that swarm in fast, and the boss: **The Sewer Gator** (5 waves) |
+  | 14 | Sky Escape (a huge bridge at sunrise) | **you fly a helicopter!** **1,600 zombies** (with one player): a ground army below, zombie crows in the air, and the boss: **The Storm Crow** (4 waves) |
+  | 15 | Sewer Escape (brick tunnels, slime pipes, a river of sludge) | sewer rats, bats, baby gators, **slime blobs that split in two**, and all the new zombies with tricks. About **1,200 zombies** (with one player), and the boss: **The Sludge Monster** (5 waves) |
+  | 16 | Highway Escape (night highway, the burning city behind you) | **you drive a truck!** About 1,000 zombies from both sides, the boss **The Road Hulk** (4 waves)... and then a twist. The rescue helicopter flies you out at the very end |
 
 - **Zombies come in different sizes:** walkers, runners, leapers, brutes, **tiny** zombies (small and fast), **giants** (huge and slow), and **bloaters**. Bloaters pop in a goo explosion when they die: it hurts other zombies, and you if you're standing too close! Every zombie is also a bit bigger or smaller than the last, and bigger ones are tougher.
 - **Zombies with tricks** (they show up in some of the later levels too):
@@ -51,6 +53,8 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   - **Kangaroos** hop everywhere, even up onto platforms, and punch with their boxing gloves.
   - **Crows** fly around above you and dive down to peck.
   - **Bears** are huge and tough. They rear up and swipe.
+  - **Penguins** (Frozen Forest) waddle up, then flop on their bellies and SLIDE at you. **Rattlesnakes** (Desert) are low down, so aim low: they coil up, rattle, then strike. **Spiders** (Graveyard) drop down from above on a thread of silk, and land on your head if you stand under them!
+  - At the beach: **zombie crabs** scuttle at you in quick bursts and pinch, and **zombie seagulls** swoop down to peck. At the mall: **mannequins** stand perfectly still while anyone is looking at them... turn your back and they rush you!
   - Down in the sewers: **sewer rats** come in packs and pounce, **zombie bats** flutter about and swoop down to bite, **baby gators** open their jaws and lunge across the floor (jump over them!), and **slime blobs** hop at you. Pop a slime blob and it **splits into two little blobs**!
   - Bosses: **The Big Bad Ram** charges, **King Roo** shakes the ground when it lands, and **Big Grizz** stomps and swipes.
 - **Every level has a boss** in its last wave (some scary, some funny):
@@ -59,7 +63,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   - **The Grave Giant** (Graveyard), **General Rotten** (Army Base) and **The Big Top Brute** (Carnival): huge zombies that stomp the ground.
   - **The Yeti** (Frozen Forest): throws giant snowballs at you and stomps.
   - **King Bloat** (Desert Gas Stop): spits goo and belly-flops. When he pops, four little bloaters burst out of him!
-  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo), **The Sewer Gator** (New York City), a giant zombie alligator that opens its jaws wide, then lunges (jump over it!), **The Storm Crow** (Sky Escape), a giant zombie crow that circles your helicopter, **The Sludge Monster** (Sewer Escape), a giant blob of sewer slime with junk floating inside it that spits goo and belly-flops, and splits into four slime blobs when it pops (and they split too!), and **The Road Hulk**, a huge road-warrior zombie with a red mohawk, goggles and a spiked shoulder pad.
+  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo), **The Sewer Gator** (New York City), a giant zombie alligator that opens its jaws wide, then lunges (jump over it!), **The Storm Crow** (Sky Escape), a giant zombie crow that circles your helicopter, **The Sludge Monster** (Sewer Escape), a giant blob of sewer slime with junk floating inside it that spits goo and belly-flops, and splits into four slime blobs when it pops (and they split too!), **Captain Crab** (Zombie Beach), a giant zombie crab in a pirate hat that throws coconuts and scuttles at you, **The Mega Mascot** (Shopping Mall), a giant zombie in a fluffy pink bunny costume that hops and belly-flops the floor, and **The Road Hulk**, a huge road-warrior zombie with a red mohawk, goggles and a spiked shoulder pad.
 - **Coins:** zombies drop coins (big zombies drop more), and coins get sucked into you like a **black hole**. They spiral around faster and faster until you swallow them, with a golden swirl around you. Coins dropped by zombies come from anywhere on the map. Coins lying around the map (on cars, sheds, scaffolds, crypts and so on, plus shiny **10-coins** in the hardest spots) start flying to you once you get close. More coins appear each wave. You keep your coins and weapons between games.
 - **Hearts:** zombies sometimes drop a heart (+25 health). You also heal 25 after every wave.
 - **Platforms:** jump up through cars, sheds, the bus, scaffolds and crypts and stand on top. Press Down to drop off. Most zombies can only jump onto low ones, but leapers can reach you anywhere.
@@ -128,7 +132,7 @@ On the last level everyone drives their own big pickup truck, with spikes on the
 - **Drive into zombies** to run them over: the faster you go, the further they fly, and the truck keeps its speed. Brutes and giants get plowed out of the way but slow you down. Bosses stop your truck dead, so shoot those.
 - Driving into a barrel sets it off!
 
-**The twist:** when the Road Hulk goes down... **"IT'S NOT OVER!"** More giant bosses and a flood of zombies come at you from both sides. Hang on (you can't drop below 1 health while it lasts): **"AIR SUPPORT INCOMING!"** Two fighter jets roar past, a stealth bomber drops a carpet of bombs on both sides of you, and two attack gunship helicopters fly in and shoot whatever is left. Then the military rescue helicopter comes down, everybody climbs its rope ladder, and it flies you out of Zombie City: **YOU SURVIVED!** You can watch the ending again from the end of the level list.
+**The twist:** when the Road Hulk goes down... **"IT'S NOT OVER!"** More giant bosses and a flood of zombies come at you from both sides. Hang on (you can't drop below 1 health while it lasts), because they keep coming: **"AIR SUPPORT INCOMING!"** Two fighter jets roar past dropping bombs, a stealth bomber drops a carpet of bombs on both sides of you (in **slow motion**!), the jets come back the other way, and then **"HEAVY BOMBERS!"**: a squadron of three huge bombers flies over and carpet bombs everything for about 5 seconds, with more slow motion. That's about 120 bombs, and they never land right on you. Then two attack gunship helicopters fly in and shoot whatever is left. Then the military rescue helicopter comes down, everybody climbs its rope ladder, and it flies you out of Zombie City: **YOU SURVIVED!** You can watch the ending again from the end of the level list.
 
 ## Barrels
 
@@ -254,8 +258,10 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/vehicles.js`: the trucks and helicopters for the vehicle levels, and the highway's backgrounds
 - `js/bigcity.js`: the New York City and bridge backgrounds, taxis and hot dog carts
 - `js/sewer.js`: the sewer background, pipes, catwalks and junk piles
+- `js/creatures.js`: penguins, rattlesnakes, spiders, crabs, seagulls, mannequins, Captain Crab and the Mega Mascot
+- `js/beachmall.js`: the beach and mall backgrounds, lifeguard towers, ice cream shacks, boats, fountains, displays and the carousel
 - `js/rescue.js`: the ending (the rescue helicopter and "YOU SURVIVED!")
-- `js/finale.js`: the twist at the end of the last level (the flood, the jets, the bomber and the gunships)
+- `js/finale.js`: the twist at the end of the last level (the flood, the jets, the bombers, slow motion and the gunships)
 - `js/gamepad.js`: game controllers
 - `js/net.js`, `js/netgame.js`: Wi-Fi co-op (connection, lobby, sending the game to friends)
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop

@@ -89,7 +89,7 @@ const Sound = (() => {
   }
   // Every sound gets its own little mixer. It is unplugged once the sound is over (life seconds, longer than
   // any sound), or the phone keeps them all and slows down as the fight goes on. Loops unplug it themselves.
-  function bus(x, vol = 1, wet = 0.25, echo = 0, life = 3.5) {
+  function bus(x, vol = 1, wet = 0.25, echo = 0, life = PHONE ? 2.6 : 3.5) {   // phones unplug sooner (big fights make lots of sounds at once)
     const w = where(x), g = ac.createGain(); g.gain.value = vol * w.vol;
     let out = g;
     const parts = [g];
@@ -429,6 +429,7 @@ const Sound = (() => {
     giant: { f0: [38, 46], shift: 0.6, rasp: 1, raspHz: 18, breath: 0.3, vol: 0.8 },
     bloater: { f0: [70, 90], shift: 0.85, rasp: 1, raspHz: 12, breath: 0.55, vol: 0.5 },   // gurgly
     kingbloat: { f0: [46, 56], shift: 0.7, rasp: 1, raspHz: 10, breath: 0.6, vol: 0.9 },   // gurglier
+    roadhulk: { f0: [44, 52], shift: 0.64, rasp: 1, raspHz: 15, breath: 0.4, vol: 0.9 },
   };
   // Zombie animals: a growling, barking dog, a bleating sheep, a grunting kangaroo, a cawing crow, a roaring bear.
   const AV = {
@@ -608,6 +609,23 @@ const Sound = (() => {
       osc(b, { type: 'square', dur: 0.5, f0: 240, f1: 180, vol: 0.12 });
       for (let i = 0; i < 10; i++) nz(b, { at: Math.random() * 0.6, dur: 0.02, type: 'highpass', f0: 2500 + Math.random() * 3000, vol: 0.6 });
     },
+    jet(x) {   // a fighter jet screaming past
+      const b = bus(x, 1, 0.3, 0.2);
+      nz(b, { dur: 1.6, type: 'bandpass', f0: 2600, f1: 300, q: 0.9, vol: 0.9, atk: 0.35 });
+      nz(b, { dur: 1.6, f0: 900, f1: 120, vol: 0.7, atk: 0.4 });
+      osc(b, { type: 'sawtooth', dur: 1.5, f0: 420, f1: 140, vol: 0.08, atk: 0.4 });
+    },
+    bomber(x) {   // the deep drone of a big bomber going over
+      const b = bus(x, 0.9, 0.35, 0.2, 4);   // a long sound: keep its mixer 4 seconds
+      osc(b, { type: 'sawtooth', dur: 3, f0: 70, f1: 58, vol: 0.18, atk: 0.8 }); osc(b, { type: 'sawtooth', dur: 3, f0: 71.5, f1: 59, vol: 0.14, atk: 0.8 });
+      nz(b, { dur: 3, f0: 500, f1: 300, vol: 0.4, atk: 0.8 });
+    },
+    whistle(x) { const b = bus(x, 0.6, 0.2); osc(b, { dur: 0.9, f0: 1900, f1: 500, vol: 0.09, atk: 0.05 }); },   // a falling bomb
+    radio() {   // a crackly radio call
+      const b = bus(undefined, 0.6, 0.05);
+      nz(b, { dur: 0.25, type: 'bandpass', f0: 1800, q: 2, vol: 0.6 });
+      [0.3, 0.42].forEach(at => osc(b, { type: 'square', at, dur: 0.08, f0: 1200, vol: 0.12 }));
+    },
     stomp(x) { const b = bus(x, 1.1, 0.4, 0.2), p = shaper(b, punch); nz(p, { dur: 0.6, f0: 500, f1: 40, vol: 1 }); osc(b, { dur: 0.5, f0: 60, f1: 25, vol: 1.1 }); },
     jump(x) { const b = bus(x, 0.35, 0.05); nz(b, { dur: 0.1, type: 'bandpass', f0: 700, f1: 1500, q: 1, vol: 0.5 }); },
     land(x) { const b = bus(x, 0.4, 0.05); nz(b, { dur: 0.08, f0: 600, f1: 100, vol: 0.8 }); },
@@ -624,7 +642,7 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60 };
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60, bigboom: PHONE ? 300 : 0 };   // phones: at most about 3 big booms a second (the bomb run)
   const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack', 'drumhit']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);

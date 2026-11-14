@@ -265,3 +265,22 @@ function drawGator(c, z, k, atk) {
   c.restore();
   c.restore();
 }
+// The Road Hulk (Highway Escape) is drawn like a huge zombie (drawZombie) with road-warrior gear on top:
+function roadHulkBody(c, tw, fl) {   // studs down the leather vest and a chain across the chest
+  const metal = fl ? '#ffffff' : '#c0c4cc';
+  for (let i = 0; i < 6; i++) { circle(c, -tw + 2, -24 + i * 4.2, 0.9, metal); circle(c, tw - 2, -24 + i * 4.2, 0.9, metal); }
+  c.strokeStyle = metal; c.lineWidth = 1.1;
+  for (let i = 0; i < 7; i++) { const u = i / 6; c.beginPath(); c.ellipse(-tw * 0.8 + u * tw * 1.6, -22 + u * 16, 1.6, 1, 0.6, 0, Math.PI * 2); c.stroke(); }
+}
+function roadHulkHead(c, fl) {   // a red mohawk and goggles pushed up on his forehead
+  poly(c, [-7, -8, -6, -15, -3, -9, -1, -17, 1, -9, 4, -16, 6, -8], fl ? '#ffffff' : '#e8402a');
+  c.fillStyle = fl ? '#eeeeee' : '#2a2420'; c.fillRect(-8, -7.5, 17, 2.6);
+  for (const gx of [1.5, 6.5]) { circle(c, gx, -6.2, 2.4, fl ? '#ffffff' : '#5a4a3a'); circle(c, gx, -6.2, 1.5, fl ? '#ffffff' : '#ffb84a'); }
+}
+function roadHulkPad(c, bw, fl) {   // a spiked metal shoulder pad
+  c.save(); c.translate(2 * bw, -21);
+  for (const a of [-1.9, -1.4, -0.9]) poly(c, [Math.cos(a - 0.25) * 6, Math.sin(a - 0.25) * 6, Math.cos(a) * 13, Math.sin(a) * 13, Math.cos(a + 0.25) * 6, Math.sin(a + 0.25) * 6], fl ? '#ffffff' : '#d8dce4');
+  c.fillStyle = fl ? '#ffffff' : '#8a8e98'; c.beginPath(); c.ellipse(0, -1, 7.5, 5.5, -0.3, 0, Math.PI * 2); c.fill();
+  c.fillStyle = fl ? '#eeeeee' : '#6a6e78'; c.fillRect(-5, -1, 10, 1.4);
+  c.restore();
+}

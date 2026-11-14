@@ -20,6 +20,7 @@
 //              'mower', 'ratking', 'yeti' or 'kingbloat' (js/bosses.js).  bossLine = what the banner says when it shows up
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
 //   vehicle    'truck' = everyone drives a truck, 'heli' = everyone flies a helicopter (js/vehicles.js).  start = where the players start (x)
+//   finale     true = after the last wave comes the twist: a flood of zombies, then jets, a bomber and gunships (js/finale.js)
 //   New levels go BEFORE the last one (the last level ends with the rescue), and the save needs moving: see loadSave in js/util.js.
 //   The ending after the last level (the rescue helicopter) is in js/rescue.js.
 
@@ -198,26 +199,29 @@ const LEVELS = [
     bigCoins: [[1000, 300], [3300, 320], [5000, 300]],
     barrels: [['boom', 1300], ['gas', 2300], ['zap', 3300], ['boom', 4200], ['oil', 5100]],
     waves: [
-      { mix: { walker: 20, runner: 10, crow: 16, leaper: 6 }, every: 0.7, max: 22 },
-      { mix: { walker: 22, crow: 20, roo: 8, leaper: 8, dog: 10 }, every: 0.65, max: 24 },
-      { mix: { walker: 24, crow: 24, roo: 10, bloater: 6, brute: 4, giant: 2 }, every: 0.6, max: 26 },
-      { mix: { walker: 26, crow: 26, leaper: 10, roo: 10, giant: 3 }, boss: true, every: 0.55, max: 28 },
+      // 1,600 zombies with one player: a ground army, and the same 86 crows in the air as before.
+      { mix: { crow: 16, walker: 160, runner: 80, leaper: 30, dog: 30 }, every: 0.2, max: 34 },
+      { mix: { crow: 20, walker: 170, roo: 50, leaper: 50, dog: 90 }, every: 0.18, max: 36 },
+      { mix: { crow: 24, walker: 200, roo: 60, bloater: 40, brute: 30, giant: 10, runner: 60 }, every: 0.16, max: 38 },
+      { mix: { crow: 26, walker: 230, leaper: 60, roo: 60, giant: 13, runner: 70, dog: 20 }, boss: true, every: 0.15, max: 40 },
     ],
   },
   {
     // The driving level: vehicle 'truck' = everyone drives a truck (js/vehicles.js). start = where you start (x).
     name: 'Highway Escape', blurb: 'The final level! Your helicopter ran out of fuel. Grab a truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
-    vehicle: 'truck', start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
+    vehicle: 'truck', start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossType: 'roadhulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
+    finale: true,   // after the last wave: "IT'S NOT OVER!", a flood of zombies, then the air force (js/finale.js)
     platforms: [['car', 1150, 96, '#6a6a7a'], ['bus', 1900, 250], ['container', 2900, 180, '#3a6a8a'], ['van', 3800, 130], ['car', 4600, 96, '#8a3b3b'],
       ['container', 5500, 180, '#8a4a2a'], ['bus', 6500, 250], ['car', 7500, 96, '#3b6a9a'], ['van', 8300, 130]],
     coins: [[800, 40, 4], [1600, 60, 4], [2500, 40, 4], [3400, 60, 4], [4300, 40, 4], [5200, 60, 4], [6100, 40, 4], [7100, 60, 4], [8000, 40, 4], [8700, 60, 3]],
     bigCoins: [[2025, 210], [5590, 200], [6625, 210]],
     barrels: [['gas', 700], ['boom', 1500], ['oil', 2400], ['boom', 3300], ['zap', 4150], ['gas', 5100], ['boom', 6000], ['oil', 7000], ['goo', 7900], ['boom', 8650]],
     waves: [
-      { mix: { walker: 20, runner: 14, dog: 12 }, every: 0.6, max: 26 },
-      { mix: { walker: 22, runner: 14, dog: 10, crow: 10, bloater: 6 }, every: 0.58, max: 26 },
-      { mix: { walker: 24, runner: 16, brute: 6, roo: 8, sheep: 8, giant: 2 }, every: 0.55, max: 28 },
-      { mix: { walker: 26, runner: 16, dog: 14, bear: 3, giant: 3, crow: 10 }, boss: true, every: 0.52, max: 28 },
+      // About 1,000 zombies with one player: there are lots to run over.
+      { mix: { walker: 100, runner: 60, dog: 40 }, every: 0.22, max: 30 },
+      { mix: { walker: 110, runner: 60, dog: 40, crow: 20, bloater: 20 }, every: 0.2, max: 32 },
+      { mix: { walker: 120, runner: 70, brute: 20, roo: 30, sheep: 30, giant: 10 }, every: 0.18, max: 34 },
+      { mix: { walker: 130, runner: 70, dog: 40, bear: 6, giant: 8, crow: 20 }, boss: true, every: 0.16, max: 36 },
     ],
   },
 ];

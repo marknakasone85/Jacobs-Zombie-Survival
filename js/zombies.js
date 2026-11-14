@@ -62,6 +62,9 @@ const ZTYPES = {
   // The Sewer Gator (New York City): a giant zombie alligator. It opens its jaws wide, then LUNGES. (shirts = its belly)
   gator: { name: 'The Sewer Gator', body: 'gator', boss: true, w: 200, h: 64, hp: 2800, speed: [70, 78], dmg: 36, coins: [70, 80], jump: 520, mass: 12, atk: 1.0, eye: '#ffcc2e', heart: 1,
     skins: ['#4f6a3a'], shirts: ['#c8c8a0'] },
+  // The Road Hulk (Highway Escape): a huge road-warrior zombie with a mohawk, goggles and a spiked shoulder pad.
+  roadhulk: { name: 'The Road Hulk', boss: true, w: 84, h: 140, hp: 1400, speed: [44, 50], dmg: 34, coins: [70, 80], jump: 560, mass: 12, atk: 1.2, eye: '#ff3a2e', heart: 1,
+    skins: ['#9ad06a'], shirts: ['#3a2c24'] },
   // The Storm Crow (Sky Escape): a GIANT zombie crow that circles and dives at your helicopter.
   stormcrow: { name: 'The Storm Crow', body: 'crow', fly: true, boss: true, w: 150, h: 110, hp: 1600, speed: [190, 210], dmg: 26, coins: [60, 70], jump: 0, mass: 8, atk: 0.9, eye: '#ff2e2e', heart: 1,
     skins: ['#18161e'], shirts: ['#e8e0c8'] },
@@ -358,8 +361,8 @@ function zArm(c, x, y, ang, skin, sleeve, bw) {
 }
 function drawZombie(c, z) {
   if (z.T.body) { drawAnimal(c, z); return; }
-  const s = z.h / 62, king = z.type === 'kingbloat', big = z.type === 'brute' || z.type === 'boss' || z.type === 'giant';
-  const bw = king ? 1.6 : big ? 1.4 : z.type === 'bloater' ? 1.5 : z.type === 'runner' ? 0.85 : z.type === 'tiny' ? 0.95 : 1;
+  const s = z.h / 62, king = z.type === 'kingbloat', road = z.type === 'roadhulk', big = z.type === 'brute' || z.type === 'boss' || z.type === 'giant' || road;
+  const bw = king ? 1.6 : road ? 1.5 : big ? 1.4 : z.type === 'bloater' ? 1.5 : z.type === 'runner' ? 0.85 : z.type === 'tiny' ? 0.95 : 1;
   const fl = z.flash > 0;
   const skin = fl ? '#ffffff' : z.skin, dark = fl ? '#eeeeee' : z.dark, shirt = fl ? '#ffffff' : z.shirt, pants = fl ? '#eeeeee' : z.pants;
   c.save(); c.translate(z.x, z.y);
@@ -377,6 +380,7 @@ function drawZombie(c, z) {
   poly(c, [tw * 0.05, -17, tw * 0.6, -13, tw * 0.15, -9], skin);
   c.fillStyle = 'rgba(0,0,0,0.18)'; c.fillRect(-tw, -26, tw * 0.5, 27);
   if (z.type === 'boss' || z.type === 'giant') for (let i = 0; i < 3; i++) poly(c, [-tw + 2, -24 + i * 8, -tw - 9, -30 + i * 8, -tw + 1, -18 + i * 8], z.type === 'boss' ? '#d8d0b8' : '#8a8a7a');
+  if (road) roadHulkBody(c, tw, fl);   // js/bosses.js: a studded leather vest and chains
   if (z.type === 'bloater' || king) {   // a big wobbly belly that glows when it's about to pop
     const wob = 1 + Math.sin(G.t * 6 + z.phase) * 0.05, belly = fl ? '#ffffff' : '#c8d86a';
     circle(c, 4, -11, (king ? 18 : 14) * wob, belly);
@@ -401,8 +405,10 @@ function drawZombie(c, z) {
   c.fillStyle = '#2a0f12'; c.fillRect(1, 3, 7, 3);
   c.fillStyle = '#e8e0c8'; c.fillRect(2, 3, 1.5, 1.5); c.fillRect(5, 3, 1.5, 1.5);
   if (king) kingBloatHead(c, z, fl);   // js/bosses.js: his little crown, and goo in his mouth
+  if (road) roadHulkHead(c, fl);      // js/bosses.js: a mohawk and goggles
   c.restore();
   zArm(c, 2 * bw, -21, -0.06 + Math.sin(z.walkT) * 0.08 - atk * 1.15, skin, shirt, bw);
+  if (road) roadHulkPad(c, bw, fl);   // js/bosses.js: a spiked metal shoulder pad
   c.restore();
   c.restore();
 }

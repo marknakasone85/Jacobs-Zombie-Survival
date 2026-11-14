@@ -31,7 +31,7 @@ const zombiesLeft = () => (Net.isGuest ? G.netLeft || 0 : G.queue.length + alive
 const tagHtml = p => (G.players.length > 1 || Net.active ? `<span class="ptag p${(p.id % 4) + 1}">${p.look.tag}</span>` : '');
 function clearWorld() {
   for (const arr of [G.zombies, G.bullets, G.coins, G.particles, G.texts, G.beams, G.nades, G.pools, G.barrels, G.shots]) arr.length = 0;
-  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0;
+  G.boss = null; G.banner = null; G.shake = 0; G.hurtFlash = 0; G.hitStop = 0; G.hitStopCd = 0; G.finale = null;
 }
 
 // ---- Input ----------------------------------------------------------------
@@ -472,7 +472,11 @@ function updateSpawning(dt) {
     banner((G.level.boss || 'Boss zombie').toUpperCase(), G.level.bossLine || 'Hit it with everything you have!', 2.4, '#ff5a5a');
     Sound.zombie(boss, 'roar');
   }
-  if (!G.queue.length && !G.bossPending && aliveZombies() === 0) waveCleared();
+  if (!G.queue.length && !G.bossPending && aliveZombies() === 0) {
+    if (G.finale) return;   // the twist decides when it's over (js/finale.js)
+    if (G.level.finale && G.waveIndex === G.level.waves.length - 1) { startFinale(); return; }   // "IT'S NOT OVER!"
+    waveCleared();
+  }
 }
 function waveCleared() {
   const L = G.level, last = G.waveIndex === L.waves.length - 1;
@@ -540,6 +544,7 @@ function update(dt) {
   updateNades(dt);
   updateBarrels(dt);
   updatePools(dt);
+  if (G.finale) updateFinale(dt);   // the twist at the end of the last level (js/finale.js)
   updatePickups(dt);
   updateFX(dt);
   updateCamera(dt);
@@ -568,7 +573,7 @@ function render() {
     drawPools(c);
     drawBarrels(c, false);
     for (const z of G.zombies) if (!z.dead) drawShadow(c, z.x, z.y, z.w);
-    for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, p.veh ? 96 : 26);
+    for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, p.veh === 'truck' ? 112 : p.veh ? 96 : 26);
     for (const z of G.zombies) if (z.dead) drawZombie(c, z);
     for (const z of G.zombies) if (!z.dead) drawZombie(c, z);
     drawSlimeFeet(c);
@@ -581,6 +586,7 @@ function render() {
     drawShots(c);
     drawNades(c);
     drawBarrels(c, true);   // gas tanks flying around
+    if (G.finale) drawFinale(c);   // jets, the bomber and the gunships (js/finale.js)
     if (G.state === 'rescue') drawRescue(c);   // the ending (js/rescue.js)
   }
   drawParticles(c);

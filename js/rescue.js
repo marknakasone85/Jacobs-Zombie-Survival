@@ -11,7 +11,7 @@ function startRescue() {
   setState('rescue'); hideOverlays();
   const ps = G.players.filter(p => !p.dead).length ? G.players.filter(p => !p.dead) : G.players;
   G.rescueT = 0; G.rescueX = ps.length ? ps.reduce((n, p) => n + p.x, 0) / ps.length : G.camX + W / 2;
-  G.banner = null; G.shots.length = 0; G.bullets.length = 0; G.queue = []; G.bossPending = false;
+  G.banner = null; G.shots.length = 0; G.bullets.length = 0; G.queue = []; G.bossPending = false; G.finale = null;
   for (const p of G.players) if (p.dead) revive(p, G.rescueX, 50);   // nobody gets left behind
 }
 // Watch it again from the level list.
@@ -53,29 +53,32 @@ const climbStart = i => 3.8 + i * 0.4;
 const climbK = (p, t) => clamp((t - climbStart(G.players.indexOf(p))) / 1.4, 0, 1);
 const onLadder = (p, t) => G.state === 'rescue' && t >= climbStart(G.players.indexOf(p));
 
+// A military utility helicopter (Black Hawk style), nose to the left, with its side door open for the ladder.
 function drawHeli(c, x, y, tilt) {
   c.save(); c.translate(x, y); c.rotate(tilt);
   c.globalCompositeOperation = 'lighter';   // searchlight
   c.fillStyle = 'rgba(255,250,210,0.08)'; c.beginPath(); c.moveTo(-14, 24); c.lineTo(14, 24); c.lineTo(110, GROUND - y + 10); c.lineTo(-110, GROUND - y + 10); c.closePath(); c.fill();
   c.globalCompositeOperation = 'source-over';
-  fillRR(c, 30, -10, 92, 11, 5, '#e8e4dc');                          // tail boom
-  c.fillStyle = '#d8402f'; c.fillRect(64, -10, 30, 11);
-  poly(c, [112, -8, 122, -34, 128, -34, 124, -4], '#d8402f');        // tail fin
-  c.fillStyle = 'rgba(60,60,70,0.6)'; c.beginPath(); c.ellipse(124, -26, 3, 15 * Math.abs(Math.sin(G.t * 50)) + 2, 0, 0, Math.PI * 2); c.fill();   // tail rotor
-  c.fillStyle = '#f0ece4'; c.beginPath(); c.ellipse(0, 0, 50, 26, 0, 0, Math.PI * 2); c.fill();   // body
-  fillRR(c, -42, 4, 84, 8, 4, '#d8402f');
-  c.fillStyle = '#6ac0ff'; c.beginPath(); c.ellipse(-28, -6, 18, 13, -0.2, 0, Math.PI * 2); c.fill();   // cockpit
-  c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(-33, -11, 6, 3, -0.5, 0, Math.PI * 2); c.fill();
-  fillRR(c, 2, -14, 20, 22, 3, '#d8d4cc');                           // door
-  text(c, 'RESCUE', 16, -19, { size: 8, color: '#d8402f' });
-  c.strokeStyle = '#3a3a40'; c.lineWidth = 3; c.beginPath();          // skids
-  c.moveTo(-26, 24); c.lineTo(-26, 34); c.moveTo(22, 24); c.lineTo(22, 34); c.moveTo(-50, 32); c.quadraticCurveTo(-46, 36, -40, 35); c.lineTo(38, 35); c.stroke();
-  c.fillStyle = '#3a3a40'; c.fillRect(-3, -34, 6, 9);                // rotor mast and spinning blades
-  c.fillStyle = 'rgba(200,200,210,0.18)'; c.beginPath(); c.ellipse(0, -34, 120, 7, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = 'rgba(60,60,70,0.85)';
-  for (const a of [G.t * 40, G.t * 40 + Math.PI / 2]) { const w = 118 * Math.cos(a); fillRR(c, Math.min(0, w), -36, Math.abs(w), 4, 2, 'rgba(60,60,70,0.85)'); }
+  fillRR(c, 34, -13, 98, 11, 5, '#3a4630');                          // tail boom
+  poly(c, [118, -11, 132, -42, 140, -42, 132, -9], '#3a4630');       // tail fin
+  fillRR(c, 112, -5, 26, 4, 2, '#2e3826');                           // tail wing
+  c.fillStyle = 'rgba(40,40,50,0.6)'; c.beginPath(); c.ellipse(136, -30, 3, 15 * Math.abs(Math.sin(G.t * 50)) + 2, 0, 0, Math.PI * 2); c.fill();   // tail rotor
+  c.fillStyle = '#4a5838'; c.beginPath();                            // body
+  c.moveTo(-62, 6); c.quadraticCurveTo(-68, -14, -48, -22); c.lineTo(30, -26); c.lineTo(46, -12); c.lineTo(42, 14); c.lineTo(-50, 18); c.closePath(); c.fill();
+  fillRR(c, -22, -38, 54, 15, 6, '#3a4630');                          // engines on top
+  c.fillStyle = '#22281c'; c.fillRect(28, -36, 9, 6);                 // exhaust
+  poly(c, [-59, 0, -47, -18, -28, -18, -30, 0], '#6a9ab8');          // cockpit windows
+  c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(-44, -15, 9, 2);
+  fillRR(c, -14, -17, 30, 30, 3, '#141810');                          // the open side door
+  text(c, 'RESCUE', 72, -7, { size: 7, color: '#e8e8e8' });
+  c.strokeStyle = '#2a2a2a'; c.lineWidth = 2.5; c.beginPath();        // landing wheels
+  c.moveTo(-40, 16); c.lineTo(-42, 26); c.moveTo(24, 14); c.lineTo(26, 26); c.moveTo(118, -4); c.lineTo(120, 4); c.stroke();
+  circle(c, -42, 27, 4, '#1a1a1a'); circle(c, 26, 27, 4, '#1a1a1a'); circle(c, 120, 5, 2.5, '#1a1a1a');
+  c.fillStyle = '#2a2a2a'; c.fillRect(-3, -48, 6, 11);               // rotor mast and spinning blades
+  c.fillStyle = 'rgba(200,200,210,0.18)'; c.beginPath(); c.ellipse(0, -48, 132, 7, 0, 0, Math.PI * 2); c.fill();
+  for (const a of [G.t * 40, G.t * 40 + Math.PI / 2]) { const w = 130 * Math.cos(a); fillRR(c, Math.min(0, w), -50, Math.abs(w), 4, 2, 'rgba(50,50,60,0.85)'); }
   const blink = Math.floor(G.t * 3) % 2;
-  circle(c, 120, -34, 2.5, blink ? '#ff4040' : '#5a1010'); circle(c, -46, 14, 2.5, blink ? '#5aff5a' : '#103a10');
+  circle(c, 140, -42, 2.5, blink ? '#ff4040' : '#5a1010'); circle(c, -50, 16, 2.5, blink ? '#5aff5a' : '#103a10');
   c.restore();
 }
 // A civilian climbing the ladder (drawn like a player, with the legs going).

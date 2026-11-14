@@ -35,8 +35,8 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   | 9 | The Outback (red dirt, gum trees, a giant red rock) | kangaroos everywhere, and the boss: **King Roo** (5 waves) |
   | 10 | Zombie Zoo (moonlit zoo, open cages) | every animal at once, and the boss: **Big Grizz** (6 waves) |
   | 11 | New York City (skyscrapers, billboards, yellow taxis) | the craziest level: **1,200 zombies** (with one player) that swarm in fast, and the boss: **The Sewer Gator** (5 waves) |
-  | 12 | Sky Escape (a huge bridge at sunrise) | **you fly a helicopter!** Zombie crows in the air, and the boss: **The Storm Crow** (4 waves) |
-  | 13 | Highway Escape (night highway, the burning city behind you) | **you drive a truck!** Zombies from both sides, and the boss: **The Road Hulk** (4 waves). Then the rescue helicopter flies you out |
+  | 12 | Sky Escape (a huge bridge at sunrise) | **you fly a helicopter!** **1,600 zombies** (with one player): a ground army below, zombie crows in the air, and the boss: **The Storm Crow** (4 waves) |
+  | 13 | Highway Escape (night highway, the burning city behind you) | **you drive a truck!** About 1,000 zombies from both sides, the boss **The Road Hulk** (4 waves)... and then a twist. The rescue helicopter flies you out at the very end |
 
 - **Zombies come in different sizes:** walkers, runners, leapers, brutes, **tiny** zombies (small and fast), **giants** (huge and slow), and **bloaters**. Bloaters pop in a goo explosion when they die: it hurts other zombies, and you if you're standing too close! Every zombie is also a bit bigger or smaller than the last, and bigger ones are tougher.
 - **Zombie animals** (each with its own sounds):
@@ -52,7 +52,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   - **The Grave Giant** (Graveyard), **General Rotten** (Army Base) and **The Big Top Brute** (Carnival): huge zombies that stomp the ground.
   - **The Yeti** (Frozen Forest): throws giant snowballs at you and stomps.
   - **King Bloat** (Desert Gas Stop): spits goo and belly-flops. When he pops, four little bloaters burst out of him!
-  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo), **The Sewer Gator** (New York City), a giant zombie alligator that opens its jaws wide, then lunges (jump over it!), **The Storm Crow** (Sky Escape), a giant zombie crow that circles your helicopter, and **The Road Hulk**, a giant zombie blocking the highway.
+  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo), **The Sewer Gator** (New York City), a giant zombie alligator that opens its jaws wide, then lunges (jump over it!), **The Storm Crow** (Sky Escape), a giant zombie crow that circles your helicopter, and **The Road Hulk**, a huge road-warrior zombie with a red mohawk, goggles and a spiked shoulder pad.
 - **Coins:** zombies drop coins (big zombies drop more), and coins get sucked into you like a **black hole**. They spiral around faster and faster until you swallow them, with a golden swirl around you. Coins dropped by zombies come from anywhere on the map. Coins lying around the map (on cars, sheds, scaffolds, crypts and so on, plus shiny **10-coins** in the hardest spots) start flying to you once you get close. More coins appear each wave. You keep your coins and weapons between games.
 - **Hearts:** zombies sometimes drop a heart (+25 health). You also heal 25 after every wave.
 - **Platforms:** jump up through cars, sheds, the bus, scaffolds and crypts and stand on top. Press Down to drop off. Most zombies can only jump onto low ones, but leapers can reach you anywhere.
@@ -113,15 +113,15 @@ Everyone flies their own helicopter and stands in its open side door with all th
 
 ## The driving level (Highway Escape)
 
-On the last level everyone drives their own pickup truck, with spikes on the front, and stands in the back with all their guns. The controls are the same:
+On the last level everyone drives their own big pickup truck, with spikes on the front, and stands in the back with all their guns. The controls are the same:
 
 - **Left / right** drives (the truck turns round when you change direction). It's much faster than running.
 - **Jump** makes the truck hop: over a crowd, or up onto a wrecked bus.
 - **Shoot** fires your gun. Auto-aim looks **both ways**, so you can drive forward and shoot the zombies chasing you.
-- **Drive into zombies** to run them over: the faster you go, the further they fly. Giants, brutes and bosses stop your truck dead, so shoot those instead.
+- **Drive into zombies** to run them over: the faster you go, the further they fly, and the truck keeps its speed. Brutes and giants get plowed out of the way but slow you down. Bosses stop your truck dead, so shoot those.
 - Driving into a barrel sets it off!
 
-When the last wave is beaten, the rescue helicopter flies in, everybody climbs its rope ladder, and it flies you out of Zombie City. You can watch it again from the end of the level list.
+**The twist:** when the Road Hulk goes down... **"IT'S NOT OVER!"** More giant bosses and a flood of zombies come at you from both sides. Hang on (you can't drop below 1 health while it lasts): **"AIR SUPPORT INCOMING!"** Two fighter jets roar past, a stealth bomber drops a carpet of bombs on both sides of you, and two attack gunship helicopters fly in and shoot whatever is left. Then the military rescue helicopter comes down, everybody climbs its rope ladder, and it flies you out of Zombie City: **YOU SURVIVED!** You can watch the ending again from the end of the level list.
 
 ## Barrels
 
@@ -246,6 +246,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/vehicles.js`: the trucks and helicopters for the vehicle levels, and the highway's backgrounds
 - `js/bigcity.js`: the New York City and bridge backgrounds, taxis and hot dog carts
 - `js/rescue.js`: the ending (the rescue helicopter and "YOU SURVIVED!")
+- `js/finale.js`: the twist at the end of the last level (the flood, the jets, the bomber and the gunships)
 - `js/gamepad.js`: game controllers
 - `js/net.js`, `js/netgame.js`: Wi-Fi co-op (connection, lobby, sending the game to friends)
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop

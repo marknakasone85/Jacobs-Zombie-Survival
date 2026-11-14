@@ -136,6 +136,9 @@ function drawParticles(c) {
     if (p.type === 'fire') {
       c.globalAlpha = a * 0.9;
       circle(c, p.x, p.y, p.size * (0.4 + a * 0.8), a > 0.65 ? '#fff0a0' : a > 0.35 ? '#ffa23a' : '#ff4d1f');
+    } else if (p.type === 'tracer') {   // a gunship's bullets (js/finale.js)
+      c.globalAlpha = a; c.strokeStyle = '#ffe08a'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x2, p.y2); c.stroke();
     } else if (p.type === 'zap') {   // lightning from the electric barrel (js/barrels.js)
       drawZap(c, p.x, p.y, p.x2, p.y2, p.seed + Math.floor(G.t * 30), a);
     } else if (p.type === 'flash') {

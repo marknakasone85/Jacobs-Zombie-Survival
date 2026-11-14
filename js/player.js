@@ -127,7 +127,9 @@ function lobAim(sh, z, wp) {
 function hurtPlayer(p, dmg, dir, knock = 1) {   // knock = how far you get thrown (kangaroo punches send you flying)
   if (p.dead || p.inv > 0 || G.state === 'cleared') return;
   // Armor takes the hit first (it's repaired at the start of every wave).
-  const soak = Math.min(p.armor || 0, dmg), toHp = dmg - soak;
+  const soak = Math.min(p.armor || 0, dmg);
+  let toHp = dmg - soak;
+  if (G.finale) toHp = Math.min(toHp, Math.max(0, Math.ceil(p.hp) - 1));   // the twist: hang on with 1 health until the air force comes (js/finale.js)
   p.armor = (p.armor || 0) - soak;
   p.hp -= toHp; p.inv = 0.8;
   p.vx = dir * 320 * knock; p.vy = -280 * Math.sqrt(knock); p.onGround = false; p.jumpCut = true;

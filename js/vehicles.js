@@ -15,11 +15,12 @@
 
 
 const TRUCK = {
-  w: 118, h: 100,     // size (the zombies bite the truck, and you)
-  bed: 30,            // how high the truck bed is: you stand on it
-  max: 560,           // top speed (walking is 270)
-  accel: 950, brake: 1900, roll: 420,   // speeding up, braking, and slowing down when you let go
-  jump: 640,          // hop
+  scale: 1.15,        // how much bigger than the first truck it's drawn
+  w: 136, h: 115,     // size (the zombies bite the truck, and you)
+  bed: 34,            // how high the truck bed is: you stand on it
+  max: 640,           // top speed (walking is 270)
+  accel: 1000, brake: 1900, roll: 380,  // speeding up, braking, and slowing down when you let go
+  jump: 660,          // hop
   ram: 130,           // the slowest speed that still runs zombies over
 };
 const HELI = {
@@ -32,7 +33,7 @@ const HELI = {
 };
 const TRUCK_COLS = ['#c8372b', '#2f6fd8', '#3aa860', '#e8a020'];   // one color for each player
 // Where you stand: dx = how far back from the middle (in the truck bed, or the helicopter's door), up = how high your feet are.
-const RIDE = { truck: { dx: -22, up: TRUCK.bed }, heli: { dx: -4, up: 16 } };
+const RIDE = { truck: { dx: -25, up: TRUCK.bed }, heli: { dx: -4, up: 16 } };
 const riderX = p => p.x + (p.vface || 1) * RIDE[p.veh].dx;
 const riderUp = p => RIDE[p.veh].up;
 
@@ -94,13 +95,16 @@ function ramZombies(p) {
     const dx = z.x - p.x;
     if (Math.abs(dx) > V.w / 2 + z.w / 2 - 4 || dx * dir < -10 || z.y < p.y - p.h * 0.6 || z.y - z.h > p.y) continue;
     z.ramCd = 0.45;
-    const heavy = z.T.boss || z.mass >= 5;
-    hurtZombie(z, 30 + sp * 0.18, dir * (heavy ? 120 : 260 + sp * 0.9), heavy ? 0 : -(260 + sp * 0.5), true);
+    // Bosses stop you like a wall. Big ones (brutes, giants, bears) get plowed out of the way but slow you down.
+    // Everything else just goes flying. (Kept under 200 damage so it doesn't freeze the game on every hit.)
+    const wall = z.T.boss, big = !wall && z.mass >= 2.5;
+    const dmg = heli ? 30 + sp * 0.18 : Math.min(190, 60 + sp * 0.32);
+    hurtZombie(z, dmg, dir * (wall ? 120 : big ? 200 + sp * 0.7 : 300 + sp), wall ? 0 : big ? -150 : -(280 + sp * 0.5), true);
     goo(z.x, z.y - z.h * 0.5, 8, dir);
-    G.shake = Math.max(G.shake, heavy ? 9 : 4);
+    G.shake = Math.max(G.shake, wall ? 9 : big ? 7 : 4);
     Sound.play('thud', z.x);
-    if (heavy) { p.vx = -dir * 160; return; }   // like driving into a wall: the truck bounces back
-    p.vx *= 0.93;
+    if (wall) { p.vx = -dir * 160; return; }   // like driving into a wall: the truck bounces back
+    p.vx *= heli ? 0.93 : big ? 0.8 : 0.985;   // a truck keeps its momentum
   }
   for (const b of G.barrels) {
     if (b.gone || b.fly || b.drop > 0 || b.armed) continue;
@@ -113,7 +117,7 @@ function ramZombies(p) {
 // front = true is everything else (in front of your legs).
 function drawTruck(c, p, front) {
   const col = p.dead ? '#4a4650' : TRUCK_COLS[p.id % TRUCK_COLS.length], dark = shade(col, -0.32), light = shade(col, 0.18);
-  c.save(); c.translate(p.x, p.y + (p.onGround && Math.abs(p.vx) > 200 ? Math.sin(G.t * 30) * 0.8 : 0)); c.scale(p.vface || 1, 1);
+  c.save(); c.translate(p.x, p.y + (p.onGround && Math.abs(p.vx) > 200 ? Math.sin(G.t * 30) * 0.8 : 0)); c.scale((p.vface || 1) * TRUCK.scale, TRUCK.scale);
   if (!front) { fillRR(c, -58, -54, 56, 28, 3, shade(col, -0.55)); c.restore(); return; }
   if (!p.dead) {   // headlights shining ahead
     c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(255,240,180,0.09)';

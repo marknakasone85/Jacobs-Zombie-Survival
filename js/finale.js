@@ -55,7 +55,7 @@ function updateFinale(dt) {
   const F = G.finale, t0 = F.t, t = (F.t += dt), at = k => t0 < k && t >= k;
   if (at(FIN.air)) { banner('AIR SUPPORT INCOMING!', 'Stay where you are!', 2.2, '#5ab0ff'); Sound.play('radio'); }
   for (let k = 0; k < 2; k++) if (at(FIN.jets + k * 0.45)) Sound.play('jet', F.x);
-  if (at(FIN.bomber)) { F.bx = finaleCenter(); G.killGoal -= G.queue.length; G.queue = []; Sound.play('bomber', F.bx); }   // the flood stops (the counter forgets the ones that never came): here come the bombs
+  if (at(FIN.bomber)) { F.bx = finaleCenter(); G.killGoal -= G.queue.reduce((n, type) => n + brood(type), 0); G.queue = []; Sound.play('bomber', F.bx); }   // the flood stops (the counter forgets the ones that never came): here come the bombs
   const bombs = bombList(F);
   while (F.dropped < bombs.length && t >= bombs[F.dropped].td) { if (F.dropped % 3 === 0) Sound.play('whistle', bombs[F.dropped].x0); F.dropped++; }
   while (F.boomed < bombs.length && t >= bombs[F.boomed].hit) bombBoom(bombs[F.boomed++]);

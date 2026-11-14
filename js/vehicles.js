@@ -99,7 +99,9 @@ function ramZombies(p) {
     // Everything else just goes flying. (Kept under 200 damage so it doesn't freeze the game on every hit.)
     const wall = z.T.boss, big = !wall && z.mass >= 2.5;
     const dmg = heli ? 30 + sp * 0.18 : Math.min(190, 60 + sp * 0.32);
+    G.noShield = true;   // a truck smashes right through a riot shield
     hurtZombie(z, dmg, dir * (wall ? 120 : big ? 200 + sp * 0.7 : 300 + sp), wall ? 0 : big ? -150 : -(280 + sp * 0.5), true);
+    G.noShield = false;
     goo(z.x, z.y - z.h * 0.5, 8, dir);
     G.shake = Math.max(G.shake, wall ? 9 : big ? 7 : 4);
     Sound.play('thud', z.x);

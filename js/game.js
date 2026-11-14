@@ -173,18 +173,19 @@ function updateBullets(dt) {
           if (boom) { explode(b.x, b.y, b.wp); dead = true; break; }
           b.hit.add(z);
           const dir = Math.sign(b.vx) || 1;
+          let blocked = false;   // a Riot Zombie's shield stops it (js/specials.js)
           if (isFlame(b.kind)) {   // fire doesn't flash, it sets them burning
-            hurtZombie(z, b.dmg, dir * b.knock, 0, false, false);
-            if (Math.random() < 0.35) addPart({ type: 'fire', x: z.x + rand(-z.w / 2, z.w / 2), y: z.y - rand(0, z.h), vx: rand(-20, 20), vy: rand(-120, -50), g: 0, life: rand(0.25, 0.5), size: rand(4, 8) });
+            blocked = hurtZombie(z, b.dmg, dir * b.knock, 0, false, false);
+            if (!blocked && Math.random() < 0.35) addPart({ type: 'fire', x: z.x + rand(-z.w / 2, z.w / 2), y: z.y - rand(0, z.h), vx: rand(-20, 20), vy: rand(-120, -50), g: 0, life: rand(0.25, 0.5), size: rand(4, 8) });
           } else if (b.kind === 'plasma') {
-            hurtZombie(z, b.dmg, dir * b.knock, -60, true);
+            blocked = hurtZombie(z, b.dmg, dir * b.knock, -60, true);
             sparks(b.x, b.y, 6, Math.atan2(b.vy, b.vx) + Math.PI, 0.9, '#8fffd0', 280);
           } else {
-            hurtZombie(z, b.dmg, dir * b.knock, -40, true);
-            goo(b.x, b.y, b.kind === 'slug' ? 6 : 3, dir);
+            blocked = hurtZombie(z, b.dmg, dir * b.knock, -40, true);
+            if (!blocked) goo(b.x, b.y, b.kind === 'slug' ? 6 : 3, dir);
             if (hrock) sparks(b.x, b.y, 8, Math.atan2(b.vy, b.vx), 0.6, '#ffcf6a', 380);
           }
-          if (--b.pierce <= 0) { if (hrock) explode(b.x, b.y, b.wp); dead = true; break; }   // a quad rocket blows up in the last one
+          if (blocked || --b.pierce <= 0) { if (hrock) explode(b.x, b.y, b.wp); dead = true; break; }   // a quad rocket blows up in the last one
         }
       }
       const bb = !dead && G.barrels.length ? barrelAt(b.x, b.y) : null;   // js/barrels.js
@@ -212,8 +213,10 @@ function updateBullets(dt) {
   }
 }
 // Hurts every zombie near (x, y): full damage in the middle, half at the edge. onHit(z) runs for each one still standing.
+// A blast goes round a Riot Zombie's shield (G.noShield), and zombies that pop out of one it kills don't get hit by it too.
 function blastZombies(x, y, radius, dmg, knock, onHit) {
-  for (const z of G.zombies) {
+  const was = G.noShield; G.noShield = true;
+  for (const z of G.zombies.slice()) {
     if (z.dead) continue;
     const cx = clamp(x, z.x - z.w / 2, z.x + z.w / 2), cy = clamp(y, z.y - z.h, z.y), d = Math.hypot(cx - x, cy - y);
     if (d >= radius) continue;
@@ -221,6 +224,7 @@ function blastZombies(x, y, radius, dmg, knock, onHit) {
     hurtZombie(z, dmg * f, (Math.sign(z.x - x) || 1) * knock * f, -320 * f, true);
     if (onHit && !z.dead) onHit(z);
   }
+  G.noShield = was;
 }
 function explode(x, y, wp) {
   blastZombies(x, y, wp.radius, wp.blast || wp.dmg, wp.knock);
@@ -245,11 +249,13 @@ function fireLaser(p, sx, sy, mx, my, a, wp) {
   const dx = Math.cos(a), dy = Math.sin(a);
   let end = wp.range;
   if (dy > 0) end = Math.min(end, (GROUND - sy) / dy);
-  for (const z of G.zombies) {
+  G.noShield = true;   // lasers burn right through a riot shield
+  for (const z of G.zombies.slice()) {
     if (z.dead) continue;
     const t = rayBox(sx, sy, dx, dy, z.x - z.w / 2, z.y - z.h, z.x + z.w / 2, z.y);
     if (t !== null && t <= end) { hurtZombie(z, wp.dmg, (Math.sign(dx) || 1) * wp.knock, -60, true); goo(sx + dx * t, sy + dy * t, 4, Math.sign(dx)); }
   }
+  G.noShield = false;
   for (const b of G.barrels) {
     if (b.gone || b.drop > 0) continue;
     const t = b.fly ? rayBox(sx, sy, dx, dy, b.cx - 20, b.cy - 20, b.cx + 20, b.cy + 20) : rayBox(sx, sy, dx, dy, b.x - b.w / 2, b.y - b.h, b.x + b.w / 2, b.y);
@@ -452,11 +458,12 @@ function startWave(k) {
   Sound.play('wave');
 }
 // How many zombies wave k sends with this many players (the same sum as startWave), plus the boss
-// and the little zombies that come out of it (King Bloat's bloaters).
+// and the little zombies that come out of them (King Bloat's bloaters, the slime blobs' little blobs).
+// brood (js/zombies.js) = how many kills one zombie is worth with everything that pops out of it.
 function waveSize(k) {
   const team = Math.max(1, G.players.length), more = 1 + 0.3 * (team - 1), wv = G.level.waves[k];
-  const boss = wv.boss ? 1 + (ZTYPES[G.level.bossType || 'boss'].minis || 0) : 0;
-  return Object.values(wv.mix).reduce((n, c) => n + Math.round(c * more), 0) + boss;
+  const boss = wv.boss ? brood(G.level.bossType || 'boss') : 0;
+  return Object.entries(wv.mix).reduce((n, [type, c]) => n + Math.round(c * more) * brood(type), 0) + boss;
 }
 const aliveZombies = () => G.zombies.reduce((n, z) => n + (z.dead ? 0 : 1), 0);
 function updateSpawning(dt) {

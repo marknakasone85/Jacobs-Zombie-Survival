@@ -430,6 +430,10 @@ const Sound = (() => {
     bloater: { f0: [70, 90], shift: 0.85, rasp: 1, raspHz: 12, breath: 0.55, vol: 0.5 },   // gurgly
     kingbloat: { f0: [46, 56], shift: 0.7, rasp: 1, raspHz: 10, breath: 0.6, vol: 0.9 },   // gurglier
     roadhulk: { f0: [44, 52], shift: 0.64, rasp: 1, raspHz: 15, breath: 0.4, vol: 0.9 },
+    bombie: { f0: [100, 130], shift: 0.95, rasp: 0.6, raspHz: 30, breath: 0.3, vol: 0.4 },
+    thrower: { f0: [80, 105], shift: 0.88, rasp: 0.75, raspHz: 26, breath: 0.25, vol: 0.42 },
+    riot: { f0: [70, 90], shift: 0.82, rasp: 0.8, raspHz: 24, breath: 0.2, vol: 0.45 },
+    screamer: { f0: [260, 320], shift: 1.25, rasp: 0.5, raspHz: 44, breath: 0.7, vol: 0.4 },
   };
   // Zombie animals: a growling, barking dog, a bleating sheep, a grunting kangaroo, a cawing crow, a roaring bear.
   const AV = {
@@ -442,6 +446,8 @@ const Sound = (() => {
     rat: { f0: [380, 460], shift: 1.4, rasp: 0.6, raspHz: 50, breath: 0.5, vol: 0.42 },
     yeti: { f0: [62, 74], shift: 0.66, rasp: 1, raspHz: 18, breath: 0.45, vol: 0.75 },     // roars like a bear
     gator: { f0: [58, 68], shift: 0.7, rasp: 1, raspHz: 14, breath: 0.6, vol: 0.7 },
+    bat: { f0: [700, 900], shift: 1.6, rasp: 0.5, raspHz: 70, breath: 0.3, vol: 0.28 },
+    slime: { f0: [70, 90], shift: 0.8, rasp: 1, raspHz: 9, breath: 0.6, vol: 0.5 },   // gurgly, like a bloater
   };
   function squelch(x, vol = 0.5) { const b = bus(x, vol, 0.05); nz(b, { dur: 0.05, type: 'bandpass', f0: rand(500, 900), q: 1.2, vol: 0.9 }); osc(b, { dur: 0.05, f0: 140, f1: 70, vol: 0.4 }); }
   function splat(x) { const b = bus(x, 0.7, 0.15); nz(b, { at: 0.05, dur: 0.25, f0: 900, f1: 90, vol: 1 }); osc(b, { at: 0.05, dur: 0.12, f0: 120, f1: 50, vol: 0.5 }); }
@@ -507,6 +513,22 @@ const Sound = (() => {
       else if (kind === 'die') { if (limited('zdie', 40)) return; V({ f0: f * 1.2, f1: f * 0.5, dur: 1.4, from: 'ah', to: 'oo', rasp: 1, atk: 0.05 }); splat(x); }
       else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.6); }
       else { V({ f0: f, f1: f * 0.6, dur: 2.2, from: 'uh', to: 'aa', atk: 0.2, wet: 0.5, echo: 0.3, vol: v.vol * 1.5 }); hiss(0.4, 1.2, 0.7); snap(1.6); }
+    } else if (body === 'bat') {   // tiny squeaks and a leathery flap
+      const eek = (at, o) => V({ f0: f, f1: f * 1.2, dur: 0.08, from: 'eh', atk: 0.005, at, ...o });
+      if (kind === 'groan') { eek(0); eek(0.12); const b = bus(x, 0.3, 0.05); nz(b, { at: 0.05, dur: 0.06, type: 'bandpass', f0: 500, q: 1, vol: 0.6 }); }
+      else if (kind === 'screech') eek(0, { f0: f * 1.3, f1: f * 1.6, dur: 0.3, vol: v.vol * 1.3 });
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; eek(0); const b = bus(x, 0.5, 0.05); click(b, 0.03, 2800, 1.2); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; eek(0, { f1: f * 0.5, dur: 0.3, rasp: 1 }); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.3); }
+      else eek(0, { dur: 0.8, f1: f * 0.6, wet: 0.5, echo: 0.3 });
+    } else if (body === 'slime') {   // bloops, gurgles and wet splats
+      const bloop = (at, f0, vol = 0.5) => { const b = bus(x, vol * big, 0.2); osc(b, { at, dur: 0.12, f0, f1: f0 * 1.8, vol: 0.5 }); };
+      if (kind === 'groan') { bloop(0, f * 3); bloop(0.15, f * 4, 0.35); if (Math.random() < 0.5) V({ at: 0.2, f0: f, f1: f * 0.8, dur: 0.8 * big, from: 'oo', to: 'uh', atk: 0.1, vol: v.vol * 0.6 }); }
+      else if (kind === 'screech') { V({ f0: f * 1.2, f1: f * 0.9, dur: 0.7 * big, from: 'uh', to: 'aa', atk: 0.05 }); bloop(0.1, f * 3); }
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; squelch(x, 0.7); bloop(0.05, f * 2.5, 0.6); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; splat(x); bloop(0, f * 2, 0.6); bloop(0.1, f * 3, 0.5); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.5); }
+      else { V({ f0: f, f1: f * 0.55, dur: 2.2, from: 'oo', to: 'aa', atk: 0.2, wet: 0.5, echo: 0.3, vol: v.vol * 1.8 }); for (let i = 0; i < 5; i++) bloop(0.3 + i * 0.25, f * (2 + i * 0.4), 0.6); }
     } else {   // bear (and the Yeti)
       const growl = (o) => V({ f0: f, f1: f * 0.8, dur: rand(1, 1.4) * big, from: 'uh', to: 'oo', atk: 0.15, ...o });
       if (kind === 'groan') growl({ vol: v.vol * 0.7 });
@@ -621,6 +643,15 @@ const Sound = (() => {
       nz(b, { dur: 3, f0: 500, f1: 300, vol: 0.4, atk: 0.8 });
     },
     whistle(x) { const b = bus(x, 0.6, 0.2); osc(b, { dur: 0.9, f0: 1900, f1: 500, vol: 0.09, atk: 0.05 }); },   // a falling bomb
+    fuse(x) {   // a Bomb Carrier lights its fuse: a sizzle and beeps getting faster
+      const b = bus(x, 0.8, 0.15);
+      nz(b, { dur: 0.85, type: 'highpass', f0: 4000, f1: 6000, vol: 0.35, atk: 0.02 });
+      [0, 0.22, 0.4, 0.54, 0.65, 0.74, 0.81].forEach(at => osc(b, { type: 'square', at, dur: 0.05, f0: 1500, vol: 0.16 }));
+    },
+    scream(x) {   // the Screamer: a long, horrible shriek
+      voice(x, { f0: 520, f1: 760, dur: 1.1, from: 'ah', to: 'eh', rasp: 0.7, raspHz: 46, breath: 0.9, vol: 0.5, shift: 1.35, atk: 0.04, wet: 0.5, echo: 0.35 });
+      const b = bus(x, 0.45, 0.4, 0.2); nz(b, { dur: 1.1, type: 'bandpass', f0: 2600, f1: 3400, q: 2, vol: 0.5, atk: 0.05 });
+    },
     radio() {   // a crackly radio call
       const b = bus(undefined, 0.6, 0.05);
       nz(b, { dur: 0.25, type: 'bandpass', f0: 1800, q: 2, vol: 0.6 });
@@ -642,7 +673,7 @@ const Sound = (() => {
     nope() { const b = bus(undefined, 0.4, 0.1); osc(b, { type: 'square', dur: 0.15, f0: 160, f1: 120, vol: 0.2 }); },
     click() { const b = bus(undefined, 0.4, 0.05); osc(b, { type: 'triangle', dur: 0.05, f0: 700, vol: 0.3 }); },
   };
-  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60, bigboom: PHONE ? 300 : 0 };   // phones: at most about 3 big booms a second (the bomb run)
+  const LIMITS = { coin: 45, hurt: 100, mini: PHONE ? 70 : 0, smg: PHONE ? 70 : 0, land: 80, clang: 50, zap: 40, thud: 60, splat: 60, clink: 60, crack: 50, beep: 80, drumhit: 60, slime: 70, fuse: 60, scream: 250, bigboom: PHONE ? 300 : 0 };   // phones: at most about 3 big booms a second (the bomb run)
   const EXTRAS = new Set(['coin', 'jump', 'land', 'clang', 'thud', 'zap', 'splat', 'clink', 'crack', 'drumhit']);   // can wait when it's busy
   function play(name, x, extra) {
     if (Rec.on && FX[name]) Rec.push('au', 'p', [name, x === undefined ? null : Math.round(x), extra]);

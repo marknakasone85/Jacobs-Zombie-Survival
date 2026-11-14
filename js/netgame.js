@@ -156,7 +156,8 @@ const NetGame = {
       p.target && !p.target.dead ? p.target.uid : 0, p.aimMode === 'mouse' ? 1 : 0, p.firing ? 1 : 0, ownedMask(p.prof), p.maxHp, r2(p.swingT || 0), r2(p.swingDur || 0),
       ARMOR_IDS.indexOf(p.armorId) + 1, Math.ceil(p.armor || 0), p.maxArmor || 0, armorMask(p.prof), p.prof.boost || 0,
       NADE_IDS.map(id => nadeCount(p.prof, id)), Math.max(0, NADE_IDS.indexOf(p.prof.nade)), r2(p.throwT || 0), p.vface || 1]);
-    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0, z.sticky > 0 ? 1 : 0, z.shocked > 0 ? 1 : 0]);
+    s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0, z.sticky > 0 ? 1 : 0, z.shocked > 0 ? 1 : 0,
+      z.shield > 0 ? Math.max(0.01, r2(z.shield / z.maxShield)) : 0, z.rage > 0 ? 1 : 0]);
     s.bu = G.bullets.filter(q => q.dist >= q.hide * 0.7).map(q => [BULLET_KINDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), Math.round(q.vx), Math.round(q.vy), r2(q.life / q.max)]);
     s.gr = G.nades.map(g => [NADE_IDS.indexOf(g.type), Math.round(g.x), Math.round(g.y), r1(g.rot), g.stuck ? 1 : 0, r2(g.fuse)]);
     s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max), Math.max(0, POOL_KINDS.indexOf(q.kind))]);
@@ -228,6 +229,7 @@ const NetGame = {
       z.pose = a[16] || 0; z.onGround = a[17] !== 0;   // a charging sheep, a hopping kangaroo...
       z.frozen = a[18] ? 1 : 0;                          // stuck in a block of ice
       z.sticky = a[19] ? 1 : 0; z.shocked = a[20] ? 1 : 0;   // stuck in slime, zapped by lightning (js/barrels.js)
+      z.shield = +a[21] || 0; z.maxShield = 1; z.rage = a[22] ? 1 : 0;   // a riot shield (how much is left), gone wild after a scream (js/specials.js)
       return z;
     });
     G.boss = s.boss ? G.zombies.find(z => z.uid === s.boss) || null : null;

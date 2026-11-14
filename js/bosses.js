@@ -9,7 +9,11 @@
 const SHOT_KINDS = Object.assign(Object.create(null), {   // no prototype, like WMAP
   snow: { r: 13, dmg: 16, knock: 1.3 },   // the Yeti's snowballs
   goo: { r: 11, dmg: 14, knock: 1 },      // King Bloat's goo
+  brick: { r: 9, dmg: 10, knock: 1 },     // the Junk Thrower's junk (js/specials.js): bricks, tin cans and old boots
+  can: { r: 8, dmg: 8, knock: 0.8 },
+  boot: { r: 9, dmg: 9, knock: 0.9 },
 });
+const JUNK = ['brick', 'can', 'boot'];
 const SHOT_IDS = Object.keys(SHOT_KINDS);
 const SHOT_G = 980, THROW_WIND = 0.55;
 const GRASS = ['#7ccf4a', '#5fae3a', '#a8e070'];
@@ -27,7 +31,7 @@ function bossThrowAI(z, target, adx, dir, dt) {
 }
 // Lobs it in an arc so it comes down where the player is (or is about to be).
 function bossThrow(z, target) {
-  const kind = z.T.throws, S = SHOT_KINDS[kind];
+  const kind = z.T.throws === 'junk' ? pick(JUNK) : z.T.throws, S = SHOT_KINDS[kind];
   if (!S) return;
   const sx = z.x + z.facing * z.w * 0.3, sy = z.y - z.h * 0.92;
   const tx = target.x + (target.vx || 0) * 0.25, ty = target.y - 30, t = clamp(Math.abs(tx - sx) / 520, 0.5, 1.0);
@@ -52,6 +56,8 @@ function shotSplat(q) {
   if (q.kind === 'snow') {   // POOF
     smoke(q.x, y, 9, 10, '#f0f6ff'); sparks(q.x, y, 14, -Math.PI / 2, 1.3, '#ffffff', 320);
     Sound.play('crack', q.x);
+  } else if (JUNK.includes(q.kind)) {   // clonk
+    dust(q.x, y, 4, q.kind === 'brick' ? '#b8705a' : '#a8a4b0'); Sound.play('clink', q.x);
   } else {
     goo(q.x, y, 16, 0, 1.4); Sound.play('splat', q.x);
   }
@@ -62,6 +68,8 @@ function drawShots(c) {
     if (q.kind === 'snow') {
       circle(c, 0, 0, 13, '#e2eef8'); circle(c, -2.5, -2.5, 9, '#f6fbff'); circle(c, -5, -5, 3, '#ffffff');
       c.fillStyle = 'rgba(120,150,190,0.35)'; c.beginPath(); c.arc(0, 0, 13, 0.4, Math.PI - 0.4); c.fill();
+    } else if (JUNK.includes(q.kind)) {
+      drawJunk(c, q.kind);   // js/specials.js
     } else {
       circle(c, 0, 0, 11, '#7aa82a'); circle(c, -1.5, -1.5, 8.5, '#9acd32'); circle(c, -4, -4, 2.6, '#e0ff9a');
       circle(c, 7, 6, 4, '#9acd32'); circle(c, -8, 5, 3, '#7aa82a');
@@ -182,10 +190,10 @@ function drawRat(c, z, k, atk) {
   c.fillStyle = '#2a0f12'; c.fillRect(18, 6, 18, 2 + atk * 6);   // mouth
   c.fillStyle = fl ? '#ffffff' : '#f0d878'; c.fillRect(29, 6, 3.2, 6.5); c.fillRect(32.8, 6, 3.2, 6.5);   // buck teeth
   zEye(c, 16, -6, 3, z.eye, z.dead);
-  c.save(); c.translate(-2, -25); c.rotate(-0.25);   // the crown
+  if (z.T.boss) { c.save(); c.translate(-2, -25); c.rotate(-0.25);   // the crown (only the Rat King has one)
   poly(c, [-12, 0, -12, -12, -6, -5, 0, -15, 6, -5, 12, -12, 12, 0], fl ? '#ffffff' : '#f0c030');
   circle(c, 0, -3.5, 2.2, fl ? '#ffffff' : '#e8413a'); circle(c, -7.5, -3, 1.4, fl ? '#ffffff' : '#4ab0ff'); circle(c, 7.5, -3, 1.4, fl ? '#ffffff' : '#4ab0ff');
-  c.restore();
+  c.restore(); }
   c.restore();
 }
 // The Yeti: a big shaggy snow monster with horns. pose 1 = about to throw a snowball.

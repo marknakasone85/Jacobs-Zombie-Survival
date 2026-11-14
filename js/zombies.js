@@ -68,11 +68,48 @@ const ZTYPES = {
   // The Storm Crow (Sky Escape): a GIANT zombie crow that circles and dives at your helicopter.
   stormcrow: { name: 'The Storm Crow', body: 'crow', fly: true, boss: true, w: 150, h: 110, hp: 1600, speed: [190, 210], dmg: 26, coins: [60, 70], jump: 0, mass: 8, atk: 0.9, eye: '#ff2e2e', heart: 1,
     skins: ['#18161e'], shirts: ['#e8e0c8'] },
+
+  // ---- The Sewer update: zombies with tricks. What they do and how they look is in js/specials.js. gear = has extra things to draw.
+  // The Bomb Carrier hugs a big cartoon bomb. Close to you it lights the fuse... BOOM! Shoot it while it's in a crowd.
+  bombie: { name: 'Bomb Carrier', gear: true, bomb: true, w: 30, h: 60, hp: 36, speed: [92, 112], dmg: 10, coins: [3, 5], jump: 500, mass: 1, atk: 0.9, eye: '#ffb02e', heart: 0.05,
+    skins: ['#8fb573', '#9cbf7a'], shirts: ['#5a5a3a', '#6a4a3a', '#3a4a5a'] },
+  // The Junk Thrower stops and throws bricks, tin cans and old boots at you. (shirts = its hi-vis vest)
+  thrower: { name: 'Junk Thrower', gear: true, throws: 'junk', w: 30, h: 62, hp: 44, speed: [48, 62], dmg: 10, coins: [3, 5], jump: 500, mass: 1.1, atk: 0.9, eye: '#ffe14a', heart: 0.05,
+    skins: ['#86ad6e', '#7fa865'], shirts: ['#ff8a1a', '#e8d020'] },
+  // The Riot Zombie's shield stops bullets from the front (shield = how much it takes). Shoot it from behind, blow it up, or smash the shield.
+  riot: { name: 'Riot Zombie', gear: true, shield: 170, w: 34, h: 64, hp: 60, speed: [44, 56], dmg: 12, coins: [5, 7], jump: 460, mass: 1.6, atk: 1, eye: '#ff4b3b', heart: 0.08,
+    skins: ['#7fa865', '#8fb573'], shirts: ['#2a3450', '#232a3e'] },
+  // The Screamer SCREAMS, and every zombie near it goes wild (faster) for a few seconds. Get it first!
+  screamer: { name: 'Screamer', gear: true, scream: true, w: 26, h: 64, hp: 40, speed: [62, 78], dmg: 8, coins: [4, 6], jump: 560, mass: 0.8, atk: 0.8, eye: '#ffffff', heart: 0.05,
+    skins: ['#b8c8a8', '#c4d0b0'], shirts: ['#6a5a7a', '#5a6a7a', '#7a5a5a'] },
+  // ---- Sewer creatures. knock = how hard it knocks you back (instead of the KNOCK for its body).
+  // Sewer rats come in packs and pounce.
+  rat: { name: 'Sewer Rat', body: 'rat', knock: 0.5, w: 44, h: 24, hp: 12, speed: [160, 200], dmg: 5, coins: [1, 1], jump: 520, mass: 0.4, atk: 0.5, eye: '#ff3b3b', heart: 0.02,
+    skins: ['#6a5e58', '#5a504a', '#7a6e66'], shirts: ['#e0a0a0', '#d89090'] },
+  // Bats flutter about in the dark and swoop down to bite.
+  bat: { name: 'Zombie Bat', body: 'bat', fly: true, w: 34, h: 20, hp: 10, speed: [150, 185], dmg: 5, coins: [1, 2], jump: 0, mass: 0.3, atk: 0.7, eye: '#ff3b3b', heart: 0.02,
+    skins: ['#8a7898', '#7a6a8a'], shirts: ['#d8c0d0'] },
+  // Baby gators open their jaws, then lunge across the floor. Jump over them!
+  croc: { name: 'Baby Gator', body: 'gator', knock: 1.2, w: 96, h: 30, hp: 110, speed: [60, 74], dmg: 14, coins: [4, 6], jump: 420, mass: 1.6, atk: 0.9, eye: '#ffcc2e', heart: 0.06,
+    skins: ['#5a7a40', '#4f6a3a'], shirts: ['#c8c8a0'] },
+  // Slime blobs hop at you. Pop one and it SPLITS into two little blobs! minis = how many come out, mini = what kind.
+  // hop = how high it hops, hopGap = how long it sits between hops.
+  slime: { name: 'Slime Blob', body: 'slime', minis: 2, mini: 'blob', hop: [300, 380], hopGap: [0.25, 0.55], w: 42, h: 36, hp: 54, speed: [100, 125], dmg: 9, coins: [2, 3], jump: 520, mass: 1, atk: 0.8, eye: '#ffffff', heart: 0.03,
+    skins: ['#7ad84a', '#5ac85a', '#9ae04a'], shirts: ['#3a8a2a'] },
+  blob: { name: 'Little Blob', body: 'slime', hop: [240, 300], hopGap: [0.12, 0.3], w: 22, h: 19, hp: 12, speed: [140, 170], dmg: 5, coins: [1, 1], jump: 440, mass: 0.4, atk: 0.6, eye: '#ffffff', heart: 0.01,
+    skins: ['#9ae04a', '#7ad84a'], shirts: ['#3a8a2a'] },
+  // The Sludge Monster (Sewer Escape): a giant blob of sewer slime with junk floating inside. It spits goo and
+  // belly-flops, and when it pops it splits into four slime blobs (and they split too!).
+  sludge: { name: 'The Sludge Monster', body: 'slime', boss: true, throws: 'goo', minis: 4, mini: 'slime', hop: [420, 520], hopGap: [0.7, 1.1], w: 150, h: 124, hp: 2600, speed: [70, 80], dmg: 30, coins: [70, 80], jump: 640, mass: 12, atk: 1.1, eye: '#ffffff', heart: 1,
+    skins: ['#6ac83a'], shirts: ['#2a6a1a'] },
 };
 // How hard each kind of animal knocks you back when it hits you.
 const KNOCK = { sheep: 1.4, roo: 1.9, bear: 1.5, mower: 1.8, rat: 1.4, yeti: 1.6, gator: 1.8 };
 const PANTS = ['#3a3f5a', '#4a4038', '#2f3a2f', '#50463a', '#3a2f3f'];
 const ZTYPE_NAMES = Object.keys(ZTYPES);
+// How many kills one zombie of this kind is worth in the end: itself, plus whatever pops out of it
+// (a slime blob = 3: itself and two little blobs). The kill counter uses it (waveSize in js/game.js).
+const brood = type => { const T = ZTYPES[type]; return T ? 1 + (T.minis || 0) * (T.mini ? brood(T.mini) : 1) : 1; };
 
 // The look of a zombie (also used by Wi-Fi guests to rebuild zombies from the host's updates).
 // ci = which skin, shirt and pants colors. sz = how big this one is (they come in different sizes).
@@ -104,6 +141,8 @@ function spawnZombie(type) {
     phase: rand(10), walkT: rand(10),
     voice: rand(0.88, 1.12), groanT: rand(0.6, 4),   // every zombie sounds a little different
   });
+  if (T.shield) z.shield = z.maxShield = T.shield * L.hp * crowd;   // the Riot Zombie's shield (js/specials.js)
+  if (T.scream) z.screamCd = rand(1.5, 3.5);
   if (T.boss) G.boss = z;
   G.zombies.push(z);
   if ((type === 'runner' || type === 'leaper') && Math.random() < 0.5) Sound.zombie(z, 'screech');
@@ -117,12 +156,16 @@ function updateZombies(dt) {
     z.flash = Math.max(0, z.flash - dt);
     if (z.dead) {
       z.deadT += dt; z.vy += GRAV * dt; z.prevY = z.y; z.y += z.vy * dt; z.x += z.kbx * dt; z.kbx *= Math.exp(-5 * dt); land(z);
+      if (z.boomT > 0 && (z.boomT -= dt) <= 0) bombieBlast(z);   // a Bomb Carrier's bomb goes off (js/specials.js)
       continue;
     }
     z.atkCd -= dt; z.jumpCd -= dt; z.atkAnim = Math.max(0, z.atkAnim - dt);
     if (z.sticky > 0) z.sticky = Math.max(0, z.sticky - dt);
     if (z.shocked > 0) z.shocked = Math.max(0, z.shocked - dt);
+    if (z.rage > 0) z.rage -= dt;   // a Screamer made it go wild (js/specials.js)
+    if (z.shieldFlash > 0) z.shieldFlash -= dt;
     if (z.ramCd > 0) z.ramCd -= dt;   // just got run over by a truck (js/vehicles.js)
+    if (z.fuse > 0 && burnFuse(z, dt)) continue;   // the Bomb Carrier's fuse ran out: BOOM
     // Frozen solid by a Cryo Grenade, or zapped by an electric barrel: no walking, no biting (crows fall out of the sky).
     if (z.frozen > 0 || z.shocked > 0) {
       if (z.frozen > 0) {
@@ -136,7 +179,7 @@ function updateZombies(dt) {
     }
     const target = nearestPlayer(z.x, z.y), body = z.T.body;
     if (z.T.fly) { updateFlyer(z, target, dt); zombieGroan(z, dt); continue; }
-    let sp = z.speed * (0.8 + 0.25 * Math.sin(G.t * 3 + z.phase));
+    let sp = z.speed * (0.8 + 0.25 * Math.sin(G.t * 3 + z.phase)) * (z.rage > 0 ? SCREAM.fast : 1);
     if (target) {
       const dx = target.x - z.x, adx = Math.abs(dx), dir = dx >= 0 ? 1 : -1;
       const charging = z.chargeT > 0;
@@ -153,7 +196,7 @@ function updateZombies(dt) {
             continue;
           }
           sp = 0;
-          if (z.atkCd <= 0) { z.atkCd = z.atkRate; z.atkAnim = 0.35; Sound.zombie(z, 'attack'); hurtPlayer(p, z.dmg, pdx >= 0 ? 1 : -1, KNOCK[body] || 1); }
+          if (z.atkCd <= 0) { z.atkCd = z.atkRate; z.atkAnim = 0.35; Sound.zombie(z, 'attack'); hurtPlayer(p, z.dmg, pdx >= 0 ? 1 : -1, z.T.knock || KNOCK[body] || 1); }
         }
       }
       z.vx = adx < 6 ? 0 : dir * sp;
@@ -161,17 +204,19 @@ function updateZombies(dt) {
       const stuck = z.sticky > 0;
       if (stuck) { z.vx *= z.T.boss ? 0.45 : SLIME_SLOW; z.chargeT = z.windT = 0; z.pose = 0; }
       if ((body === 'sheep' || body === 'mower' || body === 'gator') && !stuck) sheepCharge(z, target, adx, dir, dt);   // Mr. Mower and the Sewer Gator charge like a sheep
-      if (z.T.throws && !stuck) bossThrowAI(z, target, adx, dir, dt);   // snowballs and goo (js/bosses.js)
-      if (body === 'roo' && !stuck) rooHop(z, target, adx, dir, sp, dt);
-      else if (!stuck && z.onGround && !(z.chargeT > 0) && !(z.windT > 0) && !(z.throwT > 0)) {
+      if (z.T.throws && !stuck) bossThrowAI(z, target, adx, dir, dt);   // snowballs, goo and junk (js/bosses.js)
+      if (z.T.bomb) bombieAI(z, target, adx);         // lights the fuse when it's close (js/specials.js)
+      if (z.T.scream) screamAI(z, target, adx, dir, dt);   // stops and SCREAMS now and then
+      if ((body === 'roo' || body === 'slime') && !stuck) rooHop(z, target, adx, dir, sp, dt);   // slime blobs hop too
+      else if (!stuck && z.onGround && !(z.chargeT > 0) && !(z.windT > 0) && !(z.throwT > 0) && !(z.fuse > 0) && !(z.screamT > 0)) {
         if (target.y < z.y - 24 && adx < 170 && z.jumpCd <= 0) {
           // You're up on something: try to jump up after you.
           z.vy = -z.jumpV * rand(0.9, 1.05); z.onGround = false; z.jumpCd = rand(1.0, 2.2);
         } else if (z.type === 'leaper' && adx < 260 && adx > 60 && z.jumpCd <= 0 && Math.abs(target.y - z.y) < 40) {
           z.vy = -480; z.kbx += dir * 360; z.onGround = false; z.jumpCd = rand(2, 3.2);
           Sound.zombie(z, 'screech');
-        } else if ((body === 'dog' || body === 'rat') && adx < (body === 'rat' ? 330 : 230) && adx > 70 && z.jumpCd <= 0 && Math.abs(target.y - z.y) < 40) {
-          const big = body === 'rat' ? 1 : 0;   // the Rat King's pounce is HUGE
+        } else if ((body === 'dog' || body === 'rat') && adx < (body === 'rat' && z.T.boss ? 330 : 230) && adx > 70 && z.jumpCd <= 0 && Math.abs(target.y - z.y) < 40) {
+          const big = body === 'rat' && z.T.boss ? 1 : 0;   // the Rat King's pounce is HUGE (little sewer rats pounce like dogs)
           z.vy = -360 - big * 160; z.kbx += dir * (430 + big * 520); z.onGround = false; z.jumpCd = rand(1.6, 2.6) + big;   // POUNCE
           Sound.zombie(z, 'screech');
         } else if (z.T.boss && body !== 'sheep' && body !== 'mower' && body !== 'gator') {
@@ -186,8 +231,9 @@ function updateZombies(dt) {
     z.prevY = z.y; z.y += z.vy * dt;
     land(z);
     if (z.stomping && z.onGround) { z.stomping = false; bossStomp(z); }
-    // King Roo shakes the ground when it lands from a big hop.
-    if (body === 'roo' && z.T.boss && z.onGround && z.wasAir) { z.stompCd -= 1; if (z.stompCd <= 0) { bossStomp(z); z.stompCd = 3; } }
+    // King Roo (and the Sludge Monster) shake the ground when they land from a big hop.
+    if ((body === 'roo' || body === 'slime') && z.T.boss && z.onGround && z.wasAir) { z.stompCd -= 1; if (z.stompCd <= 0) { bossStomp(z); z.stompCd = 3; } }
+    if (body === 'slime' && z.onGround && z.wasAir) slimeLand(z);   // splat! (js/specials.js)
     z.wasAir = !z.onGround;
     z.walkT += dt * (Math.abs(z.vx) / 12 + 0.6);
     zombieGroan(z, dt);
@@ -234,15 +280,16 @@ function sheepCharge(z, target, adx, dir, dt) {
   if (z.onGround && z.chargeCd <= 0 && adx < 440 && adx > 60 && Math.abs(target.y - z.y) < 50) { z.windT = z.T.boss ? 0.7 : 0.55; z.facing = dir; }
 }
 // Kangaroos only move by hopping. Up on a platform? One huge jump.
+// Slime blobs hop the same way, with their own hop height and a squishy wait between hops (T.hop, T.hopGap).
 function rooHop(z, target, adx, dir, sp, dt) {
   if (!z.onGround) { z.vx = z.hopV; return; }
   z.vx = 0; z.hopCd -= dt;
-  if (z.hopCd > 0 || adx < 10) return;
-  const up = target.y < z.y - 24 && adx < 240;
-  z.vy = -(up ? z.jumpV : rand(380, 470) * (z.T.boss ? 1.15 : 1)); z.onGround = false;
+  if (z.hopCd > 0 || adx < 10 || z.throwT > 0) return;
+  const T = z.T, up = target.y < z.y - 24 && adx < 240, hop = T.hop || [380 * (T.boss ? 1.15 : 1), 470 * (T.boss ? 1.15 : 1)];
+  z.vy = -(up ? z.jumpV : rand(hop[0], hop[1])); z.onGround = false;
   z.hopV = dir * sp * (up ? 1.1 : 1.9) * clamp(adx / 140, 0.25, 1);
-  z.hopCd = z.T.boss ? rand(0.35, 0.6) : rand(0.08, 0.28);
-  if (up || Math.random() < 0.15) Sound.zombie(z, 'screech');
+  z.hopCd = T.hopGap ? rand(T.hopGap[0], T.hopGap[1]) : T.boss ? rand(0.35, 0.6) : rand(0.08, 0.28);
+  if (up || (!T.hop && Math.random() < 0.15)) Sound.zombie(z, 'screech');
 }
 // Crows: circle around above you, then dive down to peck (pose 2) and fly back up.
 function updateFlyer(z, target, dt) {
@@ -251,15 +298,17 @@ function updateFlyer(z, target, dt) {
   if (target) {
     const dx = target.x - z.x;
     z.swoopCd -= dt;
+    const bat = z.T.body === 'bat';   // bats flutter about all over the place and swoop more often
     if (z.swoopT > 0) {
       z.swoopT -= dt; z.pose = 2; fast = true;
       gx = target.x; gy = target.y - 34;
-      if (z.swoopT <= 0) z.swoopCd = rand(1.4, 2.8);
+      if (z.swoopT <= 0) z.swoopCd = bat ? rand(0.8, 1.7) : rand(1.4, 2.8);
     } else {
       const side = dx >= 0 ? -1 : 1;
       gx = target.x + side * 150 + Math.sin(G.t * 1.3 + z.phase) * 70;
       gy = Math.min(target.y, GROUND) - 150 + Math.sin(G.t * 2.1 + z.phase) * 28;
       if (target.veh === 'heli') gy = Math.max(120 + z.h * 0.5, target.y - 40 + Math.sin(G.t * 2.1 + z.phase) * 60);   // round a helicopter at its own height (not up behind the scores)
+      if (bat) { gx += Math.sin(G.t * 5.3 + z.phase * 3) * 45; gy += Math.sin(G.t * 7.1 + z.phase) * 30; }
       if (z.swoopCd <= 0 && Math.abs(dx) < 340) { z.swoopT = 1.1; Sound.zombie(z, 'screech'); }
     }
     for (const p of G.players) {   // peck!
@@ -296,8 +345,10 @@ function bossStomp(z) {
   }
 }
 
+// Returns true when a Riot Zombie's shield stopped the hit (then a bullet stops there too).
 function hurtZombie(z, dmg, kx, ky, showNum = true, flash = true) {
-  if (z.dead) return;
+  if (z.dead) return false;
+  if (z.shield > 0 && !G.noShield && kx && Math.sign(kx) === -z.facing && !(z.frozen > 0)) { shieldHit(z, dmg, kx); return true; }   // js/specials.js
   if (z.frozen > 0) dmg *= FROZEN_HURT;   // frozen zombies take extra damage (js/grenades.js)
   z.hp -= dmg;
   if (flash) z.flash = 0.07;
@@ -307,6 +358,7 @@ function hurtZombie(z, dmg, kx, ky, showNum = true, flash = true) {
   if (dmg >= 200) hitStop(0.06);
   if (z.hp <= 0) killZombie(z, kx);
   else Sound.zombie(z, 'hit');
+  return false;
 }
 function killZombie(z, kx) {
   z.dead = true; z.deadT = 0;
@@ -319,6 +371,9 @@ function killZombie(z, kx) {
   if (Math.random() < z.T.heart) G.coins.push({ kind: 'heart', val: 25, x: z.x, y: z.y - z.h * 0.6, vx: rand(-80, 80), vy: -380, t: 0, spin: 0 });
   if (z.type === 'bloater') bloaterPop(z);
   if (z.type === 'kingbloat') kingBloatPop(z);   // js/bosses.js
+  if (z.T.mini) splitZombie(z);                  // slime blobs split in two (js/specials.js)
+  if (z.T.bomb && !(z.boomT > 0)) z.boomT = BOMB.delay;   // the bomb goes off a moment later (so bombs set each other off one by one)
+  z.fuse = z.screamT = z.rage = 0;
   if (z.T.boss) {
     G.shake = 20; flashAt(z.x, z.y - 60, 200); fireBurst(z.x, z.y - 60, 30, 1.4); hitStop(0.14);
     banner(`${(G.level.boss || 'Boss').toUpperCase()} IS DOWN!`, 'Grab all those coins!', 2.4, '#FFD23F');
@@ -360,8 +415,10 @@ function zArm(c, x, y, ang, skin, sleeve, bw) {
   c.restore();
 }
 function drawZombie(c, z) {
+  if (z.rage > 0 && !z.dead) drawRage(c, z);   // a Screamer made it go wild (js/specials.js)
   if (z.T.body) { drawAnimal(c, z); return; }
   const s = z.h / 62, king = z.type === 'kingbloat', road = z.type === 'roadhulk', big = z.type === 'brute' || z.type === 'boss' || z.type === 'giant' || road;
+  const gear = z.T.gear;   // the Sewer update's zombies have extra things to draw (js/specials.js)
   const bw = king ? 1.6 : road ? 1.5 : big ? 1.4 : z.type === 'bloater' ? 1.5 : z.type === 'runner' ? 0.85 : z.type === 'tiny' ? 0.95 : 1;
   const fl = z.flash > 0;
   const skin = fl ? '#ffffff' : z.skin, dark = fl ? '#eeeeee' : z.dark, shirt = fl ? '#ffffff' : z.shirt, pants = fl ? '#eeeeee' : z.pants;
@@ -381,6 +438,7 @@ function drawZombie(c, z) {
   c.fillStyle = 'rgba(0,0,0,0.18)'; c.fillRect(-tw, -26, tw * 0.5, 27);
   if (z.type === 'boss' || z.type === 'giant') for (let i = 0; i < 3; i++) poly(c, [-tw + 2, -24 + i * 8, -tw - 9, -30 + i * 8, -tw + 1, -18 + i * 8], z.type === 'boss' ? '#d8d0b8' : '#8a8a7a');
   if (road) roadHulkBody(c, tw, fl);   // js/bosses.js: a studded leather vest and chains
+  if (gear) gearBody(c, z, tw, fl);    // js/specials.js: a police vest, a hi-vis vest and a sack of junk...
   if (z.type === 'bloater' || king) {   // a big wobbly belly that glows when it's about to pop
     const wob = 1 + Math.sin(G.t * 6 + z.phase) * 0.05, belly = fl ? '#ffffff' : '#c8d86a';
     circle(c, 4, -11, (king ? 18 : 14) * wob, belly);
@@ -389,7 +447,7 @@ function drawZombie(c, z) {
     if (!z.dead && z.hp < z.maxHp * 0.5) { c.globalAlpha = 0.3 + Math.sin(G.t * 14) * 0.2; circle(c, 4, -11, 17 * wob, '#e8ff7a'); c.globalAlpha = 1; }
   }
   // head
-  c.save(); c.translate(3, -34); c.rotate(0.14 + Math.sin(G.t * 3 + z.phase) * 0.08);
+  c.save(); c.translate(3, -34); c.rotate(0.14 + Math.sin(G.t * 3 + z.phase) * 0.08 - (z.T.scream && z.pose === 1 && !z.dead ? 0.45 : 0));   // a Screamer throws its head back
   fillRR(c, -8, -9, 17, 18, 7, skin);
   c.fillStyle = dark; c.fillRect(-7, -9, 9, 4); c.fillRect(-8, -3, 3, 5);
   if (z.type === 'runner') poly(c, [-8, -7, -5, -14, -2, -8, 1, -15, 3, -8, 6, -13, 8, -6], '#2a2a2a');
@@ -406,10 +464,14 @@ function drawZombie(c, z) {
   c.fillStyle = '#e8e0c8'; c.fillRect(2, 3, 1.5, 1.5); c.fillRect(5, 3, 1.5, 1.5);
   if (king) kingBloatHead(c, z, fl);   // js/bosses.js: his little crown, and goo in his mouth
   if (road) roadHulkHead(c, fl);      // js/bosses.js: a mohawk and goggles
+  if (gear) gearHead(c, z, fl);       // js/specials.js: a riot helmet, a hard hat, a bandana, long hair
   c.restore();
-  zArm(c, 2 * bw, -21, -0.06 + Math.sin(z.walkT) * 0.08 - atk * 1.15, skin, shirt, bw);
+  const armA = gear ? gearArm(z, atk) : -0.06 + Math.sin(z.walkT) * 0.08 - atk * 1.15;
+  zArm(c, 2 * bw, -21, armA, skin, shirt, bw);
   if (road) roadHulkPad(c, bw, fl);   // js/bosses.js: a spiked metal shoulder pad
+  if (gear) gearHand(c, z, bw, armA, fl);   // js/specials.js: the bomb, or the brick about to be thrown
   c.restore();
+  if (z.shield > 0 && !z.dead) drawRiotShield(c, z);   // js/specials.js
   c.restore();
 }
 function drawZombieBars(c) {
@@ -423,7 +485,7 @@ function drawZombieBars(c) {
 
 // ---- Zombie animals -------------------------------------------------------
 // Each one is drawn facing right with its feet at (0, 0), at its normal size (BASE_H tall), then scaled.
-const BASE_H = { dog: 30, sheep: 42, roo: 78, crow: 22, bear: 66, mower: 100, rat: 70, yeti: 146, gator: 64 };
+const BASE_H = { dog: 30, sheep: 42, roo: 78, crow: 22, bear: 66, mower: 100, rat: 70, yeti: 146, gator: 64, bat: 20, slime: 36 };
 function zEye(c, x, y, r, col, dead) {
   if (dead) {
     c.strokeStyle = '#1a1a1a'; c.lineWidth = 1.1;
@@ -446,7 +508,7 @@ function drawAnimal(c, z) {
   if (z.dead) { c.rotate(-z.facing * Math.min(1, z.deadT * 3) * 1.45); c.globalAlpha = clamp((1.7 - z.deadT) / 0.6, 0, 1); }
   c.scale(z.facing * s, s);
   const atk = z.atkAnim > 0 ? Math.sin((1 - z.atkAnim / 0.35) * Math.PI) : 0;
-  ({ dog: drawDog, sheep: drawSheep, roo: drawRoo, crow: drawCrow, bear: drawBear, mower: drawMower, rat: drawRat, yeti: drawYeti, gator: drawGator })[b](c, z, col, atk);
+  ({ dog: drawDog, sheep: drawSheep, roo: drawRoo, crow: drawCrow, bear: drawBear, mower: drawMower, rat: drawRat, yeti: drawYeti, gator: drawGator, bat: drawBat, slime: drawSlimeBlob })[b](c, z, col, atk);
   c.restore();
 }
 function dogLeg(c, x, y, ang, color, len = 14) {

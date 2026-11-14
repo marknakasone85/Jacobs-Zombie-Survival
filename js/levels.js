@@ -10,6 +10,7 @@
 //              kinds: car van shed treehouse crate bus scaffold dumpster crypt wall mausoleum logs cabin icerock
 //              barrels trailer canopy rock container tank tower bunker stand wagon stage boxes
 //              haybales tractor barn coop ute watertank termite shack cage kiosk rockpile train statue
+//              taxi cart (js/bigcity.js)  pipe catwalk junk (js/sewer.js)
 //   coins      extra coins lying around: [x, heightAboveGround, howMany]  (every platform gets a row too)
 //   bigCoins   shiny 10-coins in hard places: [x, heightAboveGround]
 //   barrels    things to shoot that go BOOM (js/barrels.js): [kind, x]
@@ -17,8 +18,10 @@
 //   waves      mix = how many of each zombie, every = seconds between zombies, max = most at once,
 //              boss: true = the level boss shows up halfway through that wave
 //   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo', 'grizz',
-//              'mower', 'ratking', 'yeti' or 'kingbloat' (js/bosses.js).  bossLine = what the banner says when it shows up
+//              'mower', 'ratking', 'yeti', 'kingbloat', 'gator', 'stormcrow', 'sludge' or 'roadhulk'.  bossLine = what the banner says
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
+//              with tricks (js/specials.js): bombie (Bomb Carrier) thrower riot (shield) screamer
+//              sewer creatures: rat bat croc (Baby Gator) slime (splits into two little blobs)
 //   vehicle    'truck' = everyone drives a truck, 'heli' = everyone flies a helicopter (js/vehicles.js).  start = where the players start (x)
 //   finale     true = after the last wave comes the twist: a flood of zombies, then jets, a bomber and gunships (js/finale.js)
 //   New levels go BEFORE the last one (the last level ends with the rescue), and the save needs moving: see loadSave in js/util.js.
@@ -48,8 +51,8 @@ const LEVELS = [
     waves: [
       { mix: { walker: 12, runner: 4, dog: 3 }, every: 1.2, max: 12 },
       { mix: { walker: 12, runner: 5, leaper: 4, dog: 5 }, every: 1.1, max: 14 },
-      { mix: { walker: 14, runner: 6, leaper: 5, brute: 2, dog: 6 }, every: 1.0, max: 16 },
-      { mix: { walker: 16, runner: 8, leaper: 6, brute: 3, dog: 8 }, boss: true, every: 0.95, max: 18 },
+      { mix: { walker: 12, runner: 6, leaper: 5, brute: 2, dog: 6, thrower: 2 }, every: 1.0, max: 16 },
+      { mix: { walker: 13, runner: 8, leaper: 6, brute: 3, dog: 8, thrower: 3 }, boss: true, every: 0.95, max: 18 },
     ],
   },
   {
@@ -106,10 +109,10 @@ const LEVELS = [
     waves: [
       { mix: { walker: 18, runner: 10, dog: 6 }, every: 0.85, max: 18 },
       { mix: { walker: 18, runner: 10, leaper: 8, tiny: 10, dog: 8 }, every: 0.8, max: 20 },
-      { mix: { walker: 20, brute: 5, bloater: 6, tiny: 10, crow: 6 }, every: 0.75, max: 20 },
+      { mix: { walker: 16, brute: 5, bloater: 6, tiny: 10, crow: 6, bombie: 4 }, every: 0.75, max: 20 },
       { mix: { walker: 20, runner: 12, leaper: 8, giant: 2, dog: 10 }, every: 0.7, max: 22 },
-      { mix: { walker: 20, runner: 12, dog: 12, brute: 5, bloater: 6, crow: 6 }, every: 0.7, max: 22 },
-      { mix: { walker: 20, runner: 12, brute: 5, bloater: 6, giant: 2, dog: 8 }, boss: true, every: 0.7, max: 22 },
+      { mix: { walker: 14, runner: 12, dog: 12, brute: 5, bloater: 6, crow: 6, bombie: 3, riot: 3 }, every: 0.7, max: 22 },
+      { mix: { walker: 14, runner: 12, brute: 5, bloater: 6, giant: 2, dog: 8, bombie: 3, riot: 3 }, boss: true, every: 0.7, max: 22 },
     ],
   },
   {
@@ -121,11 +124,11 @@ const LEVELS = [
     barrels: [['gas', 560], ['goo', 1000], ['boom', 1620], ['zap', 2050], ['ice', 2420], ['boom', 2900]],
     waves: [
       { mix: { walker: 20, tiny: 12, runner: 10 }, every: 0.8, max: 20 },
-      { mix: { walker: 20, runner: 12, bloater: 8, leaper: 8, roo: 4 }, every: 0.75, max: 22 },
+      { mix: { walker: 17, runner: 12, bloater: 8, leaper: 8, roo: 4, screamer: 3 }, every: 0.75, max: 22 },
       { mix: { walker: 22, tiny: 16, brute: 6, giant: 1, sheep: 8 }, every: 0.7, max: 22 },
-      { mix: { walker: 22, runner: 14, bloater: 8, leaper: 10, giant: 2, roo: 6 }, every: 0.65, max: 24 },
+      { mix: { walker: 17, runner: 14, bloater: 8, leaper: 10, giant: 2, roo: 6, screamer: 3, thrower: 2 }, every: 0.65, max: 24 },
       { mix: { walker: 22, roo: 8, sheep: 8, dog: 10, giant: 2 }, every: 0.65, max: 24 },
-      { mix: { walker: 24, runner: 14, brute: 6, bloater: 8, giant: 3, roo: 6, sheep: 6 }, boss: true, every: 0.65, max: 24 },
+      { mix: { walker: 18, runner: 14, brute: 6, bloater: 8, giant: 3, roo: 6, sheep: 6, screamer: 3, bombie: 3 }, boss: true, every: 0.65, max: 24 },
     ],
   },
   {
@@ -183,11 +186,11 @@ const LEVELS = [
     bigCoins: [[2045, 196], [1225, 140], [3325, 140]],
     barrels: [['boom', 600], ['gas', 1150], ['zap', 2250], ['oil', 2650], ['goo', 3050], ['boom', 3550], ['ice', 3950]],
     waves: [
-      { mix: { walker: 100, runner: 60, dog: 30, tiny: 30 }, every: 0.16, max: 40 },
-      { mix: { walker: 90, runner: 50, leaper: 30, crow: 30, bloater: 15, dog: 15 }, every: 0.15, max: 42 },
-      { mix: { walker: 90, runner: 50, brute: 15, tiny: 40, roo: 20, sheep: 15, giant: 10 }, every: 0.14, max: 44 },
-      { mix: { walker: 100, runner: 60, dog: 30, crow: 30, bear: 6, brute: 14, leaper: 10 }, every: 0.13, max: 46 },
-      { mix: { walker: 100, runner: 70, tiny: 40, dog: 25, giant: 8, bloater: 16 }, boss: true, every: 0.12, max: 48 },
+      { mix: { walker: 88, runner: 60, dog: 30, tiny: 30, thrower: 12 }, every: 0.16, max: 40 },
+      { mix: { walker: 76, runner: 50, leaper: 30, crow: 30, bloater: 15, dog: 15, riot: 8, screamer: 6 }, every: 0.15, max: 42 },
+      { mix: { walker: 74, runner: 50, brute: 15, tiny: 40, roo: 20, sheep: 15, giant: 10, bombie: 10, thrower: 6 }, every: 0.14, max: 44 },
+      { mix: { walker: 82, runner: 60, dog: 30, crow: 30, bear: 6, brute: 14, leaper: 10, riot: 10, screamer: 8 }, every: 0.13, max: 46 },
+      { mix: { walker: 76, runner: 70, tiny: 40, dog: 25, giant: 8, bloater: 16, bombie: 10, riot: 8, thrower: 6 }, boss: true, every: 0.12, max: 48 },
     ],
   },
   {
@@ -202,13 +205,30 @@ const LEVELS = [
       // 1,600 zombies with one player: a ground army, and the same 86 crows in the air as before.
       { mix: { crow: 16, walker: 160, runner: 80, leaper: 30, dog: 30 }, every: 0.2, max: 34 },
       { mix: { crow: 20, walker: 170, roo: 50, leaper: 50, dog: 90 }, every: 0.18, max: 36 },
-      { mix: { crow: 24, walker: 200, roo: 60, bloater: 40, brute: 30, giant: 10, runner: 60 }, every: 0.16, max: 38 },
-      { mix: { crow: 26, walker: 230, leaper: 60, roo: 60, giant: 13, runner: 70, dog: 20 }, boss: true, every: 0.15, max: 40 },
+      { mix: { crow: 24, walker: 185, roo: 60, bloater: 40, brute: 30, giant: 10, runner: 60, thrower: 15 }, every: 0.16, max: 38 },
+      { mix: { crow: 26, walker: 215, leaper: 60, roo: 60, giant: 13, runner: 70, dog: 20, thrower: 15 }, boss: true, every: 0.15, max: 40 },
+    ],
+  },
+  {
+    // Down in the sewers (js/sewer.js): rats, bats, baby gators and slime blobs that split, plus the new human zombies with tricks.
+    // About 1,200 kills with one player, counting all the little blobs.
+    name: 'Sewer Escape', blurb: 'Your helicopter ran out of fuel, so the only way out is DOWN, through the sewers! Rats, bats, baby gators, slime that splits in two... and something HUGE bubbling at the end of the tunnel.', theme: 'sewer',
+    worldW: 4400, hp: 3.3, speed: 1.3, boss: 'The Sludge Monster', bossType: 'sludge', bossLine: 'Dodge its goo! When it pops it SPLITS, so keep shooting!',
+    platforms: [['pipe', 300, 160], ['catwalk', 760, 150], ['junk', 1180, 100], ['pipe', 1550, 200], ['catwalk', 2050, 170], ['junk', 2480, 100], ['pipe', 2850, 180], ['catwalk', 3320, 150], ['junk', 3800, 110]],
+    coins: [[560, 30, 4], [1000, 40, 3], [1380, 30, 4], [1850, 40, 3], [2300, 30, 4], [2700, 40, 3], [3150, 30, 4], [3600, 40, 3], [4100, 30, 4]],
+    bigCoins: [[835, 180], [2135, 180], [3395, 180]],
+    barrels: [['zap', 520], ['acid', 980], ['goo', 1420], ['boom', 1820], ['oil', 2300], ['zap', 2720], ['gas', 3120], ['ice', 3560], ['boom', 4020]],
+    waves: [
+      { mix: { rat: 60, walker: 70, runner: 30, bat: 20, thrower: 10 }, every: 0.17, max: 34 },
+      { mix: { rat: 50, walker: 70, bat: 25, croc: 10, bombie: 12, slime: 14 }, every: 0.16, max: 36 },
+      { mix: { walker: 80, runner: 40, riot: 12, thrower: 12, croc: 12, rat: 40, screamer: 6, slime: 10 }, every: 0.15, max: 38 },
+      { mix: { walker: 80, slime: 20, bombie: 16, bat: 30, rat: 50, riot: 12, screamer: 8, giant: 5, croc: 10 }, every: 0.14, max: 40 },
+      { mix: { walker: 90, runner: 40, croc: 14, slime: 18, bombie: 16, riot: 12, thrower: 12, screamer: 8, rat: 40, bat: 20 }, boss: true, every: 0.13, max: 42 },
     ],
   },
   {
     // The driving level: vehicle 'truck' = everyone drives a truck (js/vehicles.js). start = where you start (x).
-    name: 'Highway Escape', blurb: 'The final level! Your helicopter ran out of fuel. Grab a truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
+    name: 'Highway Escape', blurb: 'The final level! You climbed out of the sewers right next to the highway. Grab a truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
     vehicle: 'truck', start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossType: 'roadhulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
     finale: true,   // after the last wave: "IT'S NOT OVER!", a flood of zombies, then the air force (js/finale.js)
     platforms: [['car', 1150, 96, '#6a6a7a'], ['bus', 1900, 250], ['container', 2900, 180, '#3a6a8a'], ['van', 3800, 130], ['car', 4600, 96, '#8a3b3b'],
@@ -219,9 +239,9 @@ const LEVELS = [
     waves: [
       // About 1,000 zombies with one player: there are lots to run over.
       { mix: { walker: 100, runner: 60, dog: 40 }, every: 0.22, max: 30 },
-      { mix: { walker: 110, runner: 60, dog: 40, crow: 20, bloater: 20 }, every: 0.2, max: 32 },
-      { mix: { walker: 120, runner: 70, brute: 20, roo: 30, sheep: 30, giant: 10 }, every: 0.18, max: 34 },
-      { mix: { walker: 130, runner: 70, dog: 40, bear: 6, giant: 8, crow: 20 }, boss: true, every: 0.16, max: 36 },
+      { mix: { walker: 98, runner: 60, dog: 40, crow: 20, bloater: 20, bombie: 12 }, every: 0.2, max: 32 },
+      { mix: { walker: 108, runner: 70, brute: 20, roo: 30, sheep: 30, giant: 10, thrower: 12 }, every: 0.18, max: 34 },
+      { mix: { walker: 112, runner: 70, dog: 40, bear: 6, giant: 8, crow: 20, bombie: 10, thrower: 8 }, boss: true, every: 0.16, max: 36 },
     ],
   },
 ];

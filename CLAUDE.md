@@ -83,3 +83,8 @@ A side-scrolling zombie shooter for Jacob and his friends. Plain HTML5 canvas + 
 - Tests change the save (`localStorage` key `jacob-zombie-survival.v1`): back it up first and put it back afterwards, on every origin you used. Set the page's in-memory `save` too (`Object.assign(save, ...)`) before reloading, or the page writes the test save back.
 - When the app window isn't open, pane screenshots don't refresh. Take pictures with headless Chrome instead (`--headless=new --screenshot`, its own `--user-data-dir` in the scratchpad) of a scratch copy of `index.html` with a `<base href>` to this folder and the CSP line removed, plus a small script that sets up the scene with `startLevel`, `spawnZombie` and `step`.
 - Republishing the Artifact may be refused until you read the changed files with the Artifact tool (`action: read`, `paths`).
+
+## README pictures
+- The README shows nine pictures from `screenshots/` (1280x720 JPEG, about 150 KB each; the owner asked for them on 2026-11-14). `python3 tools/take_screenshots.py [scene ...]` retakes them: headless Chrome at 2x with a fresh temporary profile (no saves touched), then macOS `sips`. The scenes are in `tools/screenshot_scenes.js`, and `scene,seconds` tries another moment.
+- Zombies move a little differently every run: look at a picture before committing it, and take a few to pick the best. The air strike waits on `G.finale.t`, not on real seconds (slow motion makes them differ).
+- The scenes start levels by number (`startLevel(15)` = Highway Escape): change them when levels move. Retake a picture when its level, the HUD or the shop changes a lot.

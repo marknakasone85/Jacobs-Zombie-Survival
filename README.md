@@ -3,6 +3,9 @@
 <h2 align="center"><a href="https://marknakasone85.github.io/Jacobs-Zombie-Survival/">▶ PLAY NOW</a></h2>
 <p align="center">Free in your web browser, on any computer, tablet or phone. Nothing to download.</p>
 
+<p align="center"><a href="https://marknakasone85.github.io/Jacobs-Zombie-Survival/"><img src="screenshots/air-strike.jpg" alt="The end of the last level: three heavy bombers carpet bomb a flood of zombies and giants while the player fires a minigun from a pickup truck" width="100%"></a><br>
+<sub>The twist at the end of the last level: heavy bombers carpet bomb the zombie flood.</sub></p>
+
 A side-scrolling zombie shooter. You're a regular civilian with a pistol and the zombies are coming.
 Blast them, grab the coins they drop, find the coins hidden around each map, and buy bigger guns in the shop.
 Ammo never runs out. (made by a 9 year old with Claude Code)
@@ -16,6 +19,27 @@ Ammo never runs out. (made by a 9 year old with Claude Code)
 Your coins, guns and levels are saved in the web browser you play in.
 
 The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
+
+## Pictures from the game
+
+<table>
+<tr>
+<td width="50%"><img src="screenshots/sky-escape.jpg" alt="Two players flying helicopters over a bridge at sunrise, shooting zombie crows"><br><b>Sky Escape:</b> two friends fly helicopters over the bridge.</td>
+<td width="50%"><img src="screenshots/new-york-city.jpg" alt="Two players back to back in New York City with zombies coming from both sides"><br><b>New York City:</b> back to back, with zombies coming from both sides.</td>
+</tr>
+<tr>
+<td><img src="screenshots/zombie-beach.jpg" alt="A player with an auto shotgun on the beach facing a pirate crab boss and small crabs"><br><b>Zombie Beach:</b> Captain Crab and his crabs.</td>
+<td><img src="screenshots/shopping-mall.jpg" alt="A player with a plasma rifle in the mall, mannequins and a giant pink bunny mascot"><br><b>Shopping Mall:</b> the Mega Mascot, and mannequins that only move when you're not looking.</td>
+</tr>
+<tr>
+<td><img src="screenshots/sewer-escape.jpg" alt="A player with a flamethrower in the sewer facing a big green slime monster"><br><b>Sewer Escape:</b> the Sludge Monster, slime blobs, rats and a Bomb Carrier.</td>
+<td><img src="screenshots/frozen-forest.jpg" alt="A player firing a rocket launcher at a yeti, a bear and penguins in a snowy forest"><br><b>Frozen Forest:</b> the Yeti, a bear and sliding penguins.</td>
+</tr>
+<tr>
+<td><img src="screenshots/exploding-barrels.jpg" alt="A chain of barrels exploding through a crowd of zombies at the army base"><br><b>Army Base:</b> one shot, and the barrels go off in a chain.</td>
+<td><img src="screenshots/gun-shop.jpg" alt="The gun shop between waves, with guns to buy, equip or sell back"><br><b>The Gun Shop:</b> spend your coins between waves.</td>
+</tr>
+</table>
 
 ## How it works
 
@@ -267,6 +291,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop
 - `share-on-network.command`, `tools/share_server.py`: shares the game on your home Wi-Fi
 - `tools/make_artifact.py`: makes `artifact.html`, the page for the Claude Artifact
+- `screenshots/`: the pictures on this page. `python3 tools/take_screenshots.py` takes them again with Google Chrome on a Mac (the scenes are set up in `tools/screenshot_scenes.js`)
 - `LICENSE`: the MIT license
 
 ## About

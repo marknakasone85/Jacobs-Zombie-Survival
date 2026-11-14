@@ -1,11 +1,18 @@
 'use strict';
-// The driving level (a level with  vehicle: true  in js/levels.js, like Highway Escape).
-// Every player drives their own pickup truck and stands in the back with all their guns:
+// Vehicles: a level with  vehicle: 'truck'  (Highway Escape) or  vehicle: 'heli'  (Sky Escape) in js/levels.js.
+// p.veh = 'truck' or 'heli', p.vface = which way it faces, p.facing = which way you aim.
+//
+// TRUCKS: every player drives their own pickup truck and stands in the back with all their guns:
 //   left/right  drive (the truck turns round when you change direction)   jump  the truck hops
 //   down  drop off a wreck   fire  shoot at zombies in front OR behind (auto-aim looks both ways)
 // Driving into zombies runs them over: the faster you go, the harder they fly. Big ones and bosses
 // stop the truck dead, so shoot those. Driving into a barrel sets it off!
+//
+// HELICOPTERS: every player flies their own helicopter and stands in its open side door:
+//   left/right  fly   jump  go up   down  go down   (let go and it hovers)   fire  shoot, in front, behind or straight down
+// Fly low and fast to chop zombies (and crows) with the rotor. Big ones knock you back.
 // Also here: the highway's backgrounds (THEMES.highway).
+
 
 const TRUCK = {
   w: 118, h: 100,     // size (the zombies bite the truck, and you)
@@ -15,10 +22,25 @@ const TRUCK = {
   jump: 640,          // hop
   ram: 130,           // the slowest speed that still runs zombies over
 };
+const HELI = {
+  w: 110, h: 84,      // size of the cabin (zombies have to touch it to bite)
+  max: 430, accel: 900, drag: 500,   // flying sideways
+  climb: 900, maxVy: 330,            // going up and down
+  top: 96,            // how high you can go
+  hover: 160,         // how high you start
+  ram: 200,           // the slowest speed that still chops zombies
+};
 const TRUCK_COLS = ['#c8372b', '#2f6fd8', '#3aa860', '#e8a020'];   // one color for each player
-const riderX = p => p.x - (p.vface || 1) * 22;   // you stand in the truck bed, behind the cab
+// Where you stand: dx = how far back from the middle (in the truck bed, or the helicopter's door), up = how high your feet are.
+const RIDE = { truck: { dx: -22, up: TRUCK.bed }, heli: { dx: -4, up: 16 } };
+const riderX = p => p.x + (p.vface || 1) * RIDE[p.veh].dx;
+const riderUp = p => RIDE[p.veh].up;
 
-function enterTruck(p) { p.veh = true; p.vface = p.facing || 1; p.w = TRUCK.w; p.h = TRUCK.h; }
+function enterVehicle(p, kind) {
+  const V = kind === 'heli' ? HELI : TRUCK;
+  p.veh = kind === 'heli' ? 'heli' : 'truck'; p.vface = p.facing || 1; p.w = V.w; p.h = V.h;
+  if (p.veh === 'heli') { p.y = p.prevY = GROUND - HELI.hover; p.onGround = false; }
+}
 
 function driveTruck(p, dt) {
   const move = (held(p, 'right') ? 1 : 0) - (held(p, 'left') ? 1 : 0);
@@ -47,14 +69,30 @@ function driveTruck(p, dt) {
   if (p.onGround && Math.abs(p.vx) > 300 && Math.random() < dt * 8) dust(p.x - p.vface * 55, p.y, 1, '#8a8496');
   ramZombies(p);
 }
-// Run them over! Only what's in front of the truck (the way it's moving) gets hit.
+function flyHeli(p, dt) {
+  const move = (held(p, 'right') ? 1 : 0) - (held(p, 'left') ? 1 : 0), lift = (held(p, 'jump') ? 1 : 0) - (held(p, 'down') ? 1 : 0);
+  if (move) { p.vx += move * HELI.accel * dt; p.vface = move; } else p.vx = approach(p.vx, 0, HELI.drag * dt);
+  p.vx = clamp(p.vx, -HELI.max, HELI.max);
+  p.vy = approach(p.vy, lift ? -lift * HELI.maxVy : Math.sin(G.t * 2.5 + p.id) * 14, HELI.climb * dt);   // let go and it hovers, bobbing a little
+  const lo = 70, hi = G.level.worldW - 70;
+  p.x += p.vx * dt;
+  if (p.x < lo || p.x > hi) { p.x = clamp(p.x, lo, hi); p.vx = 0; }
+  p.prevY = p.y; p.y += p.vy * dt;
+  if (p.y < HELI.top) { p.y = HELI.top; p.vy = Math.max(0, p.vy); }
+  p.onGround = p.y >= GROUND; p.onPlat = null;
+  if (p.onGround) { p.y = GROUND; p.vy = Math.min(0, p.vy); }
+  p.walkT += dt * 40;
+  if (p.y > GROUND - 80 && Math.random() < dt * 20) dust(p.x + rand(-50, 50), GROUND, 1, '#c8c0d8');   // the rotor blows the dust up
+  ramZombies(p);
+}
+// Run them over (or chop them with the rotor)! Only what's in front, the way you're moving, gets hit.
 function ramZombies(p) {
-  const sp = Math.abs(p.vx), dir = Math.sign(p.vx);
-  if (sp < TRUCK.ram) return;
+  const heli = p.veh === 'heli', V = heli ? HELI : TRUCK, sp = Math.abs(p.vx), dir = Math.sign(p.vx);
+  if (sp < V.ram) return;
   for (const z of G.zombies) {
-    if (z.dead || z.T.fly || z.ramCd > 0) continue;
+    if (z.dead || (z.T.fly && !heli) || z.ramCd > 0) continue;
     const dx = z.x - p.x;
-    if (Math.abs(dx) > TRUCK.w / 2 + z.w / 2 - 4 || dx * dir < -10 || z.y < p.y - 60 || z.y - z.h > p.y) continue;
+    if (Math.abs(dx) > V.w / 2 + z.w / 2 - 4 || dx * dir < -10 || z.y < p.y - p.h * 0.6 || z.y - z.h > p.y) continue;
     z.ramCd = 0.45;
     const heavy = z.T.boss || z.mass >= 5;
     hurtZombie(z, 30 + sp * 0.18, dir * (heavy ? 120 : 260 + sp * 0.9), heavy ? 0 : -(260 + sp * 0.5), true);
@@ -66,7 +104,7 @@ function ramZombies(p) {
   }
   for (const b of G.barrels) {
     if (b.gone || b.fly || b.drop > 0 || b.armed) continue;
-    if (Math.abs(b.x - p.x) < TRUCK.w / 2 + b.w / 2 && (b.x - p.x) * dir > -10 && Math.abs(b.y - p.y) < 40) hitBarrel(b, 99, dir);
+    if (Math.abs(b.x - p.x) < V.w / 2 + b.w / 2 && (b.x - p.x) * dir > -10 && Math.abs(b.y - p.y) < 40) hitBarrel(b, 99, dir);
   }
 }
 
@@ -106,6 +144,32 @@ function drawTruck(c, p, front) {
   wheel(-36); wheel(38);
   if (p.dead) {   // a wrecked truck smokes
     for (let k = 0; k < 4; k++) { const ph = (G.t * 0.7 + k / 4) % 1; c.globalAlpha = (1 - ph) * 0.5; circle(c, 40 + ph * 10, -60 - ph * 50, 6 + ph * 12, '#3a3640'); }
+    c.globalAlpha = 1;
+  }
+  c.restore();
+}
+
+// The player's helicopter, in two layers like the truck: front = false is the whole helicopter with its open door,
+// front = true is the door sill in front of your feet.
+function drawChopper(c, p, front) {
+  const col = p.dead ? '#4a4650' : TRUCK_COLS[p.id % TRUCK_COLS.length], dark = shade(col, -0.32), light = shade(col, 0.2);
+  c.save(); c.translate(p.x, p.y); c.scale(p.vface || 1, 1);
+  if (front) { fillRR(c, -26, -18, 44, 7, 3, dark); c.restore(); return; }
+  fillRR(c, -122, -60, 84, 12, 6, dark);                              // tail boom
+  poly(c, [-122, -60, -134, -86, -126, -86, -112, -58], col);         // tail fin
+  c.fillStyle = 'rgba(40,40,50,0.6)'; c.beginPath(); c.ellipse(-128, -74, 3, p.dead ? 12 : 14 * Math.abs(Math.sin(G.t * 50)) + 2, 0, 0, Math.PI * 2); c.fill();   // tail rotor
+  c.fillStyle = col; c.beginPath(); c.ellipse(0, -46, 52, 34, 0, 0, Math.PI * 2); c.fill();   // body
+  c.fillStyle = light; c.fillRect(-40, -34, 76, 4);
+  c.fillStyle = '#7ac8ff'; c.beginPath(); c.ellipse(32, -50, 19, 18, 0, 0, Math.PI * 2); c.fill();   // cockpit window
+  c.fillStyle = 'rgba(255,255,255,0.5)'; c.beginPath(); c.ellipse(36, -58, 6, 3, -0.4, 0, Math.PI * 2); c.fill();
+  fillRR(c, -24, -76, 40, 60, 8, '#141018');                          // the open door (dark inside)
+  c.strokeStyle = '#3a3a40'; c.lineWidth = 3; c.beginPath();          // skids
+  c.moveTo(-24, -14); c.lineTo(-28, 0); c.moveTo(22, -14); c.lineTo(26, 0); c.moveTo(-50, 0); c.lineTo(42, 0); c.quadraticCurveTo(50, 0, 52, -5); c.stroke();
+  c.fillStyle = '#3a3a40'; c.fillRect(-3, -90, 6, 12);                // rotor mast and spinning blades
+  if (!p.dead) { c.fillStyle = 'rgba(200,200,210,0.2)'; c.beginPath(); c.ellipse(0, -90, 118, 6, 0, 0, Math.PI * 2); c.fill(); }
+  for (const a of p.dead ? [0.4] : [G.t * 40 + p.id, G.t * 40 + p.id + Math.PI / 2]) { const w = 116 * Math.cos(a); fillRR(c, Math.min(0, w), -92, Math.abs(w), 4, 2, 'rgba(50,50,60,0.85)'); }
+  if (p.dead) {   // a crashed helicopter smokes
+    for (let k = 0; k < 4; k++) { const ph = (G.t * 0.7 + k / 4) % 1; c.globalAlpha = (1 - ph) * 0.5; circle(c, 10 + ph * 10, -70 - ph * 50, 6 + ph * 12, '#3a3640'); }
     c.globalAlpha = 1;
   }
   c.restore();

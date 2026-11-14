@@ -233,3 +233,35 @@ function kingBloatHead(c, z, fl) {
   c.restore();
   if (z.pose === 1 && !z.dead) { circle(c, 5, 5, 4.2, '#9acd32'); circle(c, 4, 4, 1.4, '#e0ff9a'); }
 }
+// The Sewer Gator (New York City): a giant zombie alligator. pose 1 = jaws wide open (about to lunge), pose 2 = lunging.
+function drawGator(c, z, k, atk) {
+  const fl = k.fl, walk = z.dead ? 0 : Math.sin(z.walkT * 1.2), sway = Math.sin(G.t * 3 + z.phase);
+  const open = z.dead ? 0.1 : Math.max(atk, z.pose === 1 ? 0.65 + Math.sin(G.t * 20) * 0.12 : z.pose === 2 ? 0.45 : 0.1);
+  const skin = k.fur, dark = k.dark, belly = fl ? '#ffffff' : z.shirt;
+  c.fillStyle = dark; c.beginPath();   // the long tail
+  c.moveTo(-60, -40); c.quadraticCurveTo(-120, -34 + sway * 6, -178, -14 + sway * 12); c.quadraticCurveTo(-118, -10, -60, -14); c.closePath(); c.fill();
+  for (let i = 0; i < 8; i++) { const u = i / 8, x = -70 - u * 100, y = -38 + u * 18 + sway * 8 * u; poly(c, [x - 5, y + 2, x, y - 7 + u * 3, x + 5, y + 2], dark); }   // spiky ridge
+  const leg = (x, a, col) => { c.save(); c.translate(x, -18); c.rotate(a); fillRR(c, -6, 0, 12, 18, 5, col); for (const tx of [-5, 0, 5]) poly(c, [tx - 2, 16, tx + 2, 16, tx + 4, 21], fl ? '#ffffff' : '#e8e0c8'); c.restore(); };
+  leg(-42, walk * 0.5, dark); leg(28, -walk * 0.5, dark);
+  c.fillStyle = skin; c.beginPath(); c.ellipse(-6, -30, 72, 25, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = belly; c.beginPath(); c.ellipse(-6, -13, 62, 8, 0, 0, Math.PI * 2); c.fill();
+  if (!fl) {
+    for (let i = 0; i < 10; i++) circle(c, -62 + i * 12, -50 + Math.abs(i - 4.5) * 0.9, 4, dark);   // bumpy scales
+    c.fillStyle = shade(z.skin, -0.45); c.beginPath(); c.ellipse(-24, -30, 15, 9, 0.2, 0, Math.PI * 2); c.fill();   // rotten patch
+    ribs(c, -30, -34, 5, 9, 'rgba(230,220,190,0.6)');
+  }
+  leg(-30, -walk * 0.5, skin); leg(42, walk * 0.5, skin);
+  c.save(); c.translate(56, -32);
+  c.fillStyle = '#3a0a10'; poly(c, [0, -2, 64, -2 - open * 34, 62, 4 + open * 22], '#3a0a10');   // inside the mouth
+  c.save(); c.rotate(open * 0.32);   // the lower jaw
+  poly(c, [0, 2, 66, 2, 70, 7, 0, 12], skin);
+  c.fillStyle = fl ? '#ffffff' : '#f0ead8'; for (let x = 10; x < 64; x += 8) poly(c, [x, 2, x + 3, -4, x + 6, 2]);
+  c.restore();
+  c.save(); c.rotate(-open * 0.42);   // the upper jaw, eye and nostrils
+  poly(c, [0, -14, 64, -8, 74, -3, 70, 2, 0, 3], skin);
+  c.fillStyle = fl ? '#ffffff' : '#f0ead8'; for (let x = 8; x < 66; x += 8) poly(c, [x, 1, x + 3, 7, x + 6, 1]);
+  circle(c, 14, -14, 7, dark); zEye(c, 15, -15, 3, z.eye, z.dead);
+  circle(c, 68, -6, 1.6, '#1a1a1a');
+  c.restore();
+  c.restore();
+}

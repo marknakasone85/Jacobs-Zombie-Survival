@@ -215,7 +215,7 @@ const NetGame = {
       p.prof.armors = maskArmors(a[28] || 0); p.prof.armor = p.armorId; p.prof.boost = a[29] || 0;
       p.prof.nades = Object.fromEntries(NADE_IDS.map((id, i) => [id, (Array.isArray(a[30]) && +a[30][i]) || 0])); p.prof.nade = NADE_IDS[a[31]] || 'frag';
       if ((a[32] || 0) > (p.throwT || 0) + 0.02) p.throwT = a[32];   // a new grenade throw started (we animate it here)
-      p.veh = !!G.level.vehicle; p.vface = a[33] === -1 ? -1 : 1;   // in a truck on the driving level (js/vehicles.js)
+      p.veh = G.level.vehicle || false; p.vface = a[33] === -1 ? -1 : 1;   // in a truck or helicopter on the vehicle levels (js/vehicles.js)
       return p;
     });
     const oldZ = new Map(G.zombies.map(z => [z.uid, z]));
@@ -287,7 +287,7 @@ const NetGame = {
       Sound.hold('flame' + p.id, p.weapon === 'incin' ? 'inferno' : 'flame', p.firing && !p.dead && isFlame(WMAP[p.weapon].kind), p.x);
       Sound.hold('motor' + p.id, 'motor', p.firing && !p.dead && p.weapon === 'minigun', p.x);
       Sound.hold('hum' + p.id, 'hum', !p.dead && p.weapon === 'saber', p.x);
-      if (p.veh) Sound.hold('engine' + p.id, 'engine', PLAYING.includes(G.state) && !p.dead, p.x, Math.abs(p.vx) / TRUCK.max);
+      if (p.veh) Sound.hold('engine' + p.id, p.veh === 'heli' ? 'rotor' : 'engine', PLAYING.includes(G.state) && !p.dead, p.x, Math.abs(p.vx) / TRUCK.max);
     }
     this.sendInput(dt);
     // Heartbeat, and keep saying hello until the host has us on its list.

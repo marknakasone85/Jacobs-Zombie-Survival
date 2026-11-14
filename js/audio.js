@@ -440,6 +440,7 @@ const Sound = (() => {
     mower: { f0: [95, 115], shift: 0.9, rasp: 0.8, raspHz: 26, breath: 0.3, vol: 0.45 },   // a grumpy zombie dad (and his mower)
     rat: { f0: [380, 460], shift: 1.4, rasp: 0.6, raspHz: 50, breath: 0.5, vol: 0.42 },
     yeti: { f0: [62, 74], shift: 0.66, rasp: 1, raspHz: 18, breath: 0.45, vol: 0.75 },     // roars like a bear
+    gator: { f0: [58, 68], shift: 0.7, rasp: 1, raspHz: 14, breath: 0.6, vol: 0.7 },
   };
   function squelch(x, vol = 0.5) { const b = bus(x, vol, 0.05); nz(b, { dur: 0.05, type: 'bandpass', f0: rand(500, 900), q: 1.2, vol: 0.9 }); osc(b, { dur: 0.05, f0: 140, f1: 70, vol: 0.4 }); }
   function splat(x) { const b = bus(x, 0.7, 0.15); nz(b, { at: 0.05, dur: 0.25, f0: 900, f1: 90, vol: 1 }); osc(b, { at: 0.05, dur: 0.12, f0: 120, f1: 50, vol: 0.5 }); }
@@ -496,6 +497,15 @@ const Sound = (() => {
       else if (kind === 'die') { if (limited('zdie', 40)) return; squeak(0, { f0: f * 2.4, f1: f * 0.8, dur: 0.9, rasp: 1 }); splat(x); }
       else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.5); if (Math.random() < 0.5) squeak(0, { vol: v.vol * 0.6 }); }
       else { squeak(0, { f0: f * 1.6, f1: f * 2.8, dur: 1.4, vol: v.vol * 1.6, rasp: 1, wet: 0.5, echo: 0.3 }); const b = bus(x, 0.7, 0.3); nz(b, { at: 0.2, dur: 1.2, type: 'highpass', f0: 3000, vol: 0.4, atk: 0.1 }); }   // a huge squeal and a hiss
+    } else if (body === 'gator') {   // hisses, a deep bellow, and jaws SNAPPING shut
+      const hiss = (at, dur, vol) => { const b = bus(x, vol, 0.2); nz(b, { at, dur, type: 'highpass', f0: 2500, vol: 0.6, atk: 0.05 }); };
+      const snap = at => { const b = bus(x, 1, 0.15), p = shaper(b, punch); nz(p, { at, dur: 0.05, type: 'bandpass', f0: 1200, q: 2, vol: 1.2 }); osc(b, { at, dur: 0.15, f0: 120, f1: 50, vol: 0.9 }); };
+      if (kind === 'groan') V({ f0: f, f1: f * 0.85, dur: 1.2, from: 'uh', to: 'oo', atk: 0.2, vol: v.vol * 0.8 });
+      else if (kind === 'screech') hiss(0, 0.8, 0.8);
+      else if (kind === 'attack') { if (limited('zatk', 60)) return; snap(0); }
+      else if (kind === 'die') { if (limited('zdie', 40)) return; V({ f0: f * 1.2, f1: f * 0.5, dur: 1.4, from: 'ah', to: 'oo', rasp: 1, atk: 0.05 }); splat(x); }
+      else if (kind === 'hit') { if (limited('zhit', 45)) return; squelch(x, 0.6); }
+      else { V({ f0: f, f1: f * 0.6, dur: 2.2, from: 'uh', to: 'aa', atk: 0.2, wet: 0.5, echo: 0.3, vol: v.vol * 1.5 }); hiss(0.4, 1.2, 0.7); snap(1.6); }
     } else {   // bear (and the Yeti)
       const growl = (o) => V({ f0: f, f1: f * 0.8, dur: rand(1, 1.4) * big, from: 'uh', to: 'oo', atk: 0.15, ...o });
       if (kind === 'groan') growl({ vol: v.vol * 0.7 });

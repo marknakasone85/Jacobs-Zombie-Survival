@@ -59,9 +59,15 @@ const ZTYPES = {
   // King Bloat spits goo and belly-flops. When he pops, little bloaters burst out! (minis = how many)
   kingbloat: { name: 'King Bloat', boss: true, throws: 'goo', minis: 4, w: 104, h: 136, hp: 950, speed: [36, 42], dmg: 28, coins: [50, 60], jump: 480, mass: 12, atk: 1.2, eye: '#d4ff3a', heart: 1,
     skins: ['#a8b84a'], shirts: ['#6a4a2a'] },
+  // The Sewer Gator (New York City): a giant zombie alligator. It opens its jaws wide, then LUNGES. (shirts = its belly)
+  gator: { name: 'The Sewer Gator', body: 'gator', boss: true, w: 200, h: 64, hp: 2800, speed: [70, 78], dmg: 36, coins: [70, 80], jump: 520, mass: 12, atk: 1.0, eye: '#ffcc2e', heart: 1,
+    skins: ['#4f6a3a'], shirts: ['#c8c8a0'] },
+  // The Storm Crow (Sky Escape): a GIANT zombie crow that circles and dives at your helicopter.
+  stormcrow: { name: 'The Storm Crow', body: 'crow', fly: true, boss: true, w: 150, h: 110, hp: 1600, speed: [190, 210], dmg: 26, coins: [60, 70], jump: 0, mass: 8, atk: 0.9, eye: '#ff2e2e', heart: 1,
+    skins: ['#18161e'], shirts: ['#e8e0c8'] },
 };
 // How hard each kind of animal knocks you back when it hits you.
-const KNOCK = { sheep: 1.4, roo: 1.9, bear: 1.5, mower: 1.8, rat: 1.4, yeti: 1.6 };
+const KNOCK = { sheep: 1.4, roo: 1.9, bear: 1.5, mower: 1.8, rat: 1.4, yeti: 1.6, gator: 1.8 };
 const PANTS = ['#3a3f5a', '#4a4038', '#2f3a2f', '#50463a', '#3a2f3f'];
 const ZTYPE_NAMES = Object.keys(ZTYPES);
 
@@ -151,7 +157,7 @@ function updateZombies(dt) {
       // Stuck in sticky slime (js/barrels.js): a slow wade, and no charging, hopping or jumping.
       const stuck = z.sticky > 0;
       if (stuck) { z.vx *= z.T.boss ? 0.45 : SLIME_SLOW; z.chargeT = z.windT = 0; z.pose = 0; }
-      if ((body === 'sheep' || body === 'mower') && !stuck) sheepCharge(z, target, adx, dir, dt);   // Mr. Mower charges like a sheep
+      if ((body === 'sheep' || body === 'mower' || body === 'gator') && !stuck) sheepCharge(z, target, adx, dir, dt);   // Mr. Mower and the Sewer Gator charge like a sheep
       if (z.T.throws && !stuck) bossThrowAI(z, target, adx, dir, dt);   // snowballs and goo (js/bosses.js)
       if (body === 'roo' && !stuck) rooHop(z, target, adx, dir, sp, dt);
       else if (!stuck && z.onGround && !(z.chargeT > 0) && !(z.windT > 0) && !(z.throwT > 0)) {
@@ -165,7 +171,7 @@ function updateZombies(dt) {
           const big = body === 'rat' ? 1 : 0;   // the Rat King's pounce is HUGE
           z.vy = -360 - big * 160; z.kbx += dir * (430 + big * 520); z.onGround = false; z.jumpCd = rand(1.6, 2.6) + big;   // POUNCE
           Sound.zombie(z, 'screech');
-        } else if (z.T.boss && body !== 'sheep' && body !== 'mower') {
+        } else if (z.T.boss && body !== 'sheep' && body !== 'mower' && body !== 'gator') {
           z.stompCd -= dt;
           if (z.stompCd <= 0 && adx < 600) { z.vy = -520; z.onGround = false; z.stomping = true; z.stompCd = rand(4, 6); }
         }
@@ -250,6 +256,7 @@ function updateFlyer(z, target, dt) {
       const side = dx >= 0 ? -1 : 1;
       gx = target.x + side * 150 + Math.sin(G.t * 1.3 + z.phase) * 70;
       gy = Math.min(target.y, GROUND) - 150 + Math.sin(G.t * 2.1 + z.phase) * 28;
+      if (target.veh === 'heli') gy = Math.max(120 + z.h * 0.5, target.y - 40 + Math.sin(G.t * 2.1 + z.phase) * 60);   // round a helicopter at its own height (not up behind the scores)
       if (z.swoopCd <= 0 && Math.abs(dx) < 340) { z.swoopT = 1.1; Sound.zombie(z, 'screech'); }
     }
     for (const p of G.players) {   // peck!
@@ -410,7 +417,7 @@ function drawZombieBars(c) {
 
 // ---- Zombie animals -------------------------------------------------------
 // Each one is drawn facing right with its feet at (0, 0), at its normal size (BASE_H tall), then scaled.
-const BASE_H = { dog: 30, sheep: 42, roo: 78, crow: 22, bear: 66, mower: 100, rat: 70, yeti: 146 };
+const BASE_H = { dog: 30, sheep: 42, roo: 78, crow: 22, bear: 66, mower: 100, rat: 70, yeti: 146, gator: 64 };
 function zEye(c, x, y, r, col, dead) {
   if (dead) {
     c.strokeStyle = '#1a1a1a'; c.lineWidth = 1.1;
@@ -433,7 +440,7 @@ function drawAnimal(c, z) {
   if (z.dead) { c.rotate(-z.facing * Math.min(1, z.deadT * 3) * 1.45); c.globalAlpha = clamp((1.7 - z.deadT) / 0.6, 0, 1); }
   c.scale(z.facing * s, s);
   const atk = z.atkAnim > 0 ? Math.sin((1 - z.atkAnim / 0.35) * Math.PI) : 0;
-  ({ dog: drawDog, sheep: drawSheep, roo: drawRoo, crow: drawCrow, bear: drawBear, mower: drawMower, rat: drawRat, yeti: drawYeti })[b](c, z, col, atk);
+  ({ dog: drawDog, sheep: drawSheep, roo: drawRoo, crow: drawCrow, bear: drawBear, mower: drawMower, rat: drawRat, yeti: drawYeti, gator: drawGator })[b](c, z, col, atk);
   c.restore();
 }
 function dogLeg(c, x, y, ang, color, len = 14) {

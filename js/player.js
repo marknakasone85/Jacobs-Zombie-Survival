@@ -22,11 +22,11 @@ function makePlayer(i, x, o = {}) {
     facing: 1, aim: 0, target: null, cd: 0, recoil: 0, flashT: 0, walkT: 0, nadeCd: 0, throwT: 0,
     weapon: prof.owned.includes(prof.equipped) ? prof.equipped : 'pistol',
   };
-  if (G.level && G.level.vehicle) enterTruck(p);   // the driving level: everyone gets a truck (js/vehicles.js)
+  if (G.level && G.level.vehicle) enterVehicle(p, G.level.vehicle);   // a truck or a helicopter for everyone (js/vehicles.js)
   return p;
 }
 const alivePlayers = () => G.players.filter(p => !p.dead);
-function shoulder(p) { return p.veh ? { x: riderX(p) + p.facing * 3, y: p.y - 44 - TRUCK.bed } : { x: p.x + p.facing * 3, y: p.y - 44 }; }   // in a truck you stand in its bed
+function shoulder(p) { return p.veh ? { x: riderX(p) + p.facing * 3, y: p.y - 44 - riderUp(p) } : { x: p.x + p.facing * 3, y: p.y - 44 }; }   // in a vehicle you stand in it (js/vehicles.js)
 // The arm angle as the (possibly mirrored) body sees it.
 function localAim(p) { return p.facing > 0 ? p.aim : Math.atan2(Math.sin(Math.PI - p.aim), Math.cos(Math.PI - p.aim)); }
 function nearestPlayer(x, y) {
@@ -71,9 +71,10 @@ function updatePlayer(p, dt) {
     if (buddy && p.deadT > RESPAWN_TIME) revive(p, buddy.x - buddy.facing * 30, 60);
     return;
   }
-  if (p.veh) driveTruck(p, dt);   // the driving level (js/vehicles.js)
+  if (p.veh === 'heli') flyHeli(p, dt);   // the vehicle levels (js/vehicles.js)
+  else if (p.veh) driveTruck(p, dt);
   else walk(p, dt);
-  if (p.veh) Sound.hold('engine' + p.id, 'engine', true, p.x, Math.abs(p.vx) / TRUCK.max);
+  if (p.veh) Sound.hold('engine' + p.id, p.veh === 'heli' ? 'rotor' : 'engine', true, p.x, Math.abs(p.vx) / TRUCK.max);
 
   updateAim(p, dt);
   p.cd -= dt;
@@ -105,7 +106,7 @@ function updateAim(p, dt) {
     if (z.dead) continue;
     const dx = z.x - sh.x; if (!p.veh && dx * p.facing < -4) continue;   // from a truck you can shoot behind you too
     const dy = (z.y - z.h * 0.5) - sh.y, d = Math.hypot(dx, dy);
-    if (d > range || Math.abs(Math.atan2(dy, Math.abs(dx))) > (z.T.fly ? 1.25 : 0.8)) continue;   // crows can be high up
+    if (d > range || Math.abs(Math.atan2(dy, Math.abs(dx))) > (z.T.fly || p.veh === 'heli' ? 1.45 : 0.8)) continue;   // crows can be high up; from a helicopter you shoot down
     if (d < bd) { bd = d; best = z; }
   }
   if (p.veh) p.facing = best ? (best.x >= sh.x ? 1 : -1) : p.vface;   // in a truck you turn to whichever zombie is closest
@@ -237,18 +238,19 @@ function muzzleFlash(c, x, y, kind) {
   else { poly(c, [0, -5 * s, 9 * s, -1.5 * s, 18 * s, 0, 9 * s, 1.5 * s, 0, 5 * s, 4 * s, 0], '#ffd36b'); circle(c, 3 * s, 0, 4.5 * s, '#fff4c0'); }
   c.restore();
 }
-// A player: a civilian, standing in their truck on the driving level.
+// A player: a civilian, standing in their truck or helicopter on the vehicle levels (js/vehicles.js).
 function drawPlayer(c, p) {
   if (!p.veh) { drawCivilian(c, p); return; }
-  drawTruck(c, p, false);   // the inside of the truck bed, behind you (js/vehicles.js)
+  const draw = p.veh === 'heli' ? drawChopper : drawTruck;
+  draw(c, p, false);   // the truck bed or the helicopter, behind you
   const climbed = G.state === 'rescue' && onLadder(p, G.rescueT || 0);   // the ending: you're up the helicopter's ladder (js/rescue.js)
   if (!climbed) {
     const ox = p.x, oy = p.y;
-    if (!(p.dead && p.deadT > 2.2)) { p.x = riderX(p); p.y -= TRUCK.bed; }
+    if (!(p.dead && p.deadT > 2.2)) { p.x = riderX(p); p.y -= riderUp(p); }
     drawCivilian(c, p);
     p.x = ox; p.y = oy;
   }
-  drawTruck(c, p, true);    // the rest of the truck, in front of your legs
+  draw(c, p, true);    // the bits in front of your legs
 }
 function drawCivilian(c, p) {
   const wp = WMAP[p.weapon], k = p.look, A = ARMOR_LOOK[p.armorId] || null;   // A = the armor you're wearing (js/gear.js)

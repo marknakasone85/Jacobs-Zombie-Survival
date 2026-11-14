@@ -19,7 +19,8 @@
 //   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo', 'grizz',
 //              'mower', 'ratking', 'yeti' or 'kingbloat' (js/bosses.js).  bossLine = what the banner says when it shows up
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
-//   vehicle    true = everyone drives a truck (js/vehicles.js).  start = where the players start (x)
+//   vehicle    'truck' = everyone drives a truck, 'heli' = everyone flies a helicopter (js/vehicles.js).  start = where the players start (x)
+//   New levels go BEFORE the last one (the last level ends with the rescue), and the save needs moving: see loadSave in js/util.js.
 //   The ending after the last level (the rescue helicopter) is in js/rescue.js.
 
 const LEVELS = [
@@ -173,9 +174,40 @@ const LEVELS = [
     ],
   },
   {
-    // The driving level: vehicle = everyone drives a truck (js/vehicles.js). start = where you start (x).
-    name: 'Highway Escape', blurb: 'The final level! Jump in your truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
-    vehicle: true, start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
+    // The craziest level: 1,200 zombies (with one player) in 5 waves, coming fast and in swarms.
+    name: 'New York City', blurb: 'The big city is OVERRUN! 1,200 zombies swarm the streets, fast. Bring your best guns... and watch out for the Sewer Gator.', theme: 'nyc',
+    worldW: 4200, hp: 2.8, speed: 1.35, boss: 'The Sewer Gator', bossType: 'gator', bossLine: 'It crawled out of the sewers! Jump over its lunge!',
+    platforms: [['taxi', 300, 96], ['cart', 760, 70], ['bus', 1100, 250], ['taxi', 1560, 96], ['scaffold', 1960, 170], ['cart', 2420, 70], ['taxi', 2800, 96], ['bus', 3200, 250], ['taxi', 3700, 96]],
+    coins: [[560, 30, 4], [1000, 40, 3], [1800, 30, 4], [2300, 40, 3], [2650, 30, 4], [3500, 40, 3], [4000, 30, 4]],
+    bigCoins: [[2045, 196], [1225, 140], [3325, 140]],
+    barrels: [['boom', 600], ['gas', 1150], ['zap', 2250], ['oil', 2650], ['goo', 3050], ['boom', 3550], ['ice', 3950]],
+    waves: [
+      { mix: { walker: 100, runner: 60, dog: 30, tiny: 30 }, every: 0.16, max: 40 },
+      { mix: { walker: 90, runner: 50, leaper: 30, crow: 30, bloater: 15, dog: 15 }, every: 0.15, max: 42 },
+      { mix: { walker: 90, runner: 50, brute: 15, tiny: 40, roo: 20, sheep: 15, giant: 10 }, every: 0.14, max: 44 },
+      { mix: { walker: 100, runner: 60, dog: 30, crow: 30, bear: 6, brute: 14, leaper: 10 }, every: 0.13, max: 46 },
+      { mix: { walker: 100, runner: 70, tiny: 40, dog: 25, giant: 8, bloater: 16 }, boss: true, every: 0.12, max: 48 },
+    ],
+  },
+  {
+    // The helicopter level: vehicle 'heli' = everyone flies a helicopter (js/vehicles.js). Coins float high up in the air.
+    name: 'Sky Escape', blurb: 'You grabbed a helicopter! Fly out of the city over the big bridge and blast the horde below. Zombie crows are up here too!', theme: 'bridge',
+    vehicle: 'heli', worldW: 6000, hp: 3.3, speed: 1.3, boss: 'The Storm Crow', bossType: 'stormcrow', bossLine: 'A GIANT zombie crow! Shoot it out of the sky!',
+    platforms: [['car', 700, 96, '#6a6a7a'], ['bus', 1600, 250], ['van', 2700, 130], ['car', 3600, 96, '#8a3b3b'], ['bus', 4500, 250], ['car', 5400, 96, '#3b6a9a']],
+    coins: [[400, 160, 4], [1200, 220, 4], [2400, 180, 4], [3000, 240, 4], [3900, 200, 4], [4800, 160, 4], [5600, 220, 3]],
+    bigCoins: [[1000, 300], [3300, 320], [5000, 300]],
+    barrels: [['boom', 1300], ['gas', 2300], ['zap', 3300], ['boom', 4200], ['oil', 5100]],
+    waves: [
+      { mix: { walker: 20, runner: 10, crow: 16, leaper: 6 }, every: 0.7, max: 22 },
+      { mix: { walker: 22, crow: 20, roo: 8, leaper: 8, dog: 10 }, every: 0.65, max: 24 },
+      { mix: { walker: 24, crow: 24, roo: 10, bloater: 6, brute: 4, giant: 2 }, every: 0.6, max: 26 },
+      { mix: { walker: 26, crow: 26, leaper: 10, roo: 10, giant: 3 }, boss: true, every: 0.55, max: 28 },
+    ],
+  },
+  {
+    // The driving level: vehicle 'truck' = everyone drives a truck (js/vehicles.js). start = where you start (x).
+    name: 'Highway Escape', blurb: 'The final level! Your helicopter ran out of fuel. Grab a truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
+    vehicle: 'truck', start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
     platforms: [['car', 1150, 96, '#6a6a7a'], ['bus', 1900, 250], ['container', 2900, 180, '#3a6a8a'], ['van', 3800, 130], ['car', 4600, 96, '#8a3b3b'],
       ['container', 5500, 180, '#8a4a2a'], ['bus', 6500, 250], ['car', 7500, 96, '#3b6a9a'], ['van', 8300, 130]],
     coins: [[800, 40, 4], [1600, 60, 4], [2500, 40, 4], [3400, 60, 4], [4300, 40, 4], [5200, 60, 4], [6100, 40, 4], [7100, 60, 4], [8000, 40, 4], [8700, 60, 3]],

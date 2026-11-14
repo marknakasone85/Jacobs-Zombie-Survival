@@ -37,7 +37,7 @@ function throwNade(p) {
   const T = NADE_MAP[prof.nade];
   prof.nades[T.id]--;
   p.nadeCd = 0.5; p.throwT = THROW_TIME;
-  const sx = p.x + p.facing * 8, sy = p.y - 56;
+  const sh = shoulder(p), sx = sh.x + p.facing * 5, sy = sh.y - 12;   // from your hand (in a truck, from its bed)
   // Where to: the mouse, or the zombie you're shooting at, or the closest one in front of you, or just ahead.
   let tx, ty, z = null;
   if (p.aimMode === 'mouse') { tx = p.remote ? p.remote.mx : mouse.sx + G.camX; ty = p.remote ? p.remote.my : mouse.sy; }

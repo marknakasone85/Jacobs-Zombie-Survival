@@ -10,7 +10,7 @@
 // Between waves everyone shops together: you see your teammates' wallets, buy for yourself and press READY.
 
 const WEAPON_IDS = WEAPONS.map(w => w.id);
-const BULLET_KINDS = ['pellet', 'bullet', 'slug', 'flame', 'rocket', 'bolt', 'plasma', 'inferno', 'shrap'];
+const BULLET_KINDS = ['pellet', 'bullet', 'slug', 'flame', 'rocket', 'bolt', 'plasma', 'inferno', 'shrap', 'gl', 'hrocket'];
 const r1 = v => Math.round(v * 10) / 10, r2 = v => Math.round(v * 100) / 100;
 const ownedMask = prof => WEAPON_IDS.reduce((m, id, i) => m | (prof.owned.includes(id) ? 1 << i : 0), 0);
 const maskOwned = m => WEAPON_IDS.filter((id, i) => m & (1 << i));
@@ -155,13 +155,14 @@ const NetGame = {
       WEAPON_IDS.indexOf(p.weapon), r2(p.recoil), r2(p.flashT), r2(p.walkT), p.cd <= 0.08 ? 1 : 0, p.prof.coins, r2(p.coinPulse || 0),
       p.target && !p.target.dead ? p.target.uid : 0, p.aimMode === 'mouse' ? 1 : 0, p.firing ? 1 : 0, ownedMask(p.prof), p.maxHp, r2(p.swingT || 0), r2(p.swingDur || 0),
       ARMOR_IDS.indexOf(p.armorId) + 1, Math.ceil(p.armor || 0), p.maxArmor || 0, armorMask(p.prof), p.prof.boost || 0,
-      NADE_IDS.map(id => nadeCount(p.prof, id)), Math.max(0, NADE_IDS.indexOf(p.prof.nade)), r2(p.throwT || 0)]);
+      NADE_IDS.map(id => nadeCount(p.prof, id)), Math.max(0, NADE_IDS.indexOf(p.prof.nade)), r2(p.throwT || 0), p.vface || 1]);
     s.zs = G.zombies.map(z => [z.uid, ZTYPE_NAMES.indexOf(z.type), r1(z.x), r1(z.y), z.facing, z.flash > 0 ? 1 : 0, z.dead ? 1 : 0, r2(z.deadT), r2(z.walkT), r2(z.atkAnim), r2(clamp(z.hp / z.maxHp, 0, 1)), z.ci[0], z.ci[1], z.ci[2], r1(z.phase), z.sz || 1, z.pose || 0, z.onGround ? 1 : 0, z.frozen > 0 ? 1 : 0, z.sticky > 0 ? 1 : 0, z.shocked > 0 ? 1 : 0]);
     s.bu = G.bullets.filter(q => q.dist >= q.hide * 0.7).map(q => [BULLET_KINDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), Math.round(q.vx), Math.round(q.vy), r2(q.life / q.max)]);
     s.gr = G.nades.map(g => [NADE_IDS.indexOf(g.type), Math.round(g.x), Math.round(g.y), r1(g.rot), g.stuck ? 1 : 0, r2(g.fuse)]);
     s.po = G.pools.map(q => [Math.round(q.x), Math.round(q.y), q.w, r2(q.t / q.max), Math.max(0, POOL_KINDS.indexOf(q.kind))]);
     s.es = G.shots.map(q => [SHOT_IDS.indexOf(q.kind), Math.round(q.x), Math.round(q.y), r1(q.rot)]);
     s.kc = [G.run.kills, G.killGoal];
+    if (G.state === 'rescue') s.rs = [r2(G.rescueT), Math.round(G.rescueX)];   // the ending (js/rescue.js)
     s.ba = G.barrels.map(b => [BARREL_IDS.indexOf(b.kind), r1(b.fly ? b.cx : b.x), r1(b.fly ? b.cy : b.y), r2(b.rot), (b.gone ? 1 : 0) | (b.fly ? 2 : 0) | (b.armed ? 4 : 0),
       r2(clamp(b.hp / b.T.hp, 0, 1)), r2(b.drop), r2(b.wob), r2(b.flash)]);
     s.bm = G.beams.map(m => [Math.round(m.x1), Math.round(m.y1), Math.round(m.x2), Math.round(m.y2), r2(m.t)]);
@@ -214,6 +215,7 @@ const NetGame = {
       p.prof.armors = maskArmors(a[28] || 0); p.prof.armor = p.armorId; p.prof.boost = a[29] || 0;
       p.prof.nades = Object.fromEntries(NADE_IDS.map((id, i) => [id, (Array.isArray(a[30]) && +a[30][i]) || 0])); p.prof.nade = NADE_IDS[a[31]] || 'frag';
       if ((a[32] || 0) > (p.throwT || 0) + 0.02) p.throwT = a[32];   // a new grenade throw started (we animate it here)
+      p.veh = !!G.level.vehicle; p.vface = a[33] === -1 ? -1 : 1;   // in a truck on the driving level (js/vehicles.js)
       return p;
     });
     const oldZ = new Map(G.zombies.map(z => [z.uid, z]));
@@ -234,6 +236,7 @@ const NetGame = {
     G.pools = (s.po || []).map(a => ({ x: a[0], y: a[1], w: a[2], k: a[3], kind: POOL_KINDS[a[4]] || 'acid' }));
     G.shots = (s.es || []).map(a => ({ kind: SHOT_IDS[a[0]] || 'snow', x: a[1], y: a[2], rot: a[3] || 0 }));
     if (Array.isArray(s.kc)) G.netKills = s.kc;
+    if (Array.isArray(s.rs)) [G.rescueT, G.rescueX] = s.rs;
     G.barrels = (s.ba || []).map(a => {
       const kind = BARREL_IDS[a[0]] || 'boom', T = BARRELS[kind], f = a[4] | 0;
       return { kind, T, w: T.w, h: T.h, x: a[1], y: a[2], cx: a[1], cy: a[2], rot: a[3] || 0, gone: !!(f & 1), fly: !!(f & 2), armed: !!(f & 4),
@@ -279,10 +282,12 @@ const NetGame = {
     for (const p of G.players) { p.coinPulse = Math.max(0, (p.coinPulse || 0) - dt * 3); p.flashT -= dt; p.swingT = Math.max(0, (p.swingT || 0) - dt); p.throwT = Math.max(0, (p.throwT || 0) - dt); }
     G.hurtFlash = Math.max(0, G.hurtFlash - dt);
     updateFX(dt);
+    if (G.state === 'rescue') { G.rescueT = (G.rescueT || 0) + dt; Sound.hold('rotor', 'rotor', G.rescueT < RESCUE_TIME - 1, heliPos(G.rescueT).x); }
     for (const p of G.players) {
       Sound.hold('flame' + p.id, p.weapon === 'incin' ? 'inferno' : 'flame', p.firing && !p.dead && isFlame(WMAP[p.weapon].kind), p.x);
       Sound.hold('motor' + p.id, 'motor', p.firing && !p.dead && p.weapon === 'minigun', p.x);
       Sound.hold('hum' + p.id, 'hum', !p.dead && p.weapon === 'saber', p.x);
+      if (p.veh) Sound.hold('engine' + p.id, 'engine', PLAYING.includes(G.state) && !p.dead, p.x, Math.abs(p.vx) / TRUCK.max);
     }
     this.sendInput(dt);
     // Heartbeat, and keep saying hello until the host has us on its list.

@@ -113,6 +113,7 @@ function updateZombies(dt) {
     z.atkCd -= dt; z.jumpCd -= dt; z.atkAnim = Math.max(0, z.atkAnim - dt);
     if (z.sticky > 0) z.sticky = Math.max(0, z.sticky - dt);
     if (z.shocked > 0) z.shocked = Math.max(0, z.shocked - dt);
+    if (z.ramCd > 0) z.ramCd -= dt;   // just got run over by a truck (js/vehicles.js)
     // Frozen solid by a Cryo Grenade, or zapped by an electric barrel: no walking, no biting (crows fall out of the sky).
     if (z.frozen > 0 || z.shocked > 0) {
       if (z.frozen > 0) {

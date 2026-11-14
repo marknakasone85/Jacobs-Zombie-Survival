@@ -19,7 +19,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
 
 ## How it works
 
-- **Levels and waves:** 10 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones), and its own **boss**. Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends.
+- **Levels and waves:** 11 levels, and every level has its own series of waves that get bigger and harder (3 waves on the first map, up to 6 on the last ones), and its own **boss**. Between waves the Gun Shop opens. Beat the last wave to unlock the next level. The later levels are HARD: buy better guns, use the platforms, and bring friends. Beat the last level and a rescue helicopter comes for you: **YOU SURVIVED!**
 - **Kill counter:** next to the wave number, a little skull shows how many zombies you've beaten out of everything the level sends, like **37/120** (bosses included). It turns green when you've got them all.
 
   | # | Level | What's new |
@@ -33,7 +33,8 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   | 7 | Creepy Carnival (Ferris wheel, circus tents) | boxing kangaroos, the petting zoo sheep, and the boss: **The Big Top Brute** (6 waves) |
   | 8 | Zombie Farm (sunny morning, barn, cornfield) | dogs, charging sheep, crows, a bear, and the boss: **The Big Bad Ram** (5 waves) |
   | 9 | The Outback (red dirt, gum trees, a giant red rock) | kangaroos everywhere, and the boss: **King Roo** (5 waves) |
-  | 10 | Zombie Zoo (moonlit zoo, open cages) | every animal at once, and the final boss: **Big Grizz** (6 waves) |
+  | 10 | Zombie Zoo (moonlit zoo, open cages) | every animal at once, and the boss: **Big Grizz** (6 waves) |
+  | 11 | Highway Escape (night highway, the burning city behind you) | **you drive a truck!** Zombies from both sides, and the boss: **The Road Hulk** (4 waves). Then the rescue helicopter flies you out |
 
 - **Zombies come in different sizes:** walkers, runners, leapers, brutes, **tiny** zombies (small and fast), **giants** (huge and slow), and **bloaters**. Bloaters pop in a goo explosion when they die: it hurts other zombies, and you if you're standing too close! Every zombie is also a bit bigger or smaller than the last, and bigger ones are tougher.
 - **Zombie animals** (each with its own sounds):
@@ -49,7 +50,7 @@ The code is on GitHub: https://github.com/marknakasone85/Jacobs-Zombie-Survival
   - **The Grave Giant** (Graveyard), **General Rotten** (Army Base) and **The Big Top Brute** (Carnival): huge zombies that stomp the ground.
   - **The Yeti** (Frozen Forest): throws giant snowballs at you and stomps.
   - **King Bloat** (Desert Gas Stop): spits goo and belly-flops. When he pops, four little bloaters burst out of him!
-  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo).
+  - **The Big Bad Ram**, **King Roo** and **Big Grizz** (the farm, the outback and the zoo), and **The Road Hulk**, a giant zombie blocking the highway.
 - **Coins:** zombies drop coins (big zombies drop more), and coins get sucked into you like a **black hole**. They spiral around faster and faster until you swallow them, with a golden swirl around you. Coins dropped by zombies come from anywhere on the map. Coins lying around the map (on cars, sheds, scaffolds, crypts and so on, plus shiny **10-coins** in the hardest spots) start flying to you once you get close. More coins appear each wave. You keep your coins and weapons between games.
 - **Hearts:** zombies sometimes drop a heart (+25 health). You also heal 25 after every wave.
 - **Platforms:** jump up through cars, sheds, the bus, scaffolds and crypts and stand on top. Press Down to drop off. Most zombies can only jump onto low ones, but leapers can reach you anywhere.
@@ -78,8 +79,10 @@ You start with a plain 9mm pistol: save up after the first wave for the Pump Sho
 | AA-12 Auto Shotgun | 550 | a fully automatic shotgun: hold fire for a storm of buckshot |
 | Plasma Rifle | 600 | glowing plasma balls that burn through 3 zombies |
 | Minigun | 700 | a spinning wall of bullets |
+| Grenade Launcher | 750 | lobs grenades in an arc (it aims the arc for you); they bounce once, then explode |
 | Heavy Incinerator | 850 | a monster flamethrower: twice as far and much hotter |
 | Laser Cannon | 1000 | a beam through every zombie in a line |
+| Quad Rocket System | 1200 | the ultimate weapon: four high explosive rockets at once that fly far, smash through 5 zombies each and end in huge explosions. The most damage of any weapon |
 
 ## Grenades
 
@@ -96,6 +99,18 @@ Throw them with **G**, a **right-click** (it throws at the mouse), or the grenad
 | Cryo Grenade | 25 | freezes zombies solid for 3.5 seconds (bosses shake it off sooner). Frozen zombies can't walk or bite, crows fall out of the sky, and frozen zombies take 50% more damage |
 
 Your grenades show at the bottom of your player panel. The kind you'll throw next is lit up.
+
+## The driving level (Highway Escape)
+
+On the last level everyone drives their own pickup truck, with spikes on the front, and stands in the back with all their guns. The controls are the same:
+
+- **Left / right** drives (the truck turns round when you change direction). It's much faster than running.
+- **Jump** makes the truck hop: over a crowd, or up onto a wrecked bus.
+- **Shoot** fires your gun. Auto-aim looks **both ways**, so you can drive forward and shoot the zombies chasing you.
+- **Drive into zombies** to run them over: the faster you go, the further they fly. Giants, brutes and bosses stop your truck dead, so shoot those instead.
+- Driving into a barrel sets it off!
+
+When the last wave is beaten, the rescue helicopter flies in, everybody climbs its rope ladder, and it flies you out of Zombie City. You can watch it again from the end of the level list.
 
 ## Barrels
 
@@ -217,6 +232,8 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/player.js`: the civilians
 - `js/zombies.js`: the zombies and zombie animals
 - `js/bosses.js`: Mr. Mower, the Rat King, the Yeti and King Bloat (their pictures, snowballs and goo)
+- `js/vehicles.js`: the trucks for the driving level, and the highway's backgrounds
+- `js/rescue.js`: the ending (the rescue helicopter and "YOU SURVIVED!")
 - `js/gamepad.js`: game controllers
 - `js/net.js`, `js/netgame.js`: Wi-Fi co-op (connection, lobby, sending the game to friends)
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop

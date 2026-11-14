@@ -19,6 +19,8 @@
 //   boss       the boss's name.  bossType = which boss: 'boss' (a giant zombie, the default), 'ram', 'kingroo', 'grizz',
 //              'mower', 'ratking', 'yeti' or 'kingbloat' (js/bosses.js).  bossLine = what the banner says when it shows up
 //   zombies    walker runner leaper brute tiny giant bloater, and the animals: dog sheep roo crow bear
+//   vehicle    true = everyone drives a truck (js/vehicles.js).  start = where the players start (x)
+//   The ending after the last level (the rescue helicopter) is in js/rescue.js.
 
 const LEVELS = [
   {
@@ -155,7 +157,7 @@ const LEVELS = [
     ],
   },
   {
-    name: 'Zombie Zoo', blurb: 'The final level. Every cage is open: bears, kangaroos, sheep, crows... and Big Grizz.', theme: 'zoo',
+    name: 'Zombie Zoo', blurb: 'Every cage is open: bears, kangaroos, sheep, crows... and Big Grizz.', theme: 'zoo',
     worldW: 3800, hp: 3.2, speed: 1.26, boss: 'Big Grizz', bossType: 'grizz',
     platforms: [['cage', 260, 150], ['kiosk', 700, 130], ['rockpile', 1080, 170], ['train', 1500, 220], ['statue', 2020, 140], ['cage', 2420, 150], ['kiosk', 2860, 130], ['rockpile', 3260, 170]],
     coins: [[500, 30, 4], [920, 40, 3], [1340, 30, 4], [1820, 40, 3], [2260, 30, 4], [2680, 40, 3], [3120, 30, 4], [3560, 40, 3]],
@@ -168,6 +170,22 @@ const LEVELS = [
       { mix: { walker: 20, roo: 10, sheep: 10, bloater: 8, crow: 12 }, every: 0.68, max: 24 },
       { mix: { walker: 22, bear: 4, giant: 2, runner: 14, dog: 12 }, every: 0.65, max: 26 },
       { mix: { walker: 24, roo: 12, sheep: 10, bear: 3, crow: 12, giant: 2 }, boss: true, every: 0.62, max: 26 },
+    ],
+  },
+  {
+    // The driving level: vehicle = everyone drives a truck (js/vehicles.js). start = where you start (x).
+    name: 'Highway Escape', blurb: 'The final level! Jump in your truck and drive through the horde to the rescue helicopter. Run them over!', theme: 'highway',
+    vehicle: true, start: 500, worldW: 9000, hp: 3.4, speed: 1.3, boss: 'The Road Hulk', bossLine: "A giant blocking the road! Shoot it, don't ram it!",
+    platforms: [['car', 1150, 96, '#6a6a7a'], ['bus', 1900, 250], ['container', 2900, 180, '#3a6a8a'], ['van', 3800, 130], ['car', 4600, 96, '#8a3b3b'],
+      ['container', 5500, 180, '#8a4a2a'], ['bus', 6500, 250], ['car', 7500, 96, '#3b6a9a'], ['van', 8300, 130]],
+    coins: [[800, 40, 4], [1600, 60, 4], [2500, 40, 4], [3400, 60, 4], [4300, 40, 4], [5200, 60, 4], [6100, 40, 4], [7100, 60, 4], [8000, 40, 4], [8700, 60, 3]],
+    bigCoins: [[2025, 210], [5590, 200], [6625, 210]],
+    barrels: [['gas', 700], ['boom', 1500], ['oil', 2400], ['boom', 3300], ['zap', 4150], ['gas', 5100], ['boom', 6000], ['oil', 7000], ['goo', 7900], ['boom', 8650]],
+    waves: [
+      { mix: { walker: 20, runner: 14, dog: 12 }, every: 0.6, max: 26 },
+      { mix: { walker: 22, runner: 14, dog: 10, crow: 10, bloater: 6 }, every: 0.58, max: 26 },
+      { mix: { walker: 24, runner: 16, brute: 6, roo: 8, sheep: 8, giant: 2 }, every: 0.55, max: 28 },
+      { mix: { walker: 26, runner: 16, dog: 14, bear: 3, giant: 3, crow: 10 }, boss: true, every: 0.52, max: 28 },
     ],
   },
 ];

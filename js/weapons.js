@@ -4,6 +4,7 @@
 //   cd = seconds between shots   pellets = bullets per shot   spread = how wide they fly (radians)
 //   dmg = damage per bullet      life = how long a bullet flies (sets the range)   pierce = zombies a bullet goes through
 //   len = barrel length (where bullets come out)   grip = where the other hand holds it (0 = one hand)
+//   radius = explosion size   blast = explosion damage (if it's not dmg)   lob = gravity on a lobbed grenade (auto-aim arcs it)
 // Melee weapons (kind 'melee') hit everything in front of you:
 //   reach = how far   swing = how long the swing takes   lift = how high zombies get knocked   quake = ground shockwave size
 
@@ -40,10 +41,14 @@ const WEAPONS = [
     cd: 0.15, pellets: 1, spread: 0.04, speed: 1000, dmg: 24, life: 0.75, knock: 90, pierce: 3, kind: 'plasma', shake: 2, sfx: 'plasma', len: 39, grip: 18, bounds: [-17, 41, -10, 12] },
   { id: 'minigun', name: 'Minigun', price: 700, desc: 'A spinning wall of bullets. Nothing gets close.',
     cd: 0.045, pellets: 1, spread: 0.12, speed: 1350, dmg: 11, life: 0.6, knock: 40, pierce: 1, kind: 'bullet', shake: 1.8, sfx: 'mini', len: 43, grip: 6, bounds: [-10, 44, -13, 15] },
+  { id: 'glauncher', name: 'Grenade Launcher', price: 750, desc: 'Lobs grenades in an arc. They bounce once, then BOOM! It aims the arc for you at the zombie you shoot at.',
+    cd: 0.55, pellets: 1, spread: 0.01, speed: 820, dmg: 230, life: 1.6, knock: 420, pierce: 1, kind: 'gl', radius: 135, lob: 1100, shake: 3, sfx: 'glaunch', len: 30, grip: 15, kick: 30, bounds: [-21, 31, -12, 14] },
   { id: 'incin', name: 'Heavy Incinerator', price: 850, desc: 'A monster flamethrower. Twice as far and way hotter. Melts whole hordes!',
     cd: 0.03, pellets: 3, spread: 0.15, speed: 780, dmg: 4, life: 0.62, knock: 18, pierce: 99, kind: 'inferno', shake: 0.8, sfx: 'flame', len: 47, grip: 18, bounds: [-21, 51, -9, 15] },
   { id: 'laser', name: 'Laser Cannon', price: 1000, desc: 'Zaps a beam through EVERY zombie in a line.',
     cd: 0.32, pellets: 1, spread: 0, speed: 0, dmg: 55, life: 0, range: 950, knock: 120, pierce: 999, kind: 'laser', shake: 3, sfx: 'laser', len: 35, grip: 14, bounds: [-12, 38, -11, 10] },
+  { id: 'quad', name: 'Quad Rocket System', price: 1200, desc: 'The ultimate weapon! Four high explosive rockets at once. They fly far, smash through 5 zombies each and end in HUGE explosions.',
+    cd: 1.5, pellets: 4, spread: 0.05, speed: 700, dmg: 120, blast: 450, life: 1.0, knock: 330, pierce: 5, kind: 'hrocket', radius: 200, shake: 9, sfx: 'quad', len: 36, grip: 14, kick: 170, bounds: [-16, 38, -21, 16] },
 ];
 const WMAP = Object.assign(Object.create(null), Object.fromEntries(WEAPONS.map(w => [w.id, w])));   // only real guns: names like "constructor" from a friend's device find nothing
 const isFlame = kind => kind === 'flame' || kind === 'inferno';   // the flamethrower and the Heavy Incinerator
@@ -137,6 +142,30 @@ function drawGun(c, id, t = 0, loaded = true) {
       c.fillStyle = '#1c1d22'; c.fillRect(-2, 4, 4, 7); c.fillRect(10, 4, 4, 6);
       fillRR(c, 3, -11.5, 8, 5.5, 1.5, '#1c1d22');
       if (loaded) poly(c, [31, -4.5, 39, -0.5, 31, 3.5], '#d6452f');
+      break;
+    }
+    case 'glauncher': {   // a revolver grenade launcher with a big drum
+      poly(c, [-21, -3, -6, -4, -6, 4, -21, 7], '#3a3d34');                  // stock
+      c.fillStyle = '#2a2c26'; c.fillRect(-21, -3, 2.5, 10);
+      fillRR(c, -7, -6, 10, 10, 2, '#2c2e36');                               // frame
+      fillRR(c, 1, -10, 15, 19, 5, '#4a4e3e');                               // the drum full of grenades
+      c.fillStyle = '#383b2f'; for (const y of [-6, -0.5, 5]) c.fillRect(1.5, y - 1, 14, 2);
+      fillRR(c, 15, -6, 16, 9, 3, '#3a3d34');                                // fat barrel
+      c.fillStyle = '#23251f'; c.fillRect(29, -5, 2, 7);
+      c.fillStyle = '#c9a227'; c.fillRect(17, -6, 2, 9);                     // brass band
+      fillRR(c, 18, 3, 6, 9, 2, '#23251f');                                  // front grip
+      c.fillStyle = '#1c1c22'; c.fillRect(-4, 3, 4, 9);                      // pistol grip
+      c.fillStyle = '#111'; c.fillRect(8, -12, 4, 2.5);                      // sight
+      break;
+    }
+    case 'quad': {   // four rocket tubes in one big box
+      fillRR(c, -16, -20, 50, 26, 3, '#4e5a36');                             // the pod
+      c.fillStyle = '#3e4a2a'; c.fillRect(-16, -8, 50, 2);
+      c.fillStyle = '#ffd23f'; c.fillRect(20, -20, 3, 26); c.fillRect(-10, -20, 3, 26);   // warning bands
+      fillRR(c, 32, -20, 6, 26, 2, '#3a4428');                               // the front, with the tube ends
+      for (const ty of [-14, -1]) { circle(c, 35, ty, 4, '#1a1a1a'); if (loaded) circle(c, 35, ty, 2.2, '#d6452f'); }
+      c.fillStyle = '#1c1c22'; c.fillRect(2, 6, 4, 10); c.fillRect(14, 6, 4, 7);   // grips
+      fillRR(c, 4, -25, 10, 5, 1.5, '#2a2c26');                              // sight
       break;
     }
     case 'aa12': {   // boxy auto shotgun with a big drum magazine

@@ -156,8 +156,9 @@ function updateBullets(dt) {
     if (b.kind === 'flame') { const k = Math.exp(-2.2 * dt); b.vx *= k; b.vy = b.vy * k - 90 * dt; }
     else if (b.kind === 'inferno') { const k = Math.exp(-1.5 * dt); b.vx *= k; b.vy = b.vy * k - 60 * dt; }   // the incinerator reaches further
     if (b.kind === 'bolt') b.vy += 650 * dt;   // crossbow bolts arc down
-    const boom = b.kind === 'rocket' || b.kind === 'bolt';
-    if (b.kind === 'rocket') {
+    else if (b.kind === 'gl') { b.vy += b.wp.lob * dt; b.spin = (b.spin || 0) + dt * 14; }   // launcher grenades are lobbed
+    const boom = b.kind === 'rocket' || b.kind === 'bolt' || b.kind === 'gl', hrock = b.kind === 'hrocket';   // hrocket = the quad's rockets
+    if (b.kind === 'rocket' || hrock) {
       const sp = Math.hypot(b.vx, b.vy), ns = Math.min(1300, sp + 900 * dt);
       b.vx *= ns / sp; b.vy *= ns / sp;
       b.trail = (b.trail || 0) - dt;
@@ -181,8 +182,9 @@ function updateBullets(dt) {
           } else {
             hurtZombie(z, b.dmg, dir * b.knock, -40, true);
             goo(b.x, b.y, b.kind === 'slug' ? 6 : 3, dir);
+            if (hrock) sparks(b.x, b.y, 8, Math.atan2(b.vy, b.vx), 0.6, '#ffcf6a', 380);
           }
-          if (--b.pierce <= 0) { dead = true; break; }
+          if (--b.pierce <= 0) { if (hrock) explode(b.x, b.y, b.wp); dead = true; break; }   // a quad rocket blows up in the last one
         }
       }
       const bb = !dead && G.barrels.length ? barrelAt(b.x, b.y) : null;   // js/barrels.js
@@ -191,16 +193,20 @@ function updateBullets(dt) {
         else {
           b.hit.add(bb);
           hitBarrel(bb, isFlame(b.kind) ? b.dmg * 2 : b.dmg, Math.sign(b.vx) || 1);   // fire heats it up fast
-          if (!isFlame(b.kind) && --b.pierce <= 0) dead = true;
+          if (!isFlame(b.kind) && --b.pierce <= 0) { if (hrock) explode(b.x, b.y, b.wp); dead = true; }
         }
       }
       if (!dead && b.y >= GROUND) {
-        if (boom) explode(b.x, GROUND - 4, b.wp);
-        else if (!isFlame(b.kind)) sparks(b.x, GROUND - 1, 3, -Math.PI / 2, 1.2, b.kind === 'plasma' ? '#8fffd0' : '#ffd27a', 200);
-        dead = true;
+        if (b.kind === 'gl' && !b.bounced) {   // a launcher grenade bounces once, then blows up
+          b.bounced = true; b.y = GROUND - 2; b.vy = -Math.abs(b.vy) * 0.42; b.vx *= 0.65; Sound.play('clink', b.x);
+        } else {
+          if (boom || hrock) explode(b.x, GROUND - 4, b.wp);
+          else if (!isFlame(b.kind)) sparks(b.x, GROUND - 1, 3, -Math.PI / 2, 1.2, b.kind === 'plasma' ? '#8fffd0' : '#ffd27a', 200);
+          dead = true;
+        }
       }
     }
-    if (!dead && b.life <= 0) { if (boom) explode(b.x, b.y, b.wp); dead = true; }
+    if (!dead && b.life <= 0) { if (boom || hrock) explode(b.x, b.y, b.wp); dead = true; }
     if (!dead && (b.x < -60 || b.x > G.level.worldW + 60 || b.y < -200)) dead = true;
     if (dead) bs.splice(i, 1);
   }
@@ -217,13 +223,13 @@ function blastZombies(x, y, radius, dmg, knock, onHit) {
   }
 }
 function explode(x, y, wp) {
-  blastZombies(x, y, wp.radius, wp.dmg, wp.knock);
+  blastZombies(x, y, wp.radius, wp.blast || wp.dmg, wp.knock);
   blastBarrels(x, y, wp.radius);
   const s = wp.radius / 130;   // crossbow bolts make a smaller boom than rockets
   flashAt(x, y, 150 * s); fireBurst(x, y, Math.round(34 * s), 1.2 * s); smoke(x, y, Math.round(14 * s), 18 * s, '#3e3846'); ring(x, y, wp.radius, '#ffd27a', 0.4);
   sparks(x, y, 16, -Math.PI / 2, Math.PI, '#ffcf6a', 520 * s);
   G.shake = Math.max(G.shake, 14 * s);
-  Sound.play('boom', x);
+  Sound.play(wp.blast ? 'bigboom' : 'boom', x);
 }
 function rayBox(ox, oy, dx, dy, x0, y0, x1, y1) {
   let tmin = 0, tmax = Infinity;
@@ -257,7 +263,17 @@ function drawBullets(c) {
   for (const b of G.bullets) {
     if (b.dist < b.hide || isFlame(b.kind) || b.kind === 'plasma') continue;
     const a = Math.atan2(b.vy, b.vx);
-    if (b.kind === 'rocket') {
+    if (b.kind === 'gl') {   // a fat 40mm grenade, tumbling
+      c.save(); c.translate(b.x, b.y); c.rotate(b.spin || G.t * 14); c.scale(1.5, 1.5);
+      fillRR(c, -5, -4, 10, 8, 3.5, '#5a6e30'); c.fillStyle = '#c9a227'; c.fillRect(-1, -4, 2, 8);
+      c.restore();
+      if (Math.floor(G.t * 16) % 2) { c.globalCompositeOperation = 'lighter'; circle(c, b.x, b.y, 5, 'rgba(255,90,60,.7)'); c.globalCompositeOperation = 'source-over'; }   // a blinking light so you can follow it
+    } else if (b.kind === 'hrocket') {   // a big high explosive rocket
+      c.save(); c.translate(b.x, b.y); c.rotate(a); c.scale(1.4, 1.4);
+      fillRR(c, -9, -2.5, 14, 5, 2, '#e8e8e8'); c.fillStyle = '#ffd23f'; c.fillRect(-3, -2.5, 2.5, 5);
+      poly(c, [5, -2.5, 10, 0, 5, 2.5], '#d6452f'); poly(c, [-9, -2.5, -12, -5, -6, -2.5], '#666'); poly(c, [-9, 2.5, -12, 5, -6, 2.5], '#666');
+      c.restore();
+    } else if (b.kind === 'rocket') {
       c.save(); c.translate(b.x, b.y); c.rotate(a);
       fillRR(c, -9, -2.5, 14, 5, 2, '#d8d8d8'); poly(c, [5, -2.5, 10, 0, 5, 2.5], '#d6452f'); poly(c, [-9, -2.5, -12, -5, -6, -2.5], '#888'); poly(c, [-9, 2.5, -12, 5, -6, 2.5], '#888');
       c.restore();
@@ -406,7 +422,7 @@ function startLevel(i) {
   clearWorld();
   G.numPlayers = Net.isHost ? 1 : save.numPlayers;
   G.run = { kills: 0, coins: [0, 0, 0, 0] };
-  const sx = G.level.worldW * 0.35;
+  const sx = G.level.start || G.level.worldW * 0.35;
   if (Net.isHost) { G.players = NetGame.buildPlayers(sx); for (const s of Object.values(NetGame.slots)) s.ready = false; }
   else { G.players = []; for (let k = 0; k < G.numPlayers; k++) G.players.push(makePlayer(k, sx + k * 60)); }
   for (const s of mapCoinSpots(G.level)) addFloatCoin(s.x, s.y, s.val);
@@ -489,7 +505,7 @@ function afterClear() {
   G.collectAll = false;
   writeSave();
   if (G.levelDone) {
-    if (G.levelIndex === LEVELS.length - 1) showWin();
+    if (G.levelIndex === LEVELS.length - 1) startRescue();   // the helicopter comes for you (js/rescue.js)
     else openShop({ level: G.levelIndex + 1, wave: 0 });
   } else openShop({ level: G.levelIndex, wave: G.waveIndex + 1 });
 }
@@ -497,7 +513,7 @@ function afterClear() {
 function camTarget() {
   const alive = alivePlayers(), ps = alive.length ? alive : G.players;
   if (!ps.length) return G.camX;
-  let cx = 0; for (const p of ps) cx += p.x + (G.players.length === 1 ? p.facing * 60 : 0);
+  let cx = 0; for (const p of ps) cx += p.x + (G.players.length === 1 ? (p.veh ? p.vx * 0.35 + p.vface * 60 : p.facing * 60) : 0);   // a truck looks further ahead
   cx /= ps.length;
   return clamp(cx - W / 2, 0, Math.max(0, G.level.worldW - W));
 }
@@ -552,7 +568,7 @@ function render() {
     drawPools(c);
     drawBarrels(c, false);
     for (const z of G.zombies) if (!z.dead) drawShadow(c, z.x, z.y, z.w);
-    for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, 26);
+    for (const p of G.players) if (!p.dead) drawShadow(c, p.x, p.y, p.veh ? 96 : 26);
     for (const z of G.zombies) if (z.dead) drawZombie(c, z);
     for (const z of G.zombies) if (!z.dead) drawZombie(c, z);
     drawSlimeFeet(c);
@@ -560,18 +576,20 @@ function render() {
     drawIce(c);
     for (const p of G.players) drawPlayer(c, p);
     drawZombieBars(c);
-    drawAimMarkers(c);
+    if (G.state !== 'rescue') drawAimMarkers(c);
     drawBullets(c);
     drawShots(c);
     drawNades(c);
     drawBarrels(c, true);   // gas tanks flying around
+    if (G.state === 'rescue') drawRescue(c);   // the ending (js/rescue.js)
   }
   drawParticles(c);
   drawTexts(c);
   drawWorldFront(c, L, G.camX);
   c.restore();
   drawVignette(c);
-  if (G.state !== 'title' && G.state !== 'lobby' && G.players.length) drawHUD(c);
+  if (G.state !== 'title' && G.state !== 'lobby' && G.state !== 'rescue' && G.players.length) drawHUD(c);
+  if (G.state === 'rescue') drawRescueText(c);
   drawBanner(c); drawToast(c);
 }
 function drawAimMarkers(c) {
@@ -758,6 +776,13 @@ function renderTitle() {
     b.addEventListener('click', () => { blurAll(); Sound.init(); startLevel(i); });
     box.appendChild(b);
   });
+  if (save.beaten.includes(LEVELS.length - 1)) {   // the ending, to watch again (js/rescue.js)
+    const b = document.createElement('button');
+    b.className = 'lvl beaten';
+    b.innerHTML = '<span class="lnum">★ THE END</span><span class="lname">Rescue!</span><span class="lblurb">Watch the helicopter fly you out of Zombie City again.</span>';
+    b.addEventListener('click', () => { blurAll(); Sound.init(); replayRescue(); });
+    box.appendChild(b);
+  }
 }
 function toTitle(mode) {
   if (mode) titleMode = mode;
@@ -1107,6 +1132,7 @@ function step(dt) {
   G.t += dt;
   if (Net.isGuest) NetGame.guestTick(dt);
   else if (PLAYING.includes(G.state)) update(dt);
+  else if (G.state === 'rescue') updateRescue(dt);
   else if (G.state === 'title' || G.state === 'lobby') {
     G.camX = (Math.sin(G.t * 0.06) * 0.5 + 0.5) * Math.max(0, G.level.worldW - W);
     for (const c of G.coins) { c.spin += dt * 6; if (c.float) c.y = c.baseY + Math.sin(G.t * 3 + c.x * 0.05) * 3; }

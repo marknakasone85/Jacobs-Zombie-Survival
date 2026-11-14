@@ -200,6 +200,20 @@ const Sound = (() => {
       nz(p, { dur: 0.05, f0: 3000, f1: 600, vol: 0.8 });
       nz(b, { dur: 0.8, type: 'bandpass', f0: 500, f1: 3200, q: 1.2, vol: 0.7, atk: 0.05 }); // whoosh
     },
+    glaunch(x) {   // THOOMP: a grenade leaving the tube
+      const b = bus(x, 0.9, 0.25, 0.15), p = shaper(b, punch);
+      osc(p, { dur: 0.2, f0: 150, f1: 55, vol: 1.1 });
+      nz(p, { dur: 0.12, f0: 900, f1: 120, vol: 0.9 });
+      click(b, 0, 2600, 0.9); click(b, 0.3, 1400, 1.1);   // and the drum turning
+    },
+    quad(x) {   // four rockets whooshing off one after another
+      const b = bus(x, 1.1, 0.35, 0.3), p = shaper(b, punch);
+      osc(p, { dur: 0.35, f0: 85, f1: 32, vol: 1.2 });
+      for (let i = 0; i < 4; i++) {
+        nz(p, { at: i * 0.06, dur: 0.05, f0: 3000, f1: 600, vol: 0.75 });
+        nz(b, { at: i * 0.06, dur: 0.9, type: 'bandpass', f0: 450, f1: 3000, q: 1.2, vol: 0.45, atk: 0.05 });
+      }
+    },
     boom(x) {
       const b = bus(x, 1.2, 0.5, 0.35), p = shaper(b, grit);
       nz(p, { dur: 0.025, type: 'highpass', f0: 900, vol: 1.2 });
@@ -292,6 +306,7 @@ const Sound = (() => {
   // Sounds that keep going while you hold fire: the flamethrower roar and the minigun motor.
   function startLoop(kind, x) {
     const b = bus(x, 1, 0.2, 0, 0), t = ac.currentTime, parts = [];
+    let tune = null;
     const env = ac.createGain(); env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(1, t + 0.08); env.connect(b);
     if (kind === 'flame' || kind === 'inferno') {   // inferno = the Heavy Incinerator: a deeper, louder roar
       const big = kind === 'inferno';
@@ -312,6 +327,24 @@ const Sound = (() => {
       const g = ac.createGain(); g.gain.value = 0.06;
       o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(env);
       o1.start(); o2.start(); parts.push(o1, o2);
+    } else if (kind === 'engine') {   // a truck engine: tune(r) revs it up with the speed (r = 0..1)
+      const o1 = ac.createOscillator(), o2 = ac.createOscillator(), lfo = ac.createOscillator();
+      o1.type = 'sawtooth'; o2.type = 'square'; o1.frequency.value = 55; o2.frequency.value = 110.5; lfo.frequency.value = 22;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+      const g = ac.createGain(); g.gain.value = 0.07; const lg = ac.createGain(); lg.gain.value = 0.03;
+      lfo.connect(lg); lg.connect(g.gain);   // the chug-chug
+      o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(env);
+      o1.start(); o2.start(); lfo.start(); parts.push(o1, o2, lfo);
+      tune = r => { const tt = ac.currentTime; o1.frequency.setTargetAtTime(55 + r * 75, tt, 0.15); o2.frequency.setTargetAtTime(110.5 + r * 150, tt, 0.15); lfo.frequency.setTargetAtTime(22 + r * 30, tt, 0.15); lp.frequency.setTargetAtTime(500 + r * 700, tt, 0.15); };
+    } else if (kind === 'rotor') {   // helicopter blades: whup-whup-whup
+      const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650;
+      const g = ac.createGain(); g.gain.value = 0.35;
+      const lfo = ac.createOscillator(); lfo.frequency.value = 11; const lg = ac.createGain(); lg.gain.value = 0.35;
+      const thump = ac.createOscillator(); thump.frequency.value = 75; const tg = ac.createGain(); tg.gain.value = 0.12; const lg2 = ac.createGain(); lg2.gain.value = 0.12;
+      lfo.connect(lg); lg.connect(g.gain); lfo.connect(lg2); lg2.connect(tg.gain);
+      src.connect(lp); lp.connect(g); g.connect(env); thump.connect(tg); tg.connect(env);
+      src.start(); lfo.start(); thump.start(); parts.push(src, lfo, thump);
     } else {
       const o1 = ac.createOscillator(), o2 = ac.createOscillator();
       o1.type = 'sawtooth'; o2.type = 'square';
@@ -322,7 +355,7 @@ const Sound = (() => {
       o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(env);
       o1.start(); o2.start(); parts.push(o1, o2);
     }
-    return { env, parts, bus: b, touched: frame };
+    return { env, parts, bus: b, touched: frame, tune };
   }
   function stopLoop(key) {
     const l = loops[key]; if (!l) return;
@@ -333,9 +366,12 @@ const Sound = (() => {
     for (const s of l.parts) s.stop(t + 0.2);
     setTimeout(l.bus.unplug, 400);
   }
-  function hold(key, kind, on, x) {
+  function hold(key, kind, on, x, rate) {   // rate (0..1) revs up a loop that can change (the truck engine)
     if (!ready()) return;
-    if (on) { if (loops[key]) loops[key].touched = frame; else loops[key] = startLoop(kind, x); }
+    if (on) {
+      if (loops[key]) loops[key].touched = frame; else loops[key] = startLoop(kind, x);
+      if (loops[key].tune && rate !== undefined) loops[key].tune(rate);
+    }
     else stopLoop(key);
   }
   // Called once a frame: any loop nobody asked for this frame fades out (pause, shop, death...).

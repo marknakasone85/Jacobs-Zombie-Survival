@@ -14,6 +14,11 @@ Ammo never runs out. (made by a 9 year old with Claude Code)
 
 - **In your web browser:** https://marknakasone85.github.io/Jacobs-Zombie-Survival/ (1 or 2 players on one device).
 - **On your own computer:** download the game (the green **Code** button, then **Download ZIP**), unzip it and double-click `index.html`. There's nothing to install. Every picture and sound is made in code.
+- **On your phone's home screen, even with no internet:** open the web page above, then
+  - **iPhone or iPad:** tap Safari's **Share** button, then **Add to Home Screen**.
+  - **Android:** tap Chrome's **⋮** menu, then **Add to Home screen** (or **Install app**).
+
+  The game gets its own zombie icon and opens full screen. Once it has been opened with internet, it also works in airplane mode, and it updates itself whenever you open it online. (On an iPhone or iPad the home-screen game keeps its own save, separate from the one in Safari.) Chrome and Edge on a computer can install it the same way.
 - **With friends on your home Wi-Fi (2 to 4 players):** see [Playing together on Wi-Fi](#playing-together-on-wi-fi-2-to-4-players) below.
 
 Your coins, guns and levels are saved in the web browser you play in.
@@ -291,6 +296,7 @@ Open `js/levels.js` and copy one of the entries in `LEVELS`. The comment at the 
 - `js/game.js`: waves, coins, the shop, the HUD and the game loop
 - `share-on-network.command`, `tools/share_server.py`: shares the game on your home Wi-Fi
 - `tools/make_artifact.py`: makes `artifact.html`, the page for the Claude Artifact
+- `manifest.webmanifest`, `icons/`, `sw.js`: putting the game on a phone's home screen and playing with no internet. `python3 tools/make_icons.py` draws the icons with the game's own zombie (`tools/icon_art.js`)
 - `screenshots/`: the pictures on this page. `python3 tools/take_screenshots.py` takes them again with Google Chrome on a Mac (the scenes are set up in `tools/screenshot_scenes.js`)
 - `LICENSE`: the MIT license
 
@@ -304,6 +310,7 @@ Content: cartoon fighting against made-up zombies and zombie animals, with carto
 
 The game collects no personal information. It has no accounts, ads, analytics or tracking.
 - Coins, guns and unlocked levels are saved only in your own web browser and never leave your device.
+- To work with no internet, the web page keeps a copy of the game's own files in your browser. It never contacts any other website.
 - The fonts come with the game, so playing never contacts another website. A security setting in the page (a Content Security Policy) also tells the browser to refuse anything from another website: no outside scripts, pictures, fonts or connections.
 - Wi-Fi games stay on your home network. Button presses and game updates go between the players' devices through the host computer and are kept in memory only.
 - The public web page is hosted by GitHub Pages, which keeps the usual web server logs (see GitHub's privacy statement).

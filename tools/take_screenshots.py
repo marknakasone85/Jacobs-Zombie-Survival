@@ -35,13 +35,13 @@ SCENES = {
 }
 
 
-def make_page(tmp):
+def make_page(tmp, script='tools/screenshot_scenes.js'):
     """index.html, reading the game's files from this folder, without the security line
-    (it would stop the scene script, which isn't one of the game's files), plus the scene script."""
+    (it would stop the extra script, which isn't one of the game's files), plus that script."""
     html = (ROOT / 'index.html').read_text()
     html = re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>\n?', '', html)
     html = html.replace('<head>', f'<head><base href="{ROOT.as_uri()}/">', 1)
-    html = html.replace('</body>', '<script src="tools/screenshot_scenes.js"></script>\n</body>', 1)
+    html = html.replace('</body>', f'<script src="{script}"></script>\n</body>', 1)
     page = tmp / 'shots.html'
     page.write_text(html)
     return page

@@ -1187,5 +1187,21 @@ function startHostTicker() {
   } catch (e) { ticker = null; }
 }
 function stopHostTicker() { if (ticker) { ticker.terminate(); ticker = null; } }
+// The public web page can be put on a phone's home screen and played with no internet: manifest.webmanifest
+// (the name and icons/ for the home screen) and sw.js (keeps a copy of the game's files). Only on a public
+// website (https), opened directly: not inside a frame (the Claude Artifact, itch.io), not on the home Wi-Fi share
+// (which only serves index.html, css/ and js/) and not in a double-clicked copy. The links are added here,
+// not in index.html, so those other places never ask for files they don't have.
+function setupApp() {
+  if (location.protocol !== 'https:' || !Net.onPublicWebsite() || window.top !== window || !('serviceWorker' in navigator)) return;
+  const add = (tag, attrs) => document.head.appendChild(Object.assign(document.createElement(tag), attrs));
+  add('link', { rel: 'manifest', href: 'manifest.webmanifest' });
+  add('link', { rel: 'icon', href: 'icons/icon-32.png', type: 'image/png' });
+  add('link', { rel: 'apple-touch-icon', href: 'icons/apple-touch-icon.png' });
+  add('meta', { name: 'apple-mobile-web-app-title', content: 'Zombie Survival' });
+  add('meta', { name: 'theme-color', content: '#0b0716' });
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+try { setupApp(); } catch (e) { /* the game works without it */ }
 toTitle();
 schedule();
